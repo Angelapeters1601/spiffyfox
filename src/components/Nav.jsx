@@ -135,7 +135,7 @@ const Nav = () => {
                 >
                   <Link
                     to={item.path}
-                    className={`font-lora relative block rounded-lg px-4 py-2 text-lg font-medium transition-all duration-200 ${
+                    className={`font-cormorant relative block rounded-lg px-4 py-2 text-lg font-medium transition-all duration-200 ${
                       isActive(item.path)
                         ? "spiffy-text font-semibold"
                         : "text-gray-700 hover:text-gray-900"
@@ -221,7 +221,7 @@ const Nav = () => {
                   <Link
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`font-lora block rounded-lg px-4 py-3 text-base font-medium transition-all duration-200 ${
+                    className={`font-cormorant block rounded-lg px-4 py-3 text-base font-medium transition-all duration-200 ${
                       isActive(item.path)
                         ? "spiffy-bg text-white shadow-lg"
                         : "hover:spiffy-bg-light hover:spiffy-text text-gray-700"
