@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .spiffy-text {
+    color: #b19cd9;
+  }
+  .spiffy-border {
+    border-color: #b19cd9;
+  }
+  .spiffy-bg {
+    background-color: #b19cd9;
+  }
+  .spiffy-bg-light {
+    background-color: rgba(197, 164, 232, 0.1);
+  }
+  .spiffy-bg-medium {
+    background-color: rgba(57, 35, 83, 0.3);
+  }
+  .spiffy-bg-dark {
+    background-color: rgba(96, 23, 180, 0.6);
+  }
+  .font-bodoni {
+    font-family: "Bodoni Moda", serif;
+  }
+  .font-cinzel {
+    font-family: "Cinzel Decorative", serif;
+  }
+  .font-cormorant {
+    font-family: "Cormorant Garamond", serif;
+  }
+  .font-elsie {
+    font-family: "Elsie", serif;
+  }
+  .font-lora {
+    font-family: "Lora", serif;
+  }
+  .font-quicksand {
+    font-family: "Quicksand", sans-serif;
+  }
+}
