@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import LoadingFallback from "./ui/LoadingFallback";
+import NotFoundPage from "./pages/NotFoundPage";
+import { ScrollToTopHandler } from "./ui/ScrollToTop";
 
 // Lazy load pages
 const Home = React.lazy(() => import("./pages/Home"));
@@ -19,7 +21,9 @@ function App() {
   isLoading && <LoadingFallback />;
   return (
     <Router>
-      <div className="App">
+      <div>
+        <ScrollToTopHandler />
+
         <Routes>
           <Route path="/" element={<AppLayout />}>
             <Route
@@ -75,6 +79,14 @@ function App() {
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Contact />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <NotFoundPage />
                 </React.Suspense>
               }
             />
