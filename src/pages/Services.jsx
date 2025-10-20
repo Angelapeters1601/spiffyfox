@@ -26,6 +26,7 @@ import img17 from "../assets/img17.jpg";
 import img19 from "../assets/img19.jpg";
 import img20 from "../assets/img20.jpg";
 import logo from "../assets/logo.jpg";
+import logo2 from "../assets/logo2.jpg";
 import icon from "../assets/favicon.jpg";
 
 const Services = () => {
@@ -45,7 +46,6 @@ const Services = () => {
         "Eco-friendly cleaning products",
         "Customizable cleaning schedules",
       ],
-      price: "Starting at $150",
       images: [img1, img6, img4],
     },
     {
@@ -60,24 +60,51 @@ const Services = () => {
         "Floor and carpet care",
         "After-hours service available",
       ],
-      price: "Custom quotes available",
       images: [img2, img13, img19],
     },
+
     {
       name: "Deep Cleaning",
       image: img3,
       description:
-        "Thorough cleaning that reaches every corner, perfect for seasonal cleaning or move-in/move-out.",
+        "Deep cleaning is a comprehensive and thorough process that goes beyond typical surface-level cleaning to remove built-up dirt, grime, and allergens from hard-to-reach areas. It is a more extensive and detailed service than regular cleaning and is typically done less frequently, such as a few times a year.",
       features: [
-        "Inside appliance cleaning",
-        "Baseboard and molding detail",
-        "Window track cleaning",
-        "Light fixture dusting",
-        "Cabinet organization",
+        "Frequency - Less frequent, often performed quarterly or binually.",
+        "Thoroughness - Intense, detailed scrubbing and sanitizing that targets neglected and hard-to-reach areas.",
+        "Areas Covered - Includes everything in a regular cleaning, plus neglected areas like appliances, behind furniture, and blinds.",
+        "Specialized Tasks - Often involves specialized equipment for tasks like carpet shampooing, scrubbing grout, and removing soap scum.",
+        "Purpose - Aims to remove deep-seated dirt, bacteria, and allergens, improving overall air quality and hygiene.",
       ],
-      price: "Starting at $250",
+      examples: {
+        Kitchen: [
+          "Appliances: Inside and outside of the oven, microwave, and refrigerator are cleaned",
+          "Cabinets: The inside are emptied and wiped clean",
+          "Behind and under appliances: Areas often missed during regular cleaning, like the stovetop and refrigerator, are pulled out and cleaned",
+          "Grime removal: Sinks, faucets, and backsplashes are degreased and sanitized.",
+        ],
+        Bathroom: [
+          "Grout and tile: Scrubbed to remove grime and mold",
+          "Fixtures: Taps, showerheads, and shower doors are descaled and polished.",
+          "Hard-to-reach areas: Includes disinfecting behind the toilets and wiping down baseboard and door frames",
+          "Ventilation: Exhaust fan and duct cleaning",
+        ],
+        General: [
+          "Floors and carpets: Vacuums and mops reach under and behind all furniture. Carpets may be shampooed",
+          "Windows and blinds: Windows and their tracks are cleaned, and blinds are washed.",
+          "Light fixtures: Ceiling fans and light fixtures are dusted and wiped down.",
+          "Upholstery: Vacuums or specialised cleaners are used to deep clean upholstered furniture, removing hidden dirt and allergens.",
+        ],
+      },
+      necessity: [
+        "Before or after moving into a new home.",
+        "During seasonal cleaning, such as spring/fall cleaning.",
+        "After home renovations, to clear dust and debris.",
+        "For a fresher, healthier environment if you have pets, small children, or resident or residents with allergies or asthma.",
+        "Before hosting a large event.",
+      ],
       images: [img3, img9, img8],
     },
+
     {
       name: "Organization",
       image: img12,
@@ -90,7 +117,6 @@ const Services = () => {
         "Storage solutions",
         "Decluttering services",
       ],
-      price: "Starting at $200",
       images: [img12, img10, img11],
     },
     {
@@ -105,7 +131,6 @@ const Services = () => {
         "Fence and gate maintenance",
         "Eco-friendly cleaning solutions",
       ],
-      price: "Starting at $175",
       images: [img5, img16, img19],
     },
     {
@@ -120,7 +145,6 @@ const Services = () => {
         "Construction cleanouts",
         "Donation coordination",
       ],
-      price: "Starting at $100",
       images: [img6, img13, img8],
     },
     {
@@ -135,7 +159,6 @@ const Services = () => {
         "Room-by-room unpacking",
         "Setup and organization",
       ],
-      price: "Custom quotes available",
       images: [img7, img17, img20],
     },
     {
@@ -150,7 +173,6 @@ const Services = () => {
         "Vendor coordination",
         "Personal organization",
       ],
-      price: "$45/hour",
       images: [img14, img10, img15],
     },
   ];
@@ -294,7 +316,7 @@ const Services = () => {
             {/* Center Logo Card */}
             <motion.div
               variants={itemVariants}
-              className="group relative cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-white shadow-lg transition-all duration-300 hover:shadow-2xl md:col-start-2 md:row-start-2"
+              className="group spiffy-bg relative cursor-pointer overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl md:col-start-2 md:row-start-2"
               onClick={() =>
                 openModal({
                   name: "SpiffyFox",
@@ -314,7 +336,7 @@ const Services = () => {
             >
               <div className="relative h-64 overflow-hidden">
                 <motion.img
-                  src={logo}
+                  src={logo2}
                   alt="SpiffyFox Logo"
                   className="h-full w-full object-contain p-8"
                   whileHover={{
@@ -492,6 +514,75 @@ const Services = () => {
                   </ul>
                 </div>
 
+                {/* Examples Section */}
+                {selectedService.examples && (
+                  <div className="mb-6">
+                    <h3 className="font-cormorant mb-3 text-xl font-semibold text-gray-800">
+                      What's Included
+                    </h3>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      {Object.entries(selectedService.examples).map(
+                        ([category, items]) => (
+                          <div
+                            key={category}
+                            className="rounded-lg bg-purple-50 p-4"
+                          >
+                            <h4 className="font-cormorant mb-2 font-semibold text-gray-800">
+                              {category}
+                            </h4>
+                            <ul className="font-quicksand space-y-1 text-sm text-gray-600">
+                              {items.map((item, index) => (
+                                <li key={index} className="flex items-start">
+                                  <div className="spiffy-bg mt-1.5 mr-2 h-1.5 w-1.5 flex-shrink-0 rounded-full"></div>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Necessity Section */}
+                {selectedService.necessity && (
+                  <div className="mb-6">
+                    <h3 className="font-cormorant mb-3 text-xl font-semibold text-gray-800">
+                      When You Need This Service
+                    </h3>
+                    <div className="rounded-lg bg-purple-50 p-4">
+                      <ul className="font-quicksand space-y-2 text-gray-600">
+                        {selectedService.necessity.map((item, index) => (
+                          <li key={index} className="flex items-center">
+                            <div className="mr-3 h-1.5 w-1.5 rounded-full bg-purple-400"></div>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Sections */}
+                {selectedService.benefits && (
+                  <div className="mb-6">
+                    <h3 className="font-cormorant mb-3 text-xl font-semibold text-gray-800">
+                      Key Benefits
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      {selectedService.benefits.map((benefit, index) => (
+                        <div key={index} className="rounded-lg bg-green-50 p-3">
+                          <p className="font-quicksand text-sm text-gray-600">
+                            {benefit}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Price and CTA */}
                 <div className="flex items-center justify-between border-t pt-6">
                   <div className="font-cormorant spiffy-text text-2xl font-semibold">
                     {selectedService.price}
