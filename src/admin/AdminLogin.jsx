@@ -9,11 +9,13 @@ import {
   FaShieldAlt,
   FaArrowLeft,
 } from "react-icons/fa";
+import { supabase } from "../services/supabaseClient";
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,9 +23,10 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     });
     setError("");
   };
@@ -40,19 +43,19 @@ const AdminLogin = () => {
       return;
     }
 
-    // Simulate login process (will be replaced with Supabase)
     try {
-      // TODO: Add Supabase authentication here
-      console.log("Login attempt:", formData);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // For demo purposes - redirect to home
-      // In real app, this would redirect to admin dashboard
-      navigate("/");
+      if (error) {
+        setError("Invalid credentials or account does not exist.");
+      } else {
+        navigate("/admin/dashboard");
+      }
     } catch (err) {
-      setError("Invalid credentials. Please try again.");
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +159,7 @@ const AdminLogin = () => {
                   htmlFor="email"
                   className="font-quicksand mb-2 block font-semibold text-gray-700"
                 >
-                  Email Address
+                  Admin Email
                 </label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -168,9 +171,10 @@ const AdminLogin = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="font-quicksand w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                    className="font-quicksand w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
                     placeholder="admin@spiffyfox.com"
                     disabled={isLoading}
+                    required
                   />
                 </div>
               </motion.div>
@@ -193,14 +197,16 @@ const AdminLogin = () => {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={handleChange}
-                    className="font-quicksand w-full rounded-lg border border-gray-300 py-3 pr-12 pl-10 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                    className="font-quicksand w-full rounded-lg border border-gray-300 py-3 pr-12 pl-10 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
                     placeholder="Enter your password"
                     disabled={isLoading}
+                    required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition-colors duration-200 hover:text-gray-600"
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <FaEyeSlash className="h-5 w-5" />
@@ -208,6 +214,39 @@ const AdminLogin = () => {
                       <FaEye className="h-5 w-5" />
                     )}
                   </button>
+                </div>
+              </motion.div>
+
+              {/* Remember Me & Forgot Password */}
+              <motion.div
+                variants={itemVariants}
+                className="flex items-center justify-between"
+              >
+                <div className="flex items-center">
+                  <input
+                    id="rememberMe"
+                    name="rememberMe"
+                    type="checkbox"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    disabled={isLoading}
+                  />
+                  <label
+                    htmlFor="rememberMe"
+                    className="font-quicksand ml-2 block text-sm text-gray-700"
+                  >
+                    Remember me
+                  </label>
+                </div>
+
+                <div className="text-sm">
+                  <Link
+                    to="/admin/forgot-password"
+                    className="font-quicksand font-medium text-purple-600 transition-colors duration-200 hover:text-purple-700"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
               </motion.div>
 

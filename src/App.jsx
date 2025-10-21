@@ -18,6 +18,9 @@ const Contact = React.lazy(() => import("./pages/Contact"));
 // Lazy load admin components
 const AdminLayout = React.lazy(() => import("./admin/AdminLayout"));
 const AdminLogin = React.lazy(() => import("./admin/AdminLogin"));
+const AdminProtectedRoute = React.lazy(
+  () => import("./admin/protectedRoute/AdminProtectedRoute"),
+);
 const Dashboard = React.lazy(() => import("./admin/dashboard/Dashboard"));
 const AdminContact = React.lazy(() => import("./admin/contact/AdminContact"));
 const AdminContractor = React.lazy(
@@ -100,90 +103,108 @@ function App() {
             />
           </Route>
 
-          {/* Admin routes with admin layout */}
+          {/* Admin Login (public route) */}
           <Route
             path="admin"
-            element={
-              <React.Suspense fallback={<LoadingFallback />}>
-                <AdminLayout />
-              </React.Suspense>
-            }
-          >
-            <Route
-              path="dashboard"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <Dashboard />
-                </React.Suspense>
-              }
-            />
-            <Route
-              path="contact"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <AdminContact />
-                </React.Suspense>
-              }
-            />
-            <Route
-              path="contractor"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <AdminContractor />
-                </React.Suspense>
-              }
-            />
-            <Route
-              path="tips"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <AdminTips />
-                </React.Suspense>
-              }
-            />
-            <Route
-              path="client-portal"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <AdminClientPortal />
-                </React.Suspense>
-              }
-            />
-            <Route
-              path="live-chat"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <LiveChat />
-                </React.Suspense>
-              }
-            />
-            <Route
-              path="analytics"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <VisitorAnalytics />
-                </React.Suspense>
-              }
-            />
-            <Route
-              path="faq"
-              element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <FAQ />
-                </React.Suspense>
-              }
-            />
-          </Route>
-
-          {/* Standalone pages (without layouts) */}
-          <Route
-            path="admin-login"
             element={
               <React.Suspense fallback={<LoadingFallback />}>
                 <AdminLogin />
               </React.Suspense>
             }
           />
+
+          {/* Protected Admin routes */}
+          <Route
+            path="admin/*"
+            element={
+              <React.Suspense fallback={<LoadingFallback />}>
+                <AdminProtectedRoute />
+              </React.Suspense>
+            }
+          >
+            <Route
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <AdminLayout />
+                </React.Suspense>
+              }
+            >
+              <Route
+                path="dashboard"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <Dashboard />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="dashboard"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <Dashboard />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="contact"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <AdminContact />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="contractor"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <AdminContractor />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="tips"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <AdminTips />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="client-portal"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <AdminClientPortal />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="live-chat"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <LiveChat />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="analytics"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <VisitorAnalytics />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="faq"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <FAQ />
+                  </React.Suspense>
+                }
+              />
+            </Route>
+          </Route>
+
+          {/* Standalone pages (without layouts) */}
           <Route
             path="unauthorized"
             element={

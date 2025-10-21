@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/logo.jpg";
+import logo from "../assets/spiffyLogo2.jpg";
 
 const Nav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -116,7 +116,7 @@ const Nav = () => {
               <motion.img
                 src={logo}
                 alt="SpiffyFox Logo"
-                className="h-15 w-25 rounded-lg"
+                className="h-10 w-38 rounded-lg"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               />

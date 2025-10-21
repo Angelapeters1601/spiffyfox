@@ -13,7 +13,7 @@ import {
   LocationOn as LocationIcon,
 } from "@mui/icons-material";
 
-import logo from "../assets/logo.jpg";
+import logo from "../assets/spiffyLogo2.jpg";
 
 export default function Footer() {
   const navLinks = [

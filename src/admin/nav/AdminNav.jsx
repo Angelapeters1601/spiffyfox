@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBars,
   FaTimes,
@@ -15,11 +15,31 @@ import {
   FaSignOutAlt,
   FaChevronDown,
 } from "react-icons/fa";
+import { supabase } from "../../services/supabaseClient";
 
-const AdminDashboardNav = () => {
+const AdminNav = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Sign out function
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Sign out error:", error);
+      } else {
+        navigate("/admin");
+      }
+    } catch (error) {
+      console.error("Sign out error:", error);
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   const menuItems = [
     {
@@ -229,13 +249,31 @@ const AdminDashboardNav = () => {
             <div className="flex items-center space-x-4">
               <div className="hidden text-right md:block">
                 <p className="font-quicksand font-semibold text-gray-800">
-                  sign out
+                  Sign out
                 </p>
               </div>
 
-              <button className="rounded-lg p-2 text-gray-600 transition-colors duration-200 hover:bg-red-50 hover:text-red-600">
-                <FaSignOutAlt className="h-5 w-5" />
-              </button>
+              <motion.button
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                whileHover={{ scale: isSigningOut ? 1 : 1.05 }}
+                whileTap={{ scale: isSigningOut ? 1 : 0.95 }}
+                className="rounded-lg p-2 text-gray-600 transition-colors duration-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSigningOut ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="h-5 w-5 rounded-full border-2 border-red-400 border-t-transparent"
+                  />
+                ) : (
+                  <FaSignOutAlt className="h-5 w-5" />
+                )}
+              </motion.button>
             </div>
           </div>
 
@@ -328,6 +366,39 @@ const AdminDashboardNav = () => {
                     </Link>
                   </motion.div>
                 ))}
+
+                {/* Sign Out Button in Mobile Sidebar */}
+                <motion.div
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: menuItems.length * 0.1 }}
+                >
+                  <button
+                    onClick={handleSignOut}
+                    disabled={isSigningOut}
+                    className="group flex w-full items-center space-x-3 rounded-lg p-3 text-gray-700 transition-all duration-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <div className="text-gray-400 group-hover:text-red-500">
+                      <FaSignOutAlt className="text-lg" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-quicksand text-left font-semibold">
+                        {isSigningOut ? "Signing out..." : "Sign Out"}
+                      </p>
+                    </div>
+                    {isSigningOut && (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="h-4 w-4 rounded-full border-2 border-red-400 border-t-transparent"
+                      />
+                    )}
+                  </button>
+                </motion.div>
               </nav>
             </motion.div>
           </>
@@ -337,4 +408,4 @@ const AdminDashboardNav = () => {
   );
 };
 
-export default AdminDashboardNav;
+export default AdminNav;

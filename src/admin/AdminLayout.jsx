@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
-import AdminDashboardNav from "./nav/AdminDashboardNav";
+import AdminNav from "./nav/AdminNav";
 
 const AdminLayout = () => {
   return (
     <div className="spiffy-bg min-h-screen">
-      <AdminDashboardNav />
+      <AdminNav />
 
       {/* Main Content Area */}
       <main className="pt-16 lg:ml-80">
