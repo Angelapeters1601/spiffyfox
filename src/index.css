@@ -4,6 +4,10 @@
   .spiffy-text {
     color: #b19cd9;
   }
+
+  .spiffy-text-dark {
+    color: #0c005a;
+  }
   .spiffy-border {
     border-color: #9b68ec;
   }
@@ -24,6 +28,9 @@
   }
   .font-cinzel {
     font-family: "Cinzel Decorative", serif;
+  }
+  .font-bitcount {
+    font-family: "Bitcount Grid Double Ink", system-ui;
   }
   .font-cormorant {
     font-family: "Cormorant Garamond", serif;
