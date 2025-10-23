@@ -14,19 +14,19 @@ let DefaultIcon = L.divIcon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const Map = () => {
-  // NYC coordinates (Manhattan)
-  const position = [40.7128, -74.006];
+  // Wilmington coordinates
+  const position = [39.74595, -75.54659];
 
   return (
     <div className="w-full">
       <div className="spiffy-bg-medium container mx-auto rounded-2xl px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="font-cinzel spiffy-text-dark mb-4 text-4xl font-bold">
-            Visit Us in NYC
+            Visit Us in Wilmington
           </h1>
           <p className="font-quicksand mx-auto max-w-2xl text-lg text-gray-200">
-            Located in the heart of Manhattan, we're easily accessible and ready
-            to welcome you.
+            Located in the heart of Wilmington, Delaware USA, we're easily
+            accessible and ready to welcome you.
           </p>
         </div>
 
@@ -58,12 +58,10 @@ const Map = () => {
                 <Popup>
                   <div className="font-quicksand">
                     <strong className="font-cinzel text-amber-600">
-                      SpiffyFox NYC Office
+                      SpiffyFox Office
                     </strong>
                     <br />
-                    123 Manhattan Avenue
-                    <br />
-                    New York, NY 10001
+                    1 Spiffyfox Way, premium plaza, DE 19809
                     <br />
                     <span className="text-sm text-gray-600">United States</span>
                   </div>

@@ -1,8 +1,26 @@
-import img from "../assets/img15.jpg";
+import img from "../assets/contact.jpg";
+import emailImg from "../assets/email.jpg";
 import Map from "../ui/Map";
 import { motion } from "framer-motion";
+import { supabase } from "../services/supabaseClient";
+import { useState } from "react";
 
 const Contact = () => {
+  const [contactForm, setContactForm] = useState({
+    fullName: "",
+    email: "",
+    contact: "",
+    country: "",
+    message: "",
+  });
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [contactLoading, setContactLoading] = useState(false);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+  const [contactError, setContactError] = useState("");
+  const [newsletterError, setNewsletterError] = useState("");
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,6 +84,105 @@ const Contact = () => {
     },
   };
 
+  // Handle contact form submission
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setContactLoading(true);
+    setContactError("");
+    setContactSuccess(false);
+
+    try {
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert([
+          {
+            full_name: contactForm.fullName,
+            email: contactForm.email,
+            phone: contactForm.contact,
+            country: contactForm.country,
+            message: contactForm.message,
+          },
+        ])
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      setContactSuccess(true);
+      setContactForm({
+        fullName: "",
+        email: "",
+        contact: "",
+        country: "",
+        message: "",
+      });
+
+      // Hide success message after 5 seconds
+      setTimeout(() => setContactSuccess(false), 5000);
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      setContactError(
+        error.message || "Failed to send message. Please try again.",
+      );
+    } finally {
+      setContactLoading(false);
+    }
+  };
+
+  // Handle newsletter subscription
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    setNewsletterLoading(true);
+    setNewsletterError("");
+    setNewsletterSuccess(false);
+
+    try {
+      const { data, error } = await supabase
+        .from("newsletter")
+        .insert([
+          {
+            email: newsletterEmail,
+            is_active: true,
+          },
+        ])
+        .select();
+
+      if (error) {
+        // If it's a duplicate email error, show success message (user is already subscribed)
+        if (error.code === "23505") {
+          setNewsletterSuccess(true);
+          setNewsletterEmail("");
+          setTimeout(() => setNewsletterSuccess(false), 5000);
+          return;
+        }
+        throw error;
+      }
+
+      setNewsletterSuccess(true);
+      setNewsletterEmail("");
+
+      // Hide success message after 5 seconds
+      setTimeout(() => setNewsletterSuccess(false), 5000);
+    } catch (error) {
+      console.error("Error subscribing to newsletter:", error);
+      setNewsletterError(
+        error.message || "Failed to subscribe. Please try again.",
+      );
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
+
+  // Handle contact form input changes
+  const handleContactChange = (e) => {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
     <motion.div
       className="min-h-screen"
@@ -102,7 +219,7 @@ const Contact = () => {
               </p>
             </div>
 
-            <form className="space-y-6">
+            <form onSubmit={handleContactSubmit} className="space-y-6">
               {/* Full Name */}
               <motion.div variants={leftSlideVariants}>
                 <label
@@ -115,9 +232,12 @@ const Contact = () => {
                   type="text"
                   id="fullName"
                   name="fullName"
+                  value={contactForm.fullName}
+                  onChange={handleContactChange}
                   required
                   className="font-quicksand w-full rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
                   placeholder="Enter your full name"
+                  disabled={contactLoading}
                 />
               </motion.div>
 
@@ -137,9 +257,12 @@ const Contact = () => {
                     type="email"
                     id="email"
                     name="email"
+                    value={contactForm.email}
+                    onChange={handleContactChange}
                     required
                     className="font-quicksand w-full rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
                     placeholder="your@email.com"
+                    disabled={contactLoading}
                   />
                 </div>
                 <div>
@@ -153,8 +276,11 @@ const Contact = () => {
                     type="tel"
                     id="contact"
                     name="contact"
+                    value={contactForm.contact}
+                    onChange={handleContactChange}
                     className="font-quicksand w-full rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
                     placeholder="+1 (555) 000-0000"
+                    disabled={contactLoading}
                   />
                 </div>
               </motion.div>
@@ -170,8 +296,11 @@ const Contact = () => {
                 <select
                   id="country"
                   name="country"
+                  value={contactForm.country}
+                  onChange={handleContactChange}
                   required
                   className="font-quicksand w-full appearance-none rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                  disabled={contactLoading}
                 >
                   <option value="">Select your country</option>
                   <option value="US">United States</option>
@@ -195,10 +324,13 @@ const Contact = () => {
                 <textarea
                   id="message"
                   name="message"
+                  value={contactForm.message}
+                  onChange={handleContactChange}
                   required
                   rows="5"
                   className="font-quicksand w-full resize-none rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
                   placeholder="Tell us how we can help you..."
+                  disabled={contactLoading}
                 ></textarea>
               </motion.div>
 
@@ -206,12 +338,59 @@ const Contact = () => {
               <motion.div variants={leftSlideVariants}>
                 <button
                   type="submit"
-                  className="spiffy-bg-dark font-quicksand w-full transform cursor-pointer rounded-lg px-6 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95"
+                  disabled={contactLoading}
+                  className="spiffy-bg-dark font-quicksand w-full transform cursor-pointer rounded-lg px-6 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Send Message
+                  {contactLoading ? (
+                    <div className="flex items-center justify-center">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="mr-2 h-5 w-5 rounded-full border-2 border-white border-t-transparent"
+                      />
+                      Sending...
+                    </div>
+                  ) : (
+                    "Send Message"
+                  )}
                 </button>
               </motion.div>
             </form>
+
+            {/* Success Message */}
+            {contactSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 mb-6 rounded-lg border border-green-200 bg-green-50 p-4"
+              >
+                <p className="font-quicksand text-center text-green-700">
+                  ✅ Thank you! Your message has been sent successfully.
+                </p>
+              </motion.div>
+            )}
+
+            {/* Error Message */}
+            {contactError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
+              >
+                <p className="font-quicksand text-center text-red-700">
+                  ❌ {contactError}
+                </p>
+              </motion.div>
+            )}
+            {/* <img
+              src={emailImg}
+              alt="email img"
+              className="mt-2 h-90 w-150 rounded-2xl"
+            /> */}
           </motion.div>
 
           {/* Image & Newsletter Section - Slides from right */}
@@ -224,7 +403,7 @@ const Contact = () => {
               <img
                 src={img}
                 alt="Professional team collaboration"
-                className="h-90 w-full transform rounded-2xl object-cover shadow-2xl shadow-[#0c005a] transition-transform duration-500 group-hover:scale-105"
+                className="h-100 w-full transform rounded-2xl object-cover shadow-2xl shadow-[#0c005a] transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 flex items-end rounded-2xl bg-gradient-to-t from-black/50 to-transparent p-6">
                 <div className="text-white">
@@ -269,7 +448,33 @@ const Contact = () => {
                 </p>
               </div>
 
-              <form className="space-y-4">
+              {/* Newsletter Success Message */}
+              {newsletterSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3"
+                >
+                  <p className="font-quicksand text-center text-sm text-green-700">
+                    ✅ Successfully subscribed to our newsletter!
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Newsletter Error Message */}
+              {newsletterError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
+                >
+                  <p className="font-quicksand text-center text-sm text-red-700">
+                    ❌ {newsletterError}
+                  </p>
+                </motion.div>
+              )}
+
+              <form onSubmit={handleNewsletterSubmit} className="space-y-4">
                 <div>
                   <label
                     htmlFor="newsletterEmail"
@@ -281,17 +486,36 @@ const Contact = () => {
                     type="email"
                     id="newsletterEmail"
                     name="newsletterEmail"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
                     required
                     className="font-quicksand w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-purple-200 transition-all duration-200 outline-none focus:border-white/30 focus:bg-white/20"
                     placeholder="Enter your email address"
+                    disabled={newsletterLoading}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="font-quicksand w-full transform cursor-pointer rounded-lg bg-gray-200 px-6 py-3 font-semibold text-purple-600 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95"
+                  disabled={newsletterLoading}
+                  className="font-quicksand w-full transform cursor-pointer rounded-lg bg-gray-200 px-6 py-3 font-semibold text-purple-600 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Subscribe Now
+                  {newsletterLoading ? (
+                    <div className="flex items-center justify-center">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="mr-2 h-4 w-4 rounded-full border-2 border-purple-600 border-t-transparent"
+                      />
+                      Subscribing...
+                    </div>
+                  ) : (
+                    "Subscribe Now"
+                  )}
                 </button>
               </form>
 
@@ -327,7 +551,7 @@ const Contact = () => {
                       d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                     />
                   </svg>
-                  <span>+1 (202) 670-6164</span>
+                  <span>+1 (302) 703-7595</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <svg
