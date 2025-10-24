@@ -1,5 +1,5 @@
-import img from "../assets/contact.jpg";
-import emailImg from "../assets/email.jpg";
+import img1 from "../assets/contactImg1.jpg";
+import img2 from "../assets/contactImg2.jpg";
 import Map from "../ui/Map";
 import { motion } from "framer-motion";
 import { supabase } from "../services/supabaseClient";
@@ -183,6 +183,16 @@ const Contact = () => {
     }));
   };
 
+  // Open email app
+  const handleEmailClick = () => {
+    window.open("mailto:help@spiffyfox.com", "_blank");
+  };
+
+  // Open call app
+  const handleCallClick = () => {
+    window.open("tel:+13027037595", "_blank");
+  };
+
   return (
     <motion.div
       className="min-h-screen"
@@ -218,6 +228,32 @@ const Contact = () => {
                 soon as possible.
               </p>
             </div>
+
+            {/* Success Message */}
+            {contactSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4"
+              >
+                <p className="font-quicksand text-center text-green-700">
+                  ✅ Thank you! Your message has been sent successfully.
+                </p>
+              </motion.div>
+            )}
+
+            {/* Error Message */}
+            {contactError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
+              >
+                <p className="font-quicksand text-center text-red-700">
+                  ❌ {contactError}
+                </p>
+              </motion.div>
+            )}
 
             <form onSubmit={handleContactSubmit} className="space-y-6">
               {/* Full Name */}
@@ -360,37 +396,6 @@ const Contact = () => {
                 </button>
               </motion.div>
             </form>
-
-            {/* Success Message */}
-            {contactSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 mb-6 rounded-lg border border-green-200 bg-green-50 p-4"
-              >
-                <p className="font-quicksand text-center text-green-700">
-                  ✅ Thank you! Your message has been sent successfully.
-                </p>
-              </motion.div>
-            )}
-
-            {/* Error Message */}
-            {contactError && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
-              >
-                <p className="font-quicksand text-center text-red-700">
-                  ❌ {contactError}
-                </p>
-              </motion.div>
-            )}
-            {/* <img
-              src={emailImg}
-              alt="email img"
-              className="mt-2 h-90 w-150 rounded-2xl"
-            /> */}
           </motion.div>
 
           {/* Image & Newsletter Section - Slides from right */}
@@ -401,7 +406,7 @@ const Contact = () => {
               variants={rightSlideVariants}
             >
               <img
-                src={img}
+                src={img1}
                 alt="Professional team collaboration"
                 className="h-100 w-full transform rounded-2xl object-cover shadow-2xl shadow-[#0c005a] transition-transform duration-500 group-hover:scale-105"
               />
@@ -533,45 +538,72 @@ const Contact = () => {
               className="spiffy-bg-medium rounded-2xl p-6 shadow-lg"
               variants={rightSlideVariants}
             >
-              <h3 className="font-cinzel spiffy-text-dark mb-4 text-xl font-bold text-gray-800">
-                Contact Information
+              <h3 className="font-cinzel spiffy-text-dark mb-6 text-center text-xl font-bold text-gray-800">
+                Quick Contact
               </h3>
-              <div className="font-cormorant space-y-3 text-gray-200">
-                <div className="flex items-center space-x-3">
-                  <svg
-                    className="h-5 w-5 text-purple-800"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+
+              {/* Call and Email Grid */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Call Section */}
+                <motion.div
+                  className="group cursor-pointer text-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleCallClick}
+                >
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 transition-all duration-200 group-hover:border-purple-300">
+                    <img
+                      src={img2}
+                      alt="Call us"
+                      className="mx-auto mb-3 h-20 w-20 rounded-full object-cover shadow-lg transition-all duration-200 group-hover:shadow-purple-200"
                     />
-                  </svg>
-                  <span>+1 (302) 703-7595</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <svg
-                    className="h-5 w-5 text-purple-800"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    <div className="text-white">
+                      <h4 className="font-cinzel mb-2 text-lg font-bold">
+                        Call Us
+                      </h4>
+                      <p className="font-quicksand text-sm text-purple-100">
+                        +1 (302) 703-7595
+                      </p>
+                      <p className="font-quicksand mt-1 text-xs text-purple-200">
+                        Tap to call now
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Email Section */}
+                <motion.div
+                  className="group cursor-pointer text-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleEmailClick}
+                >
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 transition-all duration-200 group-hover:border-purple-300">
+                    <img
+                      src={img1}
+                      alt="Email us"
+                      className="mx-auto mb-3 h-20 w-20 rounded-full object-cover shadow-lg transition-all duration-200 group-hover:shadow-purple-200"
                     />
-                  </svg>
-                  <span>help@spiffyfox.com</span>
-                </div>
-                <div className="flex items-center space-x-3">
+                    <div className="text-white">
+                      <h4 className="font-cinzel mb-2 text-lg font-bold">
+                        Email Us
+                      </h4>
+                      <p className="font-quicksand text-sm text-purple-100">
+                        help@spiffyfox.com
+                      </p>
+                      <p className="font-quicksand mt-1 text-xs text-purple-200">
+                        Tap to email now
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Address Section */}
+              <div className="mt-6 text-center">
+                <div className="flex items-center justify-center space-x-3 text-gray-200">
                   <svg
-                    className="h-5 w-5 text-purple-800"
+                    className="h-5 w-5 flex-shrink-0 text-purple-800"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -589,7 +621,9 @@ const Contact = () => {
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  <span>1 SpiffyFox Way, Premium Plaza, DE 19809</span>
+                  <span className="font-cormorant text-sm">
+                    1 SpiffyFox Way, Premium Plaza, DE 19809
+                  </span>
                 </div>
               </div>
             </motion.div>
