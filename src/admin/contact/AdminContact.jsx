@@ -11,10 +11,10 @@ import {
   FaCalendar,
   FaSearch,
   FaTimes,
-  FaMapMarkerAlt,
-  FaRegCommentDots,
   FaFilter,
-  FaDownload,
+  FaMapMarkerAlt,
+  FaComment,
+  FaUserCircle,
 } from "react-icons/fa";
 
 const AdminContact = () => {
@@ -26,6 +26,8 @@ const AdminContact = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
 
   useEffect(() => {
     fetchContacts();
@@ -34,7 +36,6 @@ const AdminContact = () => {
   useEffect(() => {
     let filtered = contacts;
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (contact) =>
@@ -45,7 +46,6 @@ const AdminContact = () => {
       );
     }
 
-    // Apply category filter
     if (activeFilter === "with-phone") {
       filtered = filtered.filter((contact) => contact.phone);
     } else if (activeFilter === "recent") {
@@ -57,7 +57,16 @@ const AdminContact = () => {
     }
 
     setFilteredContacts(filtered);
+    setCurrentPage(1);
   }, [searchTerm, contacts, activeFilter]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentContacts = filteredContacts.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
 
   const fetchContacts = async () => {
     try {
@@ -107,125 +116,76 @@ const AdminContact = () => {
       year: "numeric",
       month: "short",
       day: "numeric",
+    });
+  };
+
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
-  const getTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return `${Math.floor(diffDays / 30)} months ago`;
-  };
-
-  const tableVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  const rowVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
-  };
-
-  const statsVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
-    },
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="flex min-h-96 items-center justify-center">
         <div className="text-center">
           <motion.div
-            animate={{
-              rotate: 360,
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-              scale: { duration: 1.5, repeat: Infinity },
-            }}
-            className="mx-auto mb-4 h-16 w-16 rounded-full border-4 border-purple-600 border-t-transparent"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="mx-auto mb-4 h-8 w-8 rounded-full border-2 border-gray-300 border-t-purple-600"
           />
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="font-cinzel text-xl text-gray-700"
-          >
-            Loading Contacts...
-          </motion.p>
+          <p className="font-quicksand text-gray-600">Loading contacts...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen rounded-2xl bg-purple-100 py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12 text-center"
-        >
-          <div className="mb-6 inline-flex h-15 w-15 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg">
-            <FaEnvelope className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="font-cinzel spiffy-bg spiffy-text-dark mb-4 bg-clip-text text-3xl font-bold md:text-3xl">
-            Contact Management
-          </h1>
-          <p className="font-quicksand mx-auto max-w-2xl text-sm text-gray-600">
-            Manage and review all contact form submissions with beautiful
-            insights
-          </p>
-        </motion.div>
+        <div className="mb-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="font-cinzel text-xl font-bold text-gray-900 sm:text-2xl">
+                Contact Management
+              </h1>
+              <p className="font-lora mt-1 text-gray-600">
+                Manage contact form submissions
+              </p>
+            </div>
 
-        {/* Search and Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="flex flex-col items-center justify-between gap-4 lg:flex-row">
-              <div className="relative max-w-2xl flex-1">
-                <FaSearch className="absolute top-1/2 left-4 -translate-y-1/2 transform text-gray-400" />
+            {/* Search and Filter */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              {/* Search */}
+              <div className="relative flex-1 sm:min-w-[280px]">
+                <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search contacts by name, email, country, or message..."
+                  placeholder="Search contacts..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="font-quicksand w-full rounded-xl border border-gray-200 py-3 pr-4 pl-12 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                  className="font-quicksand w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 text-sm transition-colors outline-none focus:border-purple-300 focus:ring-2 focus:ring-purple-300"
                 />
               </div>
 
-              <div className="flex items-center space-x-2">
-                <FaFilter className="h-4 w-4 text-gray-500" />
+              {/* Filter */}
+              <div className="relative">
+                <FaFilter className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
                 <select
                   value={activeFilter}
                   onChange={(e) => setActiveFilter(e.target.value)}
-                  className="font-quicksand rounded-xl border border-gray-200 px-4 py-2 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                  className="font-quicksand w-full rounded-lg border border-gray-300 py-2 pr-8 pl-10 text-sm transition-colors outline-none focus:border-purple-300 focus:ring-2 focus:ring-purple-300 sm:w-auto"
                 >
                   <option value="all">All Contacts</option>
                   <option value="with-phone">With Phone</option>
@@ -234,21 +194,16 @@ const AdminContact = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Stats Cards */}
-        <motion.div
-          variants={tableVariants}
-          initial="hidden"
-          animate="visible"
-          className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
-        >
+        {/* Stats Grid */}
+        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
             {
               label: "Total Contacts",
               value: contacts.length,
-              color: "from-purple-500 to-purple-600",
-              icon: FaUser,
+              color: "bg-blue-700",
+              icon: FaUserCircle,
             },
             {
               label: "This Month",
@@ -260,192 +215,179 @@ const AdminContact = () => {
                   contactDate.getFullYear() === now.getFullYear()
                 );
               }).length,
-              color: "from-blue-500 to-blue-600",
+              color: "bg-green-600",
               icon: FaCalendar,
             },
             {
               label: "With Phone",
               value: contacts.filter((contact) => contact.phone).length,
-              color: "from-green-500 to-green-600",
+              color: "bg-purple-600",
               icon: FaPhone,
             },
             {
               label: "Countries",
               value: new Set(contacts.map((contact) => contact.country)).size,
-              color: "from-orange-500 to-orange-600",
+              color: "bg-orange-600",
               icon: FaGlobe,
             },
-          ].map((stat, index) => (
-            <motion.div
+          ].map((stat) => (
+            <div
               key={stat.label}
-              variants={statsVariants}
-              className="transform rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+              className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-quicksand mb-1 text-sm text-gray-600">
+                  <p className="font-lora text-sm text-gray-600">
                     {stat.label}
                   </p>
-                  <p className="font-cinzel text-3xl font-bold text-gray-800">
+                  <p className="font-lora text-sm font-bold text-gray-900">
                     {stat.value}
                   </p>
                 </div>
                 <div
-                  className={`rounded-xl bg-gradient-to-r p-3 ${stat.color}`}
+                  className={`h-8 w-8 rounded-lg ${stat.color} flex items-center justify-center`}
                 >
-                  <stat.icon className="h-6 w-6 text-white" />
+                  <stat.icon className="h-4 w-4 text-white" />
                 </div>
               </div>
-              <div className="mt-4">
-                <div className="h-2 w-full rounded-full bg-gray-200">
-                  <div
-                    className={`bg-gradient-to-r ${stat.color} h-2 rounded-full transition-all duration-1000`}
-                    style={{
-                      width: `${(stat.value / Math.max(...contacts.map((s) => s.value), 1)) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Contacts Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
-        >
-          <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white px-6 py-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-cinzel text-xl font-semibold text-gray-800">
+        {/* Table Container */}
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          {/* Table Header */}
+          <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="font-lora text-lg font-semibold text-gray-900">
                 Contact Submissions
               </h3>
-              <span className="font-quicksand text-sm text-gray-500">
-                {filteredContacts.length} of {contacts.length} contacts
-              </span>
+              <div className="flex items-center gap-4">
+                <span className="font-lora text-sm text-gray-600">
+                  {filteredContacts.length} contacts
+                </span>
+                {/* Pagination Info */}
+                {totalPages > 1 && (
+                  <span className="font-lora text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
+          {/* Table */}
           <div className="overflow-x-auto">
-            <motion.table
-              variants={tableVariants}
-              initial="hidden"
-              animate="visible"
-              className="min-w-full divide-y divide-gray-200"
-            >
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Contact Details
+                  <th className="font-quicksand px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase sm:px-6">
+                    Contact
                   </th>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                  <th className="font-quicksand px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase sm:px-6">
                     Message
                   </th>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Location & Time
+                  <th className="font-quicksand hidden px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase sm:px-6 md:table-cell">
+                    Date & Location
                   </th>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                  <th className="font-quicksand px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase sm:px-6">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {filteredContacts.length === 0 ? (
+                {currentContacts.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="px-6 py-12 text-center">
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col items-center justify-center text-gray-400"
-                      >
-                        <FaRegCommentDots className="mb-4 h-16 w-16" />
-                        <p className="font-cinzel mb-2 text-xl text-gray-500">
+                    <td colSpan="4" className="px-4 py-12 text-center sm:px-6">
+                      <div className="flex flex-col items-center justify-center text-gray-400">
+                        <FaComment className="mb-3 h-12 w-12" />
+                        <p className="font-cinzel text-lg text-gray-500">
                           No contacts found
                         </p>
-                        <p className="font-quicksand max-w-md text-gray-500">
+                        <p className="font-quicksand text-gray-500">
                           {searchTerm
-                            ? "No contacts match your search criteria. Try adjusting your search terms."
-                            : "Contact form submissions will appear here once users start reaching out."}
+                            ? "Try adjusting your search terms"
+                            : "No contact submissions yet"}
                         </p>
-                      </motion.div>
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredContacts.map((contact) => (
+                  currentContacts.map((contact) => (
                     <motion.tr
                       key={contact.id}
-                      variants={rowVariants}
-                      className="group transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="cursor-pointer transition-colors hover:bg-gray-50"
+                      onClick={() => handleViewContact(contact)}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 sm:px-6">
                         <div className="flex items-center">
-                          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 shadow-sm transition-shadow duration-200 group-hover:shadow-md">
-                            <FaUser className="h-6 w-6 text-white" />
+                          <div className="font-lora spiffy-text-dark flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-xs font-semibold">
+                            {getInitials(contact.full_name)}
                           </div>
-                          <div className="ml-4">
-                            <div className="font-cinzel text-lg font-semibold text-gray-900">
+                          <div className="ml-3">
+                            <div className="font-lora font-medium text-gray-900">
                               {contact.full_name}
                             </div>
-                            <div className="font-quicksand mt-1 flex items-center text-sm text-gray-500">
-                              <FaEnvelope className="mr-2 h-3 w-3" />
+                            <div className="font-lora flex items-center py-2 text-xs text-gray-500">
+                              <FaEnvelope className="mr-1 h-3 w-3" />
                               {contact.email}
                             </div>
                             {contact.phone && (
-                              <div className="font-quicksand mt-1 flex items-center text-sm text-gray-500">
-                                <FaPhone className="mr-2 h-3 w-3" />
+                              <div className="font-lora flex items-center text-xs text-gray-500">
+                                <FaPhone className="mr-1 h-3 w-3" />
                                 {contact.phone}
                               </div>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 sm:px-6">
                         <div className="max-w-xs">
-                          <p className="font-quicksand line-clamp-2 text-gray-900">
+                          <p className="font-lora line-clamp-2 text-xs text-gray-900">
                             {contact.message}
                           </p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="space-y-2">
-                          <div className="flex items-center">
-                            <FaGlobe className="mr-2 h-4 w-4 text-purple-500" />
-                            <span className="font-quicksand text-sm text-gray-900">
-                              {contact.country}
-                            </span>
+                      <td className="hidden px-4 py-4 sm:px-6 md:table-cell">
+                        <div className="space-y-1">
+                          <div className="font-lora text-xs text-gray-900">
+                            {formatDate(contact.created_at)}
                           </div>
-                          <div className="flex items-center">
-                            <FaCalendar className="mr-2 h-4 w-4 text-blue-500" />
-                            <div>
-                              <span className="font-quicksand block text-sm text-gray-900">
-                                {formatDate(contact.created_at)}
-                              </span>
-                              <span className="font-quicksand text-xs text-gray-500">
-                                {getTimeAgo(contact.created_at)}
-                              </span>
-                            </div>
+                          <div className="font-lora text-xs text-gray-500">
+                            {formatTime(contact.created_at)}
+                          </div>
+                          <div className="font-lora flex items-center text-xs text-gray-400">
+                            <FaMapMarkerAlt className="mr-1 h-3 w-3" />
+                            {contact.country}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
+                      <td className="px-4 py-4 sm:px-6">
+                        <div className="flex items-center gap-2">
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleViewContact(contact)}
-                            className="flex items-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-white shadow-sm transition-all duration-200 hover:shadow-lg"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewContact(contact);
+                            }}
+                            className="rounded-lg p-2 text-xs text-gray-400 transition-colors hover:bg-blue-50 hover:text-purple-400"
+                            title="View Details"
                           >
-                            <FaEye className="mr-2 h-4 w-4" />
-                            View
+                            <FaEye className="h-3 w-3" />
                           </motion.button>
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleDeleteContact(contact.id)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteContact(contact.id);
+                            }}
                             disabled={deleteLoading === contact.id}
-                            className="flex items-center rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-4 py-2 text-white shadow-sm transition-all duration-200 hover:shadow-lg disabled:opacity-50"
+                            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                            title="Delete Contact"
                           >
                             {deleteLoading === contact.id ? (
                               <motion.div
@@ -455,13 +397,10 @@ const AdminContact = () => {
                                   repeat: Infinity,
                                   ease: "linear",
                                 }}
-                                className="h-4 w-4 rounded-full border-2 border-white border-t-transparent"
+                                className="h-3 w-3 rounded-full border-2 border-red-600 border-t-transparent"
                               />
                             ) : (
-                              <>
-                                <FaTrash className="mr-2 h-4 w-4" />
-                                Delete
-                              </>
+                              <FaTrash className="h-3 w-3" />
                             )}
                           </motion.button>
                         </div>
@@ -470,11 +409,59 @@ const AdminContact = () => {
                   ))
                 )}
               </tbody>
-            </motion.table>
+            </table>
           </div>
-        </motion.div>
 
-        {/* Contact Detail Modal */}
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+              <div className="flex items-center justify-between">
+                <div className="font-lora text-xs text-gray-700">
+                  Showing {startIndex + 1} to{" "}
+                  {Math.min(startIndex + itemsPerPage, filteredContacts.length)}{" "}
+                  of {filteredContacts.length} results
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="font-lora rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`font-lora rounded-lg px-3 py-1 text-xs transition-colors ${
+                          currentPage === page
+                            ? "bg-purple-400 text-white"
+                            : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="font-lora rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Modal */}
         <AnimatePresence>
           {showModal && selectedContact && (
             <motion.div
@@ -485,135 +472,104 @@ const AdminContact = () => {
               onClick={() => setShowModal(false)}
             >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 50 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 50 }}
-                className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="w-full max-w-2xl rounded-xl bg-white shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Modal Header */}
-                <div className="relative bg-gradient-to-r from-purple-600 to-blue-600 p-8 text-white">
-                  <div className="flex items-center justify-between">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="font-lora spiffy-bg spiffy-text-dark flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold">
+                      {getInitials(selectedContact.full_name)}
+                    </div>
                     <div>
-                      <h2 className="font-cinzel mb-2 text-3xl font-bold">
-                        Contact Details
+                      <h2 className="font-cinzel text-xl font-bold text-gray-900">
+                        {selectedContact.full_name}
                       </h2>
-                      <p className="font-quicksand opacity-90">
-                        Submitted {getTimeAgo(selectedContact.created_at)} •{" "}
-                        {formatDate(selectedContact.created_at)}
+                      <p className="font-lora text-xs text-gray-600">
+                        Submitted {formatDate(selectedContact.created_at)} at{" "}
+                        {formatTime(selectedContact.created_at)}
                       </p>
                     </div>
-                    <motion.button
-                      whileHover={{ scale: 1.1, rotate: 90 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setShowModal(false)}
-                      className="hover:bg-opacity-20 rounded-xl p-2 transition-all duration-200 hover:bg-white"
-                    >
-                      <FaTimes className="h-6 w-6" />
-                    </motion.button>
                   </div>
-                  <div className="bg-opacity-20 absolute right-8 bottom-0 left-8 h-1 rounded-full bg-white" />
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                  >
+                    <FaTimes className="h-5 w-5" />
+                  </button>
                 </div>
 
-                {/* Modal Content */}
-                <div className="max-h-[60vh] space-y-8 overflow-y-auto p-8">
-                  {/* Personal Information Grid */}
+                {/* Content */}
+                <div className="max-h-[60vh] space-y-6 overflow-y-auto p-6">
+                  {/* Personal Info */}
                   <div>
-                    <h3 className="font-cinzel mb-6 flex items-center text-2xl font-semibold text-gray-800">
-                      <div className="mr-4 h-8 w-1 rounded-full bg-purple-500" />
-                      Personal Information
+                    <h3 className="font-cinzel mb-4 text-sm font-semibold text-gray-900">
+                      Contact Information
                     </h3>
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      {[
-                        {
-                          icon: FaUser,
-                          label: "Full Name",
-                          value: selectedContact.full_name,
-                          color: "purple",
-                        },
-                        {
-                          icon: FaEnvelope,
-                          label: "Email Address",
-                          value: selectedContact.email,
-                          color: "blue",
-                        },
-                        {
-                          icon: FaPhone,
-                          label: "Phone Number",
-                          value: selectedContact.phone || "Not provided",
-                          color: "green",
-                        },
-                        {
-                          icon: FaGlobe,
-                          label: "Country",
-                          value: selectedContact.country,
-                          color: "orange",
-                        },
-                      ].map((item) => (
-                        <motion.div
-                          key={item.label}
-                          whileHover={{ scale: 1.02 }}
-                          className="rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 shadow-sm"
-                        >
-                          <div className="mb-4 flex items-center">
-                            <div
-                              className={`rounded-xl p-3 bg-${item.color}-100 mr-4`}
-                            >
-                              <item.icon
-                                className={`h-6 w-6 text-${item.color}-600`}
-                              />
-                            </div>
-                            <span className="font-quicksand text-lg font-semibold text-gray-700">
-                              {item.label}
-                            </span>
-                          </div>
-                          <p className="font-cinzel text-xl text-gray-900">
-                            {item.value}
-                          </p>
-                        </motion.div>
-                      ))}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <label className="font-lora text-lg font-medium text-gray-700">
+                          Full Name
+                        </label>
+                        <p className="font-lora p-2 text-sm text-gray-900">
+                          {selectedContact.full_name}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-lora text-lg font-medium text-gray-700">
+                          Email Address
+                        </label>
+                        <p className="font-lora p-2 text-sm text-gray-900">
+                          {selectedContact.email}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-lora text-lg font-medium text-gray-700">
+                          Phone Number
+                        </label>
+                        <p className="font-lora p-2 text-sm text-gray-900">
+                          {selectedContact.phone || "Not provided"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-lora text-lg font-medium text-gray-700">
+                          Country
+                        </label>
+                        <p className="font-lora p-2 text-sm text-gray-900">
+                          {selectedContact.country}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Message Section */}
+                  {/* Message */}
                   <div>
-                    <h3 className="font-cinzel mb-6 flex items-center text-2xl font-semibold text-gray-800">
-                      <div className="mr-4 h-8 w-1 rounded-full bg-blue-500" />
-                      Message Content
+                    <h3 className="font-cinzel mb-4 text-sm font-semibold text-gray-900">
+                      Message
                     </h3>
-                    <motion.div
-                      whileHover={{ scale: 1.01 }}
-                      className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 p-6"
-                    >
-                      <div className="mb-4 flex items-center">
-                        <FaRegCommentDots className="mr-3 h-6 w-6 text-blue-600" />
-                        <span className="font-quicksand text-lg font-semibold text-blue-700">
-                          User's Message
-                        </span>
-                      </div>
-                      <p className="font-quicksand text-lg leading-relaxed whitespace-pre-wrap text-gray-800">
+                    <div className="rounded-lg bg-purple-200 p-4">
+                      <p className="font-lora leading-relaxed whitespace-pre-wrap text-gray-900">
                         {selectedContact.message}
                       </p>
-                    </motion.div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Modal Footer */}
-                <div className="flex justify-end space-x-4 border-t border-gray-200 bg-gray-50 p-8">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                {/* Footer */}
+                <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+                  <button
                     onClick={() => setShowModal(false)}
-                    className="font-quicksand rounded-xl border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50"
+                    className="font-lora rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-gray-100"
                   >
                     Close
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  </button>
+                  <button
                     onClick={() => handleDeleteContact(selectedContact.id)}
                     disabled={deleteLoading === selectedContact.id}
-                    className="font-quicksand flex items-center rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-6 py-3 text-white shadow-sm transition-all duration-200 hover:shadow-lg disabled:opacity-50"
+                    className="font-lora flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2 text-sm text-white transition-colors hover:bg-red-800 disabled:opacity-50"
                   >
                     {deleteLoading === selectedContact.id ? (
                       <>
@@ -624,17 +580,17 @@ const AdminContact = () => {
                             repeat: Infinity,
                             ease: "linear",
                           }}
-                          className="mr-2 h-5 w-5 rounded-full border-2 border-white border-t-transparent"
+                          className="h-4 w-4 rounded-full border-2 border-white border-t-transparent"
                         />
                         Deleting...
                       </>
                     ) : (
                       <>
-                        <FaTrash className="mr-2 h-5 w-5" />
+                        <FaTrash className="h-4 w-4" />
                         Delete Contact
                       </>
                     )}
-                  </motion.button>
+                  </button>
                 </div>
               </motion.div>
             </motion.div>
