@@ -23,6 +23,9 @@ const AdminProtectedRoute = React.lazy(
 );
 const Dashboard = React.lazy(() => import("./admin/dashboard/Dashboard"));
 const AdminContact = React.lazy(() => import("./admin/contact/AdminContact"));
+const AdminNewsletter = React.lazy(
+  () => import("./admin/contact/AdminNewsletter"),
+);
 const AdminContractor = React.lazy(
   () => import("./admin/contractor/AdminContractor"),
 );
@@ -166,6 +169,14 @@ function App() {
                 element={
                   <React.Suspense fallback={<LoadingFallback />}>
                     <AdminTips />
+                  </React.Suspense>
+                }
+              />{" "}
+              <Route
+                path="newsletter"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <AdminNewsletter />
                   </React.Suspense>
                 }
               />

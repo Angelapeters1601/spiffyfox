@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/spiffyLogo2.jpg";
+import UnderConstruction from "../ui/UnderConstruction";
 
 const Nav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -103,6 +104,7 @@ const Nav = () => {
         isScrolled ? "bg-white/95 shadow-xl backdrop-blur-md" : "shadow-lg"
       }`}
     >
+      <UnderConstruction />
       {/* Main Navigation Bar */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
