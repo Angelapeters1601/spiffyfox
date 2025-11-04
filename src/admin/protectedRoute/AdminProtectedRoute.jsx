@@ -18,10 +18,7 @@ export default function AdminProtectedRoute() {
           error,
         } = await supabase.auth.getSession();
 
-        console.log("Session check:", session);
-
         if (error || !session) {
-          console.error("Session error or no session:", error);
           if (mounted) {
             setIsAuthorized(false);
             setLoading(false);
@@ -37,8 +34,6 @@ export default function AdminProtectedRoute() {
           .eq("id", session.user.id)
           .single();
 
-        console.log("Profile check:", profile);
-
         if (profileError || !profile || profile.role !== "admin") {
           console.log("User not authorized as admin");
           if (mounted) {
@@ -51,12 +46,10 @@ export default function AdminProtectedRoute() {
 
         // User is authenticated AND authorized as admin
         if (mounted) {
-          console.log("User authorized as admin, allowing access");
           setIsAuthorized(true);
           setLoading(false);
         }
       } catch (error) {
-        console.error("Auth check error:", error);
         if (mounted) {
           setIsAuthorized(false);
           setLoading(false);
@@ -71,7 +64,6 @@ export default function AdminProtectedRoute() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
       if (event === "SIGNED_OUT" || !session) {
         if (mounted) {
           setIsAuthorized(false);
