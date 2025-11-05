@@ -72,7 +72,7 @@ const AdminTips = () => {
     return match && match[2].length === 11 ? match[2] : null;
   };
 
-  // FIXED fetchVideos function
+  // fetchVideos function
   const fetchVideos = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -83,26 +83,14 @@ const AdminTips = () => {
 
       if (error) throw error;
 
-      console.log("📥 Raw data from Supabase:", data);
-
       const processedVideos = data.map((video) => {
         const youtubeId = extractYouTubeId(video.url);
         const thumbnailUrl = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
-
-        // DEBUG: Check if duration_seconds and views exist
-        console.log(`Video ${video.id}:`, {
-          title: video.title,
-          duration_seconds: video.duration_seconds,
-          views: video.views,
-          hasDuration: video.duration_seconds !== undefined,
-          hasViews: video.views !== undefined,
-        });
 
         return {
           ...video,
           youtubeId,
           thumbnail_url: video.thumbnail_url || thumbnailUrl,
-          // FIX: Ensure these values are properly set
           formattedDuration: formatDuration(video.duration_seconds || 0),
           formattedViews: formatViews(video.views || 0),
           formattedDate: new Date(video.created_at).toLocaleDateString(
@@ -116,10 +104,8 @@ const AdminTips = () => {
         };
       });
 
-      console.log("🎬 Processed videos:", processedVideos);
       setVideos(processedVideos);
     } catch (error) {
-      console.error("❌ Error fetching videos:", error);
     } finally {
       setIsLoading(false);
     }
@@ -139,24 +125,26 @@ const AdminTips = () => {
       return;
     }
 
+    console.log("🚀 Starting upload process...");
     setIsUploading(true);
     setUploadError(null);
 
     try {
+      console.log("🔍 Step 1: Extracting YouTube ID");
       const youtubeId = extractYouTubeId(youtubeUrl);
       if (!youtubeId) throw new Error("Invalid YouTube URL");
+      console.log("✅ YouTube ID:", youtubeId);
 
-      console.log("🔄 Processing YouTube video:", youtubeId);
-
-      // Get YouTube details
+      console.log("🔍 Step 2: Getting YouTube details");
       let youtubeDetails = { duration: 0, views: 0 };
       try {
         youtubeDetails = await getYouTubeVideoDetails(youtubeId);
-        console.log("✅ YouTube API response:", youtubeDetails);
+        console.log("✅ YouTube details:", youtubeDetails);
       } catch (error) {
         console.warn("⚠️ YouTube API failed, using defaults:", error);
       }
 
+      console.log("🔍 Step 3: Preparing video data");
       const videoData = {
         url: youtubeUrl,
         title: title.trim(),
@@ -165,41 +153,51 @@ const AdminTips = () => {
         thumbnail_url: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
         duration_seconds: youtubeDetails.duration || 0,
         views: youtubeDetails.views || 0,
+        created_at: new Date().toISOString(),
       };
+      console.log("📦 Video data prepared:", videoData);
 
-      console.log("📦 Data to save:", videoData);
-
+      console.log("🔍 Step 4: Starting database operation");
       let result;
+
       if (editingVideo) {
-        console.log("✏️ Updating video:", editingVideo.id);
+        console.log("✏️ Updating existing video:", editingVideo.id);
         result = await supabase
           .from("admin_tips")
           .update(videoData)
           .eq("id", editingVideo.id)
-          .select(); // ADD THIS to return the updated data
+          .select();
       } else {
         console.log("➕ Inserting new video");
-        result = await supabase.from("admin_tips").insert([videoData]).select(); // ADD THIS to return the inserted data
+        result = await supabase.from("admin_tips").insert([videoData]).select();
       }
 
-      console.log("🗄️ Supabase response:", result);
+      console.log("🔍 Step 5: Database response received");
+      console.log("🗄️ Full Supabase response:", result);
 
       const { data, error } = result;
 
       if (error) {
-        console.error("❌ Supabase error:", error);
+        console.error("❌ Supabase error:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
         throw error;
       }
 
       if (!data || data.length === 0) {
+        console.error("❌ No data returned");
         throw new Error("No data returned from database operation");
       }
 
       console.log("✅ Database operation successful:", data);
 
-      // Refresh the list
+      console.log("🔍 Step 6: Refreshing video list");
       await fetchVideos();
 
+      console.log("🔍 Step 7: Showing success and resetting");
       setUploadSuccess(true);
       resetForm();
 
@@ -211,6 +209,7 @@ const AdminTips = () => {
       console.error("❌ Upload error:", error);
       setUploadError(error.message || "Failed to upload video");
     } finally {
+      console.log("🔍 Step 8: Final cleanup");
       setIsUploading(false);
     }
   };
@@ -547,7 +546,7 @@ const AdminTips = () => {
               />
             </div>
 
-            {/* Service Filters - Better responsive grid */}
+            {/* Service Filters - responsive grid */}
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9">
               {serviceCategories.map((category) => (
                 <button

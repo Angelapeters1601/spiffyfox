@@ -1,4 +1,3 @@
-// In ../../services/youtubeAPI.js
 export const getYouTubeVideoDetails = async (youtubeId) => {
   try {
     // If no API key, return fallback values
