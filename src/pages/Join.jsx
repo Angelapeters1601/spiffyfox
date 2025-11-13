@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "../services/supabaseClient";
+import { supabase2 } from "../services/supabaseClient";
 import img from "../assets/join.png";
 
 const Join = () => {
@@ -132,7 +132,7 @@ const Join = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.from("join_applications").insert([
+      const { data, error } = await supabase2.from("join_applications").insert([
         {
           fullname: formData.fullname,
           email: formData.email,
