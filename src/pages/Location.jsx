@@ -1,22 +1,8 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
-import {
-  FaCompass,
-  FaStar,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaCity,
-  FaCar,
-  FaSubway,
-  FaWheelchair,
-  FaParking,
-  FaBuilding,
-  FaMagic,
-  FaHome,
-} from "react-icons/fa";
+import { FaCompass, FaMapMarkerAlt } from "react-icons/fa";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Sphere, MeshDistortMaterial } from "@react-three/drei";
-import { Link } from "react-router-dom";
 import delaware from "../assets/delaware2.jpg";
 import baltimore from "../assets/baltimore.jpg";
 import newJersey from "../assets/new jersey.jpg";
@@ -168,56 +154,6 @@ const Location = () => {
         "Webster Groves",
       ],
     },
-  ];
-
-  const features = [
-    {
-      icon: FaCar,
-      title: "Free Client Parking",
-      description: "Dedicated parking spots for visiting clients",
-      stats: "15+ spots",
-    },
-    {
-      icon: FaSubway,
-      title: "Metro Proximity",
-      description: "Just 2 blocks from the nearest metro station",
-      stats: "5 min walk",
-    },
-    {
-      icon: FaWheelchair,
-      title: "Full Accessibility",
-      description: "ADA compliant with ramp access and elevators",
-      stats: "100% accessible",
-    },
-    {
-      icon: FaParking,
-      title: "Service Vehicle Bay",
-      description: "Secure parking for our fleet of service vehicles",
-      stats: "10 vehicles",
-    },
-    {
-      icon: FaBuilding,
-      title: "Commercial Services",
-      description: "Dedicated team for commercial properties",
-      stats: "50+ businesses",
-    },
-    {
-      icon: FaHome,
-      title: "Residential Expertise",
-      description: "Specialized teams for residential properties",
-      stats: "300+ homes",
-    },
-  ];
-
-  const operatingHours = [
-    {
-      day: "Monday - Friday",
-      hours: "8:00 AM - 8:00 PM",
-      type: "Standard Service",
-    },
-    { day: "Saturday", hours: "closed" },
-    { day: "Sunday", hours: "9:00 AM - 5:00 PM" },
-    { day: "Holidays", hours: "24/7 On-call", type: "Emergency Service" },
   ];
 
   return (
@@ -402,7 +338,7 @@ const Location = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               whileHover={{ scale: 1.02 }}
-              className="relative col-span-2 cursor-pointer overflow-hidden rounded-2xl"
+              className="relative col-span-4 cursor-pointer overflow-hidden rounded-2xl md:col-span-2"
               onClick={() => setSelectedCity(cities[1])}
             >
               <img
@@ -412,10 +348,10 @@ const Location = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
               <div className="absolute right-4 bottom-4 left-4 text-white">
-                <h3 className="font-cinzel text-xl font-bold sm:text-2xl">
+                <h3 className="font-cinzel text-lg font-bold sm:text-xl md:text-2xl">
                   {cities[1].name}
                 </h3>
-                <p className="font-quicksand text-sm opacity-90">
+                <p className="font-quicksand text-xs opacity-90 sm:text-sm">
                   Click to view service areas
                 </p>
               </div>
@@ -427,7 +363,7 @@ const Location = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               whileHover={{ scale: 1.02 }}
-              className="relative col-span-2 cursor-pointer overflow-hidden rounded-2xl"
+              className="relative col-span-4 cursor-pointer overflow-hidden rounded-2xl md:col-span-2"
               onClick={() => setSelectedCity(cities[2])}
             >
               <img
@@ -437,10 +373,10 @@ const Location = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
               <div className="absolute right-4 bottom-4 left-4 text-white">
-                <h3 className="font-cinzel text-xl font-bold sm:text-2xl">
+                <h3 className="font-cinzel text-lg font-bold sm:text-xl md:text-2xl">
                   {cities[2].name}
                 </h3>
-                <p className="font-quicksand text-sm opacity-90">
+                <p className="font-quicksand text-xs opacity-90 sm:text-sm">
                   Click to view service areas
                 </p>
               </div>
@@ -454,7 +390,7 @@ const Location = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
                 whileHover={{ scale: 1.02 }}
-                className="relative col-span-1 cursor-pointer overflow-hidden rounded-2xl"
+                className="relative col-span-2 cursor-pointer overflow-hidden rounded-2xl md:col-span-1"
                 onClick={() => setSelectedCity(city)}
               >
                 <img
@@ -464,7 +400,7 @@ const Location = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 <div className="absolute right-4 bottom-4 left-4 text-white">
-                  <h3 className="font-cinzel text-sm font-bold sm:text-sm">
+                  <h3 className="font-cinzel text-sm font-bold sm:text-base md:text-lg">
                     {city.name}
                   </h3>
                   <p className="font-quicksand text-xs opacity-90">
@@ -475,190 +411,6 @@ const Location = () => {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="bg-gray-50 px-4 py-20">
-        <div className="mx-auto max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="mb-16 text-center"
-          >
-            <h2 className="font-cinzel mb-4 text-4xl font-bold text-gray-900">
-              <div className="flex items-center justify-center gap-4">
-                <div className="h-0.5 w-8 bg-purple-400"></div>
-                <FaMagic className="text-purple-500" />
-                <div className="h-0.5 w-8 bg-purple-400"></div>
-              </div>
-              Why Choose SpiffyFox
-              <div className="mx-auto mt-2 h-0.5 w-24 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
-            </h2>
-            <p className="font-quicksand mx-auto max-w-2xl text-xl text-gray-600">
-              Premium features that set us apart in every city we serve
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-lg transition-all duration-500 hover:shadow-xl"
-              >
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-100 transition-transform duration-300 group-hover:scale-110">
-                  <feature.icon className="h-7 w-7 text-purple-600" />
-                </div>
-
-                <h3 className="mb-2 text-xl font-bold text-gray-900">
-                  {feature.title}
-                </h3>
-
-                <p className="font-quicksand mb-4 text-gray-600">
-                  {feature.description}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <span className="font-quicksand text-sm font-semibold text-purple-600">
-                    {feature.stats}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <FaStar className="h-4 w-4 text-yellow-400" />
-                    <span className="font-quicksand text-sm font-semibold">
-                      4.9
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Contact & Schedule Section */}
-      <section className="bg-gradient-to-br from-purple-900 to-indigo-900 py-20 text-white">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-            {/* Contact Card */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="rounded-3xl border border-white/20 bg-white/10 p-8 backdrop-blur-lg"
-            >
-              <h3 className="font-cinzel mb-6 text-3xl font-bold">
-                Get In Touch
-              </h3>
-
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="rounded-xl bg-white/20 p-3">
-                    <FaMapMarkerAlt className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h4 className="mb-1 text-lg font-semibold">
-                      Main Headquarters
-                    </h4>
-                    <p className="font-quicksand opacity-90">
-                      123 Business District Ave
-                    </p>
-                    <p className="font-quicksand opacity-90">
-                      Wilmington, DE 19801
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="rounded-xl bg-white/20 p-3">
-                    <FaPhone className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h4 className="mb-1 text-lg font-semibold">
-                      Contact Numbers
-                    </h4>
-                    <p className="font-quicksand opacity-90">
-                      Main: (302) 555-6164
-                    </p>
-                    <p className="font-quicksand opacity-90">
-                      Emergency: (302) 555-7595
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Schedule Card */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="rounded-3xl border border-white/20 bg-white/10 p-8 backdrop-blur-lg"
-            >
-              <h3 className="font-cinzel mb-6 text-3xl font-bold">
-                Operating Hours
-              </h3>
-
-              <div className="space-y-4">
-                {operatingHours.map((schedule, index) => (
-                  <div
-                    key={schedule.day}
-                    className="flex items-center justify-between border-b border-white/10 py-3 last:border-0"
-                  >
-                    <div>
-                      <div className="font-quicksand font-semibold">
-                        {schedule.day}
-                      </div>
-                      <div className="font-quicksand text-sm opacity-80">
-                        {schedule.type}
-                      </div>
-                    </div>
-                    <div className="font-quicksand text-right font-semibold">
-                      {schedule.hours}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="px-4 py-20">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="mx-auto max-w-4xl text-center"
-        >
-          <div className="spiffy-bg-dark rounded-3xl p-12 text-white shadow-2xl">
-            <FaCity className="mx-auto mb-6 h-16 w-16 opacity-90" />
-
-            <h2 className="font-cinzel mb-4 text-3xl font-bold sm:text-4xl">
-              Ready to Transform Your Space?
-            </h2>
-
-            <p className="font-quicksand mx-auto mb-8 max-w-2xl text-xl opacity-90">
-              Join thousands of satisfied clients across all our service cities.
-              Get your personalized quote today.
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <button className="font-quicksand transform rounded-xl bg-white px-8 py-4 text-lg font-semibold text-purple-600 shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-gray-100">
-                Schedule Service
-              </button>
-              <button className="font-quicksand transform cursor-pointer rounded-xl border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-white hover:text-purple-600">
-                <Link to="/contact">Virtual Consultation</Link>
-              </button>
-            </div>
-          </div>
-        </motion.div>
       </section>
     </div>
   );
