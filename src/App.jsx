@@ -10,6 +10,7 @@ import { ScrollToTopHandler } from "./ui/ScrollToTop";
 const Home = React.lazy(() => import("./pages/Home"));
 const Tips = React.lazy(() => import("./pages/Tips"));
 const Services = React.lazy(() => import("./pages/Services"));
+const Reviews = React.lazy(() => import("./pages/Reviews"));
 const Location = React.lazy(() => import("./pages/Location"));
 const Policy = React.lazy(() => import("./pages/Policy"));
 const Join = React.lazy(() => import("./pages/Join"));
@@ -85,6 +86,14 @@ function App() {
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Policy />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="reviews"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <Reviews />
                 </React.Suspense>
               }
             />

@@ -24,6 +24,8 @@ const FAQ = () => {
         .select("*")
         .order("order", { ascending: true });
 
+      console.log("FAQ Response:", { data, error }); // Add this
+
       if (error) throw error;
       setFaqs(data || []);
     } catch (error) {
@@ -436,15 +438,25 @@ const FAQ = () => {
                             key={faq.id}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="group transition-all duration-200 hover:bg-gray-50"
+                            className="transition-all duration-200 hover:bg-gray-50"
                           >
-                            <button
+                            <div
                               onClick={() =>
                                 setExpandedId(
                                   expandedId === faq.id ? null : faq.id,
                                 )
                               }
-                              className="flex w-full cursor-pointer items-start justify-between px-6 py-5 text-left"
+                              className="flex w-full cursor-pointer items-start justify-between px-6 py-5 text-left transition-all duration-200 hover:bg-gray-50"
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setExpandedId(
+                                    expandedId === faq.id ? null : faq.id,
+                                  );
+                                }
+                              }}
                             >
                               <div className="flex-1 text-left">
                                 <h4 className="font-quicksand mb-2 pr-8 text-lg font-semibold text-gray-900">
@@ -542,7 +554,7 @@ const FAQ = () => {
                                   </svg>
                                 </motion.div>
                               </div>
-                            </button>
+                            </div>
 
                             <AnimatePresence>
                               {expandedId === faq.id && (
