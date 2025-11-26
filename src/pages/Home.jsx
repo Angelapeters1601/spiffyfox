@@ -329,15 +329,9 @@ const Home = () => {
       </section>
 
       {/* Reviews Section */}
-      <section className="bg-purple-400 py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <h2 className="font-cinzel mb-16 text-center text-4xl font-bold text-purple-900">
-            What Our Clients Say
-          </h2>
-          {/* Placeholder for Review Component */}
-          <div className="text-center text-gray-600">
-            <Reviews />
-          </div>
+      <section>
+        <div>
+          <Reviews />
         </div>
       </section>
 
