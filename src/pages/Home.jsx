@@ -115,20 +115,20 @@ const Home = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-purple-600/40 to-transparent"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20"></div>
 
-                {/* Floating Text Container */}
-                <div className="absolute top-1/2 left-8 z-20 -translate-y-1/2 transform lg:left-16">
+                {/* Floating Text Container - Adjusted for mobile */}
+                <div className="absolute top-1/2 left-4 z-20 -translate-y-1/2 transform sm:left-8 lg:left-16">
                   <motion.div
                     initial={{ opacity: 0, x: -80 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 1.2, ease: "easeOut" }}
                     className="max-w-lg"
                   >
-                    {/* Main Heading */}
+                    {/* Main Heading - Responsive text size */}
                     <motion.h1
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3, duration: 0.8 }}
-                      className="font-cinzel mb-6 text-5xl leading-tight font-bold text-white drop-shadow-2xl lg:text-6xl"
+                      className="font-cinzel mb-4 text-3xl leading-tight font-bold text-white drop-shadow-2xl sm:mb-6 sm:text-4xl lg:text-5xl xl:text-6xl"
                     >
                       The best Cleaning service company in{" "}
                       <span className="bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-transparent">
@@ -141,7 +141,7 @@ const Home = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6, duration: 0.8 }}
-                      className="font-elsie mb-8 text-xl text-purple-100 drop-shadow-lg"
+                      className="font-elsie mb-6 text-lg text-purple-100 drop-shadow-lg sm:mb-8 sm:text-xl"
                     >
                       Click the button below to call for a free quote 💜😍
                     </motion.p>
@@ -160,7 +160,7 @@ const Home = () => {
                           boxShadow: "0 20px 40px rgba(177, 156, 217, 0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
-                        className="font-elsie inline-flex items-center gap-3 rounded-full bg-white/20 px-8 py-4 text-lg font-semibold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/30"
+                        className="font-elsie inline-flex items-center justify-center gap-3 rounded-full bg-white/20 px-6 py-3 text-base font-semibold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/30 sm:px-8 sm:py-4 sm:text-lg"
                       >
                         <FaPhone className="text-purple-200" />
                         Call (202)-670-6167
@@ -171,7 +171,7 @@ const Home = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 1.2 }}
-                        className="font-elsie text-sm text-purple-200"
+                        className="font-elsie text-center text-sm text-purple-200 sm:text-left"
                       >
                         ✨ Free Quotes Available
                       </motion.span>
@@ -179,7 +179,7 @@ const Home = () => {
                   </motion.div>
                 </div>
 
-                {/* Animated Service Card */}
+                {/* Animated Service Card - Hidden on small screens, visible on medium+ */}
                 <motion.div
                   initial={{ opacity: 0, y: 100, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -194,7 +194,7 @@ const Home = () => {
                     scale: 1.05,
                     y: -10,
                   }}
-                  className="absolute right-8 bottom-20 z-10 lg:right-16 lg:bottom-1/2 lg:translate-y-1/2"
+                  className="hidden md:absolute md:right-8 md:bottom-20 md:z-10 md:block lg:right-16 lg:bottom-1/2 lg:translate-y-1/2"
                 >
                   <div className="relative">
                     {/* Glow Effect */}
