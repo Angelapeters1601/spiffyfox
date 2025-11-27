@@ -39,7 +39,7 @@ const Tip = () => {
     {
       id: 1,
       title: "Residential Cleaning",
-      icon: <FaHome className="text-3xl" />,
+      icon: <FaHome className="text-2xl sm:text-3xl" />,
       description:
         "Transform your living space into a sanctuary of cleanliness and comfort with our expert residential cleaning services.",
       fallbackImage: tip1,
@@ -49,7 +49,7 @@ const Tip = () => {
     {
       id: 2,
       title: "Commercial Cleaning",
-      icon: <FaBuilding className="text-3xl" />,
+      icon: <FaBuilding className="text-2xl sm:text-3xl" />,
       description:
         "Maintain a professional, hygienic workspace that boosts productivity and impresses clients.",
       fallbackImage: tip2,
@@ -59,7 +59,7 @@ const Tip = () => {
     {
       id: 3,
       title: "Deep Cleaning",
-      icon: <FaBroom className="text-3xl" />,
+      icon: <FaBroom className="text-2xl sm:text-3xl" />,
       description:
         "Go beyond surface cleaning with our intensive deep cleaning solutions for a truly pristine environment.",
       fallbackImage: tip3,
@@ -69,7 +69,7 @@ const Tip = () => {
     {
       id: 4,
       title: "Organization",
-      icon: <FaBoxes className="text-3xl" />,
+      icon: <FaBoxes className="text-2xl sm:text-3xl" />,
       description:
         "Create harmonious, efficient spaces through strategic organization and systematic decluttering.",
       fallbackImage: tip4,
@@ -79,7 +79,7 @@ const Tip = () => {
     {
       id: 5,
       title: "Power Washing",
-      icon: <FaSprayCan className="text-3xl" />,
+      icon: <FaSprayCan className="text-2xl sm:text-3xl" />,
       description:
         "Restore your property's exterior to its original glory with professional-grade power washing.",
       fallbackImage: tip5,
@@ -89,7 +89,7 @@ const Tip = () => {
     {
       id: 6,
       title: "Junk Removal",
-      icon: <FaTrash className="text-3xl" />,
+      icon: <FaTrash className="text-2xl sm:text-3xl" />,
       description:
         "Efficient, eco-friendly junk removal that clears your space while respecting the environment.",
       fallbackImage: tip6,
@@ -99,7 +99,7 @@ const Tip = () => {
     {
       id: 7,
       title: "Packing & Unpacking",
-      icon: <FaBoxOpen className="text-3xl" />,
+      icon: <FaBoxOpen className="text-2xl sm:text-3xl" />,
       description:
         "Stress-free relocation services with meticulous packing, secure transport, and organized unpacking.",
       fallbackImage: tip7,
@@ -109,7 +109,7 @@ const Tip = () => {
     {
       id: 8,
       title: "Personal Assistance",
-      icon: <FaHandsHelping className="text-3xl" />,
+      icon: <FaHandsHelping className="text-2xl sm:text-3xl" />,
       description:
         "Comprehensive personal assistance services designed to simplify your life and save you time.",
       fallbackImage: tip8,
@@ -220,10 +220,12 @@ const Tip = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
-          <h2 className="font-cinzel mb-4 text-2xl font-bold text-gray-800">
+          <h2 className="font-cinzel mb-4 text-xl font-bold text-gray-800 sm:text-2xl">
             Error Loading Content
           </h2>
-          <p className="font-quicksand text-gray-600">{error}</p>
+          <p className="font-quicksand text-sm text-gray-600 sm:text-base">
+            {error}
+          </p>
         </div>
       </div>
     );
@@ -237,15 +239,15 @@ const Tip = () => {
         animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden"
       >
-        <div className="font-cinzel spiffy-bg-light relative flex items-center justify-center p-16 text-5xl font-bold text-white">
+        <div className="font-cinzel spiffy-bg-light relative flex items-center justify-center p-8 text-3xl font-bold text-white sm:p-12 sm:text-4xl md:p-16 md:text-5xl">
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="relative z-10 text-center">
             Expert Tips & Training
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: "200px" }}
+              animate={{ width: "120px sm:160px md:200px" }}
               transition={{ delay: 0.5, duration: 1 }}
-              className="mx-auto mt-4 h-1 rounded-full bg-white"
+              className="mx-auto mt-3 h-1 rounded-full bg-white sm:mt-4"
             />
           </div>
         </div>
@@ -255,12 +257,12 @@ const Tip = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="relative z-10 mx-auto max-w-4xl px-4 py-12 text-center"
+          className="relative z-10 mx-auto max-w-4xl px-4 py-8 text-center sm:py-12"
         >
-          <h2 className="font-cinzel mb-6 text-3xl font-bold text-gray-800">
+          <h2 className="font-cinzel mb-4 text-2xl font-bold text-gray-800 sm:mb-6 sm:text-3xl">
             Professional Training & Mastery
           </h2>
-          <p className="font-quicksand text-xl leading-relaxed text-gray-600">
+          <p className="font-quicksand text-base leading-relaxed text-gray-600 sm:text-lg md:text-xl">
             Access our comprehensive library of professional training videos.
             Learn expert techniques, proven methods, and industry secrets from
             SpiffyFox professionals.
@@ -273,9 +275,9 @@ const Tip = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="mx-auto max-w-7xl px-4 py-16"
+        className="mx-auto max-w-7xl px-4 py-12 sm:py-16"
       >
-        <div className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-12 grid grid-cols-1 gap-4 sm:mb-16 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[
             {
               icon: <FaStar />,
@@ -301,14 +303,14 @@ const Tip = () => {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-lg transition-all duration-300 hover:shadow-xl"
+              className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:p-6"
             >
               <div
-                className={`${feature.color} mb-4 flex justify-center text-3xl`}
+                className={`${feature.color} mb-3 flex justify-center text-2xl sm:mb-4 sm:text-3xl`}
               >
                 {feature.icon}
               </div>
-              <h3 className="font-cinzel text-lg font-semibold text-gray-800">
+              <h3 className="font-cinzel text-base font-semibold text-gray-800 sm:text-lg">
                 {feature.text}
               </h3>
             </motion.div>
@@ -320,7 +322,7 @@ const Tip = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-20"
+          className="space-y-12 sm:space-y-20"
         >
           {services.map((service, index) => {
             const serviceVideos = getServiceVideos(service.title);
@@ -330,21 +332,21 @@ const Tip = () => {
               <div key={service.id}>
                 <motion.section
                   variants={itemVariants}
-                  className={`flex flex-col ${index % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-8 lg:gap-12`}
+                  className={`flex flex-col ${index % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-6 sm:gap-8 lg:gap-12`}
                 >
                   {/* Image/Video Section */}
                   <motion.div
                     variants={cardVariants}
                     whileHover="hover"
-                    className="flex-1"
+                    className="w-full flex-1"
                   >
                     <div className="group relative">
                       {/* Dark Overlay Container */}
-                      <div className="relative overflow-hidden rounded-3xl shadow-2xl">
+                      <div className="relative overflow-hidden rounded-2xl shadow-2xl sm:rounded-3xl">
                         <img
                           src={service.fallbackImage}
                           alt={service.title}
-                          className="h-80 w-full transform object-cover transition-transform duration-500 group-hover:scale-105 lg:h-96"
+                          className="h-64 w-full transform object-cover transition-transform duration-500 group-hover:scale-105 sm:h-72 md:h-80 lg:h-96"
                         />
                         {/* Permanent Dark Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
@@ -353,8 +355,8 @@ const Tip = () => {
                         <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                         {/* Content Overlay */}
-                        <div className="absolute right-4 bottom-4 left-4 text-white">
-                          <p className="font-quicksand text-sm font-medium">
+                        <div className="absolute right-3 bottom-3 left-3 text-white sm:right-4 sm:bottom-4 sm:left-4">
+                          <p className="font-quicksand text-xs font-medium sm:text-sm">
                             {serviceVideos.length} Training Videos Available
                           </p>
                         </div>
@@ -365,43 +367,43 @@ const Tip = () => {
                   {/* Content Section */}
                   <motion.div
                     variants={cardVariants}
-                    className="flex-1 space-y-6"
+                    className="w-full flex-1 space-y-4 sm:space-y-6"
                   >
                     {/* Service Header */}
-                    <div className="mb-6 flex items-center space-x-4">
+                    <div className="mb-4 flex items-center space-x-3 sm:mb-6 sm:space-x-4">
                       <div
-                        className={`rounded-2xl bg-gradient-to-r p-4 ${service.color} text-white shadow-lg`}
+                        className={`rounded-2xl bg-gradient-to-r p-3 sm:p-4 ${service.color} text-white shadow-lg`}
                       >
                         {service.icon}
                       </div>
                       <div>
-                        <h3 className="font-cinzel text-3xl font-bold text-gray-800">
+                        <h3 className="font-cinzel text-2xl font-bold text-gray-800 sm:text-3xl">
                           {service.title}
                         </h3>
                         <div
-                          className={`h-1 w-20 bg-gradient-to-r ${service.color} mt-2 rounded-full`}
+                          className={`h-1 w-16 bg-gradient-to-r sm:w-20 ${service.color} mt-2 rounded-full`}
                         />
                       </div>
                     </div>
 
                     {/* Description */}
-                    <p className="font-quicksand text-lg leading-relaxed text-gray-600">
+                    <p className="font-quicksand text-base leading-relaxed text-gray-600 sm:text-lg">
                       {service.description}
                     </p>
 
                     {/* Video Stats */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
-                      <h4 className="font-cinzel mb-4 text-xl font-semibold text-gray-800">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-lg sm:p-6">
+                      <h4 className="font-cinzel mb-3 text-lg font-semibold text-gray-800 sm:mb-4 sm:text-xl">
                         Training Library
                       </h4>
 
                       {loading ? (
-                        <div className="flex items-center justify-center py-8">
-                          <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
+                        <div className="flex items-center justify-center py-6 sm:py-8">
+                          <div className="h-6 w-6 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 sm:h-8 sm:w-8"></div>
                         </div>
                       ) : serviceVideos.length > 0 ? (
-                        <div className="space-y-4">
-                          <p className="font-quicksand text-gray-600">
+                        <div className="space-y-3 sm:space-y-4">
+                          <p className="font-quicksand text-sm text-gray-600 sm:text-base">
                             <strong>{serviceVideos.length}</strong> professional
                             training video
                             {serviceVideos.length !== 1 ? "s" : ""} available
@@ -425,18 +427,18 @@ const Tip = () => {
                               {/* Hover Overlay */}
                               <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                              <div className="absolute top-4 left-4">
+                              <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
                                 <span
-                                  className={`inline-block rounded-full border px-3 py-1 text-xs font-medium ${service.badgeColor}`}
+                                  className={`inline-block rounded-full border px-2 py-1 text-xs font-medium sm:px-3 ${service.badgeColor}`}
                                 >
                                   Latest
                                 </span>
                               </div>
-                              <div className="absolute right-4 bottom-4 left-4 text-white">
-                                <h5 className="font-quicksand line-clamp-1 font-semibold">
+                              <div className="absolute right-2 bottom-2 left-2 text-white sm:right-4 sm:bottom-4 sm:left-4">
+                                <h5 className="font-quicksand line-clamp-1 text-sm font-semibold sm:text-base">
                                   {serviceVideos[0].title}
                                 </h5>
-                                <div className="mt-2 flex items-center space-x-4 text-sm opacity-90">
+                                <div className="mt-1 flex items-center space-x-2 text-xs opacity-90 sm:mt-2 sm:space-x-4 sm:text-sm">
                                   <span className="flex items-center space-x-1">
                                     <FaRegClock className="text-xs" />
                                     <span>
@@ -454,17 +456,17 @@ const Tip = () => {
                                 </div>
                               </div>
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="rounded-full bg-white/20 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
-                                  <FaPlay className="text-2xl text-white" />
+                                <div className="rounded-full bg-white/20 p-3 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 sm:p-4">
+                                  <FaPlay className="text-xl text-white sm:text-2xl" />
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="py-6 text-center">
-                          <FaPlay className="mx-auto mb-3 text-3xl text-gray-300" />
-                          <p className="font-quicksand text-gray-500">
+                        <div className="py-4 text-center sm:py-6">
+                          <FaPlay className="mx-auto mb-2 text-2xl text-gray-300 sm:mb-3 sm:text-3xl" />
+                          <p className="font-quicksand text-sm text-gray-500 sm:text-base">
                             Training videos coming soon
                           </p>
                         </div>
@@ -479,9 +481,9 @@ const Tip = () => {
                     >
                       <a
                         href="#videos-section"
-                        className={`font-quicksand bg-gradient-to-r px-6 py-3 ${service.color} flex items-center space-x-2 rounded-xl font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl`}
+                        className={`font-quicksand bg-gradient-to-r px-4 py-2 sm:px-6 sm:py-3 ${service.color} flex items-center space-x-2 rounded-xl text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl sm:text-base`}
                       >
-                        <FaPlay className="text-sm" />
+                        <FaPlay className="text-xs sm:text-sm" />
                         <span>Watch Training Videos</span>
                       </a>
                     </motion.div>
@@ -495,7 +497,7 @@ const Tip = () => {
                     whileInView={{ opacity: 1, scaleX: 1 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
                     viewport={{ once: true }}
-                    className="mt-20 flex justify-center"
+                    className="mt-12 flex justify-center sm:mt-20"
                   >
                     <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-gray-500 to-transparent" />
                   </motion.div>
@@ -512,33 +514,33 @@ const Tip = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
           id="videos-section"
-          className="mt-20"
+          className="mt-12 sm:mt-20"
         >
-          <div className="mb-12 text-center">
-            <h2 className="font-cinzel mb-4 text-4xl font-bold text-gray-800">
+          <div className="mb-8 text-center sm:mb-12">
+            <h2 className="font-cinzel mb-3 text-2xl font-bold text-gray-800 sm:mb-4 sm:text-3xl md:text-4xl">
               Complete Training Library
             </h2>
-            <p className="font-quicksand mx-auto max-w-2xl text-xl text-gray-600">
+            <p className="font-quicksand mx-auto max-w-2xl text-base text-gray-600 sm:text-lg md:text-xl">
               Browse our entire collection of professional training videos
               across all service categories
             </p>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
-                  className="animate-pulse rounded-2xl bg-white p-6 shadow-lg"
+                  className="animate-pulse rounded-2xl bg-white p-4 shadow-lg sm:p-6"
                 >
-                  <div className="mb-4 aspect-video rounded-xl bg-gray-200"></div>
-                  <div className="mb-3 h-5 w-3/4 rounded bg-gray-200"></div>
-                  <div className="h-4 w-1/2 rounded bg-gray-200"></div>
+                  <div className="mb-3 aspect-video rounded-xl bg-gray-200 sm:mb-4"></div>
+                  <div className="mb-2 h-4 w-3/4 rounded bg-gray-200 sm:mb-3 sm:h-5"></div>
+                  <div className="h-3 w-1/2 rounded bg-gray-200 sm:h-4"></div>
                 </div>
               ))}
             </div>
           ) : videos.length > 0 ? (
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
               {videos.map((video, index) => {
                 const service = services.find((s) => s.title === video.service);
                 const youtubeId = extractYouTubeId(video.url);
@@ -569,10 +571,10 @@ const Tip = () => {
                         {/* Hover Overlay */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                        <div className="absolute right-3 bottom-3 rounded-lg bg-black/80 px-2 py-1 text-xs text-white backdrop-blur-sm">
+                        <div className="absolute right-2 bottom-2 rounded-lg bg-black/80 px-2 py-1 text-xs text-white backdrop-blur-sm sm:right-3 sm:bottom-3">
                           {formatDuration(video.duration_seconds)}
                         </div>
-                        <div className="absolute top-3 left-3">
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
                           <span
                             className={`inline-block rounded-full border px-2 py-1 text-xs font-medium ${service?.badgeColor || "border-gray-200 bg-gray-100 text-gray-700"}`}
                           >
@@ -580,22 +582,22 @@ const Tip = () => {
                           </span>
                         </div>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="rounded-full bg-white/20 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
-                            <FaPlay className="text-2xl text-white" />
+                          <div className="rounded-full bg-white/20 p-3 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 sm:p-4">
+                            <FaPlay className="text-xl text-white sm:text-2xl" />
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-6">
-                      <h3 className="font-quicksand mb-3 line-clamp-2 text-lg leading-tight font-bold text-gray-800">
+                    <div className="p-4 sm:p-6">
+                      <h3 className="font-quicksand mb-2 line-clamp-2 text-base leading-tight font-bold text-gray-800 sm:mb-3 sm:text-lg">
                         {video.title}
                       </h3>
-                      <p className="font-quicksand mb-4 line-clamp-2 text-sm leading-relaxed text-gray-600">
+                      <p className="font-quicksand mb-3 line-clamp-2 text-xs leading-relaxed text-gray-600 sm:mb-4 sm:text-sm">
                         {video.description || "Professional training video"}
                       </p>
 
-                      <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center justify-between text-xs text-gray-500 sm:text-sm">
                         <div className="flex items-center space-x-1">
                           <FaEye className="text-xs" />
                           <span>{formatViews(video.views)}</span>
@@ -610,9 +612,9 @@ const Tip = () => {
                         href={`https://youtu.be/${youtubeId}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-quicksand mt-4 flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                        className="font-quicksand mt-3 flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-3 py-2 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg sm:mt-4 sm:px-4 sm:py-3 sm:text-base"
                       >
-                        <FaPlay className="text-sm" />
+                        <FaPlay className="text-xs sm:text-sm" />
                         <span>Watch Video</span>
                       </a>
                     </div>
@@ -621,12 +623,12 @@ const Tip = () => {
               })}
             </div>
           ) : (
-            <div className="rounded-2xl bg-white/95 p-12 text-center shadow-lg backdrop-blur-sm">
-              <FaPlay className="mx-auto mb-4 text-5xl text-gray-300" />
-              <h3 className="font-cinzel mb-2 text-xl font-medium text-gray-700">
+            <div className="rounded-2xl bg-white/95 p-6 text-center shadow-lg backdrop-blur-sm sm:p-8 md:p-12">
+              <FaPlay className="mx-auto mb-3 text-4xl text-gray-300 sm:mb-4 sm:text-5xl" />
+              <h3 className="font-cinzel mb-2 text-lg font-medium text-gray-700 sm:text-xl">
                 No training videos available yet
               </h3>
-              <p className="font-quicksand text-gray-500">
+              <p className="font-quicksand text-sm text-gray-500 sm:text-base">
                 Our training library is being prepared. Check back soon for
                 professional content.
               </p>
@@ -641,28 +643,28 @@ const Tip = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
-        className="spiffy-bg py-16 text-white"
+        className="spiffy-bg py-12 text-white sm:py-16"
       >
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <h2 className="font-cinzel mb-6 text-4xl font-bold">
+          <h2 className="font-cinzel mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl md:text-4xl">
             Ready to Master Your Skills?
           </h2>
-          <p className="font-quicksand mb-8 text-xl opacity-90">
+          <p className="font-quicksand mb-6 text-lg opacity-90 sm:mb-8 sm:text-xl">
             Access our complete training library and learn professional
             techniques from SpiffyFox experts.
           </p>
-          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+          <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="font-quicksand rounded-xl bg-white px-8 py-4 font-semibold text-purple-600 shadow-lg transition-all duration-300 hover:shadow-xl"
+              className="font-quicksand rounded-xl bg-white px-6 py-3 text-sm font-semibold text-purple-600 shadow-lg transition-all duration-300 hover:shadow-xl sm:px-8 sm:py-4 sm:text-base"
             >
               <Link to="/contact">Get Professional Training</Link>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="font-quicksand rounded-xl border-2 border-white bg-transparent px-8 py-4 font-semibold text-white transition-all duration-300 hover:bg-white hover:text-purple-600"
+              className="font-quicksand rounded-xl border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-white hover:text-purple-600 sm:px-8 sm:py-4 sm:text-base"
             >
               <Link to="/services">Explore All Services</Link>
             </motion.button>

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   FaFacebook,
@@ -26,51 +27,162 @@ export default function Footer() {
     { text: "Contact", path: "/contact" },
   ];
 
+  // Animation variants
+  const footerVariants = {
+    hidden: {
+      opacity: 0,
+      y: 80,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        when: "beforeChildren",
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.7,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const socialIconVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        delay: 0.5,
+      },
+    },
+    hover: {
+      scale: 1.2,
+      rotate: 5,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+      },
+    },
+    tap: {
+      scale: 0.9,
+    },
+  };
+
+  const linkVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        delay: i * 0.1 + 0.3,
+        duration: 0.5,
+      },
+    }),
+  };
+
   return (
-    <footer className="spiffy-bg-medium mt-12 px-4 py-10 leading-relaxed tracking-wide text-gray-100">
+    <motion.footer
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={footerVariants}
+      className="spiffy-bg-medium mt-12 px-4 py-10 leading-relaxed tracking-wide text-gray-100"
+    >
       <div className="container mx-auto flex max-w-6xl flex-col items-center gap-10">
         {/* Logo + Links + Socials */}
-        <div className="flex w-full flex-col items-center gap-8">
+        <motion.div
+          variants={itemVariants}
+          className="flex w-full flex-col items-center gap-8"
+        >
           {/* Logo */}
-          <div className="flex flex-col items-center gap-2">
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col items-center gap-2"
+          >
             <Link to="/">
-              <img
+              <motion.img
+                whileHover={{
+                  scale: 1.05,
+                  rotate: 2,
+                  boxShadow: "0 10px 30px rgba(177, 156, 217, 0.4)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
                 src={logo}
                 alt="SpiffyFox logo"
-                className="h-12 w-12 rounded-full bg-purple-50 object-contain p-1 shadow-lg shadow-purple-400 transition-transform hover:scale-105"
+                className="h-12 w-12 rounded-full bg-purple-50 object-contain p-1 shadow-lg shadow-purple-400"
               />
             </Link>
-            <h3 className="font-cinzel text-xl font-bold text-white">
+            <motion.h3
+              variants={itemVariants}
+              className="font-cinzel text-xl font-bold text-white"
+            >
               SpiffyFox
-            </h3>
-            <p className="font-lora max-w-md text-center text-sm text-gray-200">
+            </motion.h3>
+            <motion.p
+              variants={itemVariants}
+              className="font-lora max-w-md text-center text-sm text-gray-200"
+            >
               Premium Services & Expert Tips for All Your Needs
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           {/* Quick Links */}
-          <div className="spiffy-bg-light w-full max-w-3xl rounded-lg p-4">
-            <h4 className="font-cormorant mb-3 text-center font-semibold text-white">
+          <motion.div
+            variants={itemVariants}
+            className="spiffy-bg-light w-full max-w-3xl rounded-lg p-4"
+          >
+            <motion.h4
+              variants={itemVariants}
+              className="font-cormorant mb-3 text-center font-semibold text-white"
+            >
               Quick Navigation
-            </h4>
+            </motion.h4>
             <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-              {navLinks.map((link) => (
-                <Link
+              {navLinks.map((link, index) => (
+                <motion.div
                   key={link.path}
-                  to={link.path}
-                  className="font-cormorant hover:spiffy-text text-sm whitespace-nowrap text-white underline-offset-2 transition-colors hover:underline"
+                  custom={index}
+                  variants={linkVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
                 >
-                  {link.text}
-                </Link>
+                  <Link
+                    to={link.path}
+                    className="font-cormorant hover:spiffy-text text-sm whitespace-nowrap text-white underline-offset-2 transition-colors hover:underline"
+                  >
+                    {link.text}
+                  </Link>
+                </motion.div>
               ))}
             </nav>
-          </div>
+          </motion.div>
 
           {/* Social Media */}
-          <div className="flex flex-col items-center">
-            <h4 className="font-cormorant spiffy-bg-light mb-3 rounded-full p-2 font-semibold text-white">
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col items-center"
+          >
+            <motion.h4
+              variants={itemVariants}
+              className="font-cormorant spiffy-bg-light mb-3 rounded-full p-2 font-semibold text-white"
+            >
               Follow SpiffyFox 👣
-            </h4>
+            </motion.h4>
             <div className="flex flex-wrap justify-center gap-4">
               {[
                 { icon: <FaFacebook />, label: "Facebook" },
@@ -79,25 +191,37 @@ export default function Footer() {
                 { icon: <FaYoutube />, label: "YouTube" },
                 { icon: <FaInstagram />, label: "Instagram" },
               ].map((social) => (
-                <a
+                <motion.a
                   key={social.label}
+                  variants={socialIconVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  whileHover="hover"
+                  whileTap="tap"
+                  viewport={{ once: true }}
                   href="#"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:spiffy-text transform cursor-pointer text-white transition-colors duration-200 hover:scale-110 hover:text-purple-200"
+                  className="hover:spiffy-text transform cursor-pointer text-white transition-colors duration-200 hover:text-purple-200"
                   aria-label={social.label}
                 >
                   <span className="text-2xl">{social.icon}</span>
-                </a>
+                </motion.a>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Contact Info */}
-        <div className="font-cormorant flex flex-col flex-wrap items-center justify-center gap-6 text-center md:flex-row">
+        <motion.div
+          variants={itemVariants}
+          className="font-cormorant flex flex-col flex-wrap items-center justify-center gap-6 text-center md:flex-row"
+        >
           {/* Phone */}
-          <div className="group flex items-center gap-2">
+          <motion.div
+            variants={itemVariants}
+            className="group flex items-center gap-2"
+          >
             <PhoneIcon
               className="group-hover:!spiffy-text !text-white !transition-colors !duration-200"
               fontSize="small"
@@ -109,10 +233,13 @@ export default function Footer() {
             >
               (202) 670-6164
             </a>
-          </div>
+          </motion.div>
 
           {/* SMS */}
-          <div className="group flex items-center gap-2">
+          <motion.div
+            variants={itemVariants}
+            className="group flex items-center gap-2"
+          >
             <SmsIcon
               className="group-hover:!spiffy-text !text-white !transition-colors !duration-200"
               fontSize="small"
@@ -124,10 +251,13 @@ export default function Footer() {
             >
               (302) 703-7595
             </a>
-          </div>
+          </motion.div>
 
           {/* Email */}
-          <div className="group flex items-center gap-2">
+          <motion.div
+            variants={itemVariants}
+            className="group flex items-center gap-2"
+          >
             <EmailIcon
               className="group-hover:!spiffy-text !text-white !transition-colors !duration-200"
               fontSize="small"
@@ -141,40 +271,62 @@ export default function Footer() {
             >
               help@spiffyfox.com
             </a>
-          </div>
+          </motion.div>
 
           {/* Address */}
-          <div className="group flex items-start justify-center gap-2">
+          <motion.div
+            variants={itemVariants}
+            className="group flex items-start justify-center gap-2"
+          >
             <LocationIcon className="hover:!spiffy-text mt-0.5 !text-lg !text-white !transition-colors !duration-200" />
             <p className="font-cormorant text-sm text-white">
               1 SpiffyFox Way, Premium Plaza, DE 19809
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Business Hours */}
-        <div className="font-cormorant spiffy-bg-medium max-w-md rounded-lg p-4 text-center">
-          <h4 className="font-cormorant mb-2 font-semibold text-white">
+        <motion.div
+          variants={itemVariants}
+          className="font-cormorant spiffy-bg-medium max-w-md rounded-lg p-4 text-center"
+        >
+          <motion.h4
+            variants={itemVariants}
+            className="font-cormorant mb-2 font-semibold text-white"
+          >
             Business Hours
-          </h4>
-          <p className="text-sm text-gray-200">
+          </motion.h4>
+          <motion.p variants={itemVariants} className="text-sm text-gray-200">
             Monday - Friday: 8:00 AM - 8:00 PM
-          </p>
-          <p className="text-sm text-gray-200">Saturday: Closed</p>
-          <p className="text-sm text-gray-200">Sunday: 9: 00 AM - 5:00 PM</p>
-        </div>
+          </motion.p>
+          <motion.p variants={itemVariants} className="text-sm text-gray-200">
+            Saturday: Closed
+          </motion.p>
+          <motion.p variants={itemVariants} className="text-sm text-gray-200">
+            Sunday: 9:00 AM - 5:00 PM
+          </motion.p>
+        </motion.div>
 
         {/* Copyright */}
-        <div className="w-full border-t border-purple-400/30 pt-6 text-center">
-          <p className="font-cormorant text-sm tracking-wide text-gray-200">
+        <motion.div
+          variants={itemVariants}
+          className="w-full border-t border-purple-400/30 pt-6 text-center"
+        >
+          <motion.p
+            variants={itemVariants}
+            className="font-cormorant text-sm tracking-wide text-gray-200"
+          >
             &copy; {new Date().getFullYear()} SpiffyFox Corporation. All rights
             reserved.
-          </p>
-          <p className="font-cormorant mt-1 text-xs text-gray-300">
+          </motion.p>
+          <motion.p
+            variants={itemVariants}
+            className="font-cormorant mt-1 text-xs text-gray-300"
+          >
             Premium Solutions for Modern Living.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

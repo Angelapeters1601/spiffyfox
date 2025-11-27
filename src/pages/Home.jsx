@@ -330,9 +330,7 @@ const Home = () => {
 
       {/* Reviews Section */}
       <section>
-        <div>
-          <Reviews />
-        </div>
+        <div>{/* <Reviews /> */}</div>
       </section>
 
       {/* Career CTA Section */}
