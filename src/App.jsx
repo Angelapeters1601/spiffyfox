@@ -5,6 +5,8 @@ import LoadingFallback from "./ui/LoadingFallback";
 import NotFoundPage from "./pages/NotFoundPage";
 import UnauthorizedPage from "./components/UnauthorizedPage";
 import { ScrollToTopHandler } from "./ui/ScrollToTop";
+import JobPostings from "./admin/contractor/JobPostings";
+-JobPostings;
 
 // Lazy load main pages
 const Home = React.lazy(() => import("./pages/Home"));
@@ -30,6 +32,8 @@ const AdminNewsletter = React.lazy(
 const AdminContractor = React.lazy(
   () => import("./admin/contractor/AdminContractor"),
 );
+
+// const AdminJobPostings = React.lazy(() => import("./admin/job-postings"));
 const AdminTips = React.lazy(() => import("./admin/tips/AdminTips"));
 const AdminClientPortal = React.lazy(
   () => import("./admin/client/AdminClientPortal"),
@@ -170,6 +174,14 @@ function App() {
                 element={
                   <React.Suspense fallback={<LoadingFallback />}>
                     <AdminContractor />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="job-postings"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <JobPostings />
                   </React.Suspense>
                 }
               />
