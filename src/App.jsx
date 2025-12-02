@@ -6,7 +6,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import UnauthorizedPage from "./components/UnauthorizedPage";
 import { ScrollToTopHandler } from "./ui/ScrollToTop";
 import JobPostings from "./admin/contractor/JobPostings";
--JobPostings;
+import JobPostingForm from "./admin/contractor/JobPostingForm";
 
 // Lazy load main pages
 const Home = React.lazy(() => import("./pages/Home"));
@@ -182,6 +182,14 @@ function App() {
                 element={
                   <React.Suspense fallback={<LoadingFallback />}>
                     <JobPostings />
+                  </React.Suspense>
+                }
+              />{" "}
+              <Route
+                path="job-postings/new"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <JobPostingForm />
                   </React.Suspense>
                 }
               />

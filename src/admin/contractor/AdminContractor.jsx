@@ -7,7 +7,6 @@ import {
   FiXCircle,
   FiClock,
   FiUserPlus,
-  FiTrendingUp,
   FiEdit,
   FiTrash2,
   FiEye,
@@ -546,7 +545,7 @@ const AdminContractor = () => {
           <div className="flex space-x-3">
             <button
               onClick={() => (window.location.href = "/admin/job-postings/new")}
-              className="font-quicksand transform rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-2 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+              className="font-quicksand transform cursor-pointer rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-2 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               + Add New Job
             </button>
