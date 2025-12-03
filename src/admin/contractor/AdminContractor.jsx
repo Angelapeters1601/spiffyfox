@@ -7,7 +7,6 @@ import {
   FiXCircle,
   FiClock,
   FiUserPlus,
-  FiEdit,
   FiTrash2,
   FiEye,
   FiSearch,
@@ -609,14 +608,6 @@ const AdminContractor = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() =>
-                          (window.location.href = `/admin/job-postings/edit/${job.id}`)
-                        }
-                        className="rounded-lg p-2 text-blue-600 transition-colors duration-150 hover:bg-blue-50"
-                      >
-                        <FiEdit className="text-lg" />
-                      </button>
                       <button
                         onClick={() => handleDeleteJob(job.id)}
                         className="rounded-lg p-2 text-red-600 transition-colors duration-150 hover:bg-red-50"
