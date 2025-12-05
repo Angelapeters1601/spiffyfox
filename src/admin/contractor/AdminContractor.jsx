@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   FiUsers,
@@ -10,7 +10,6 @@ import {
   FiTrash2,
   FiEye,
   FiSearch,
-  FiFilter,
   FiMail,
   FiPhone,
   FiMapPin,
@@ -19,6 +18,10 @@ import {
   FiArrowDown,
   FiPlus,
   FiExternalLink,
+  FiFilter,
+  FiX,
+  FiChevronDown,
+  FiChevronUp,
 } from "react-icons/fi";
 import {
   BarChart,
@@ -35,6 +38,7 @@ import {
   Area,
 } from "recharts";
 import { supabase } from "../../services/supabaseClient";
+import ApplicantManagement from "./ApplicantManagement";
 
 const AdminContractor = () => {
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -52,6 +56,27 @@ const AdminContractor = () => {
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    status: "all",
+    jobType: "all",
+    state: "all",
+    country: "all",
+    service: "all",
+    dateRange: "all",
+  });
+  const [chartData, setChartData] = useState({
+    applicationTrend: [],
+    statusDistribution: [],
+    geoDistribution: [],
+    serviceDistribution: [],
+  });
+  const [filterOptions, setFilterOptions] = useState({
+    states: [],
+    countries: [],
+    services: [],
+    jobTypes: [],
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -61,50 +86,34 @@ const AdminContractor = () => {
     try {
       setLoading(true);
 
-      // Fetch contractors
       const { data: contractorsData } = await supabase
         .from("contractors")
         .select("*")
         .order("created_at", { ascending: false });
 
-      // Fetch job postings
       const { data: jobPostingsData } = await supabase
         .from("job_postings")
         .select("*")
         .order("created_at", { ascending: false });
 
-      // Calculate statistics manually
       if (contractorsData) {
-        const statsData = {
-          total_applications: contractorsData.length,
-          new_applications: contractorsData.filter(
-            (c) => c.application_status === "new",
-          ).length,
-          total_interviews: contractorsData.filter(
-            (c) => c.application_status === "interviewed",
-          ).length,
-          total_hired: contractorsData.filter(
-            (c) => c.application_status === "hired",
-          ).length,
-          rejected: contractorsData.filter(
-            (c) => c.application_status === "rejected",
-          ).length,
-          pending_review: contractorsData.filter(
-            (c) => c.application_status === "pending",
-          ).length,
-          upcoming_interviews: contractorsData.filter(
-            (c) => c.interview_date && new Date(c.interview_date) >= new Date(),
-          ).length,
-        };
+        const statsData = calculateStats(contractorsData);
         setStats(statsData);
 
-        // Format contractors data for display
+        const options = extractFilterOptions(contractorsData);
+        setFilterOptions(options);
+
+        const charts = generateChartData(contractorsData);
+        setChartData(charts);
+
         const formattedContractors = contractorsData.map((contractor) => ({
           id: contractor.id,
           name: `${contractor.first_name} ${contractor.last_name}`,
           email: contractor.email,
           phone: contractor.phone,
           address: `${contractor.address}, ${contractor.city}, ${contractor.state} ${contractor.zip_code}`,
+          state: contractor.state,
+          country: contractor.country || "US",
           jobApplied: formatJobType(contractor.job_applied),
           status: formatStatus(contractor.application_status),
           applicationDate: contractor.application_date,
@@ -115,8 +124,11 @@ const AdminContractor = () => {
           interviewDate: contractor.interview_date,
           interviewTime: contractor.interview_time,
           interviewType: contractor.interview_type,
-          services: contractor.services_offered,
-          rawData: contractor, // Keep original for modal
+          services: contractor.services_offered || [],
+          servicesOffered: Array.isArray(contractor.services_offered)
+            ? contractor.services_offered
+            : [],
+          rawData: contractor,
         }));
         setContractors(formattedContractors);
       }
@@ -146,6 +158,204 @@ const AdminContractor = () => {
     }
   };
 
+  const calculateStats = (data) => {
+    const now = new Date();
+    const total = data.length;
+    const newApps = data.filter((c) => c.application_status === "new").length;
+    const interviewed = data.filter(
+      (c) => c.application_status === "interviewed",
+    ).length;
+    const hired = data.filter((c) => c.application_status === "hired").length;
+    const rejected = data.filter(
+      (c) => c.application_status === "rejected",
+    ).length;
+    const pending = data.filter(
+      (c) => c.application_status === "pending",
+    ).length;
+
+    const upcomingInterviews = data.filter(
+      (c) => c.interview_date && new Date(c.interview_date) >= now,
+    ).length;
+
+    return {
+      total_applications: total,
+      new_applications: newApps,
+      total_interviews: interviewed,
+      total_hired: hired,
+      rejected: rejected,
+      pending_review: pending,
+      upcoming_interviews: upcomingInterviews,
+    };
+  };
+
+  const extractFilterOptions = (data) => {
+    const states = [
+      ...new Set(data.map((c) => c.state).filter(Boolean)),
+    ].sort();
+    const countries = [
+      ...new Set(data.map((c) => c.country).filter(Boolean)),
+    ].sort();
+
+    const allServices = data.flatMap((c) =>
+      Array.isArray(c.services_offered) ? c.services_offered : [],
+    );
+    const services = [...new Set(allServices)].filter(Boolean).sort();
+
+    const jobTypes = [
+      ...new Set(data.map((c) => c.job_applied).filter(Boolean)),
+    ].sort();
+
+    return { states, countries, services, jobTypes };
+  };
+
+  const generateChartData = (data) => {
+    const trendData = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+
+      const count = data.filter((c) => {
+        const appDate = new Date(c.application_date);
+        return appDate.toISOString().split("T")[0] === dateStr;
+      }).length;
+
+      trendData.push({
+        name: date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        date: dateStr,
+        applications: count,
+      });
+    }
+
+    const statusCounts = {
+      Hired: data.filter((c) => c.application_status === "hired").length,
+      Interviewed: data.filter((c) => c.application_status === "interviewed")
+        .length,
+      New: data.filter((c) => c.application_status === "new").length,
+      Rejected: data.filter((c) => c.application_status === "rejected").length,
+      Pending: data.filter((c) => c.application_status === "pending").length,
+    };
+
+    const statusDistribution = Object.entries(statusCounts).map(
+      ([name, value]) => ({
+        name,
+        value,
+      }),
+    );
+
+    const stateCounts = {};
+    data.forEach((c) => {
+      if (c.state) {
+        stateCounts[c.state] = (stateCounts[c.state] || 0) + 1;
+      }
+    });
+
+    const geoDistribution = Object.entries(stateCounts)
+      .map(([state, count]) => ({ name: state, applicants: count }))
+      .sort((a, b) => b.applicants - a.applicants)
+      .slice(0, 8);
+
+    const serviceCounts = {};
+    data.forEach((c) => {
+      if (Array.isArray(c.services_offered)) {
+        c.services_offered.forEach((service) => {
+          if (service) {
+            serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    const serviceDistribution = Object.entries(serviceCounts)
+      .map(([service, count]) => ({
+        name: formatJobType(service),
+        applicants: count,
+      }))
+      .sort((a, b) => b.applicants - a.applicants)
+      .slice(0, 8);
+
+    return {
+      applicationTrend: trendData,
+      statusDistribution,
+      geoDistribution,
+      serviceDistribution,
+    };
+  };
+
+  const filteredContractors = useMemo(() => {
+    return contractors.filter((contractor) => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        !searchTerm ||
+        contractor.name.toLowerCase().includes(searchLower) ||
+        contractor.email.toLowerCase().includes(searchLower) ||
+        contractor.jobApplied.toLowerCase().includes(searchLower) ||
+        contractor.status.toLowerCase().includes(searchLower);
+
+      const matchesStatus =
+        filters.status === "all" ||
+        contractor.status.toLowerCase() === filters.status.toLowerCase();
+
+      const matchesJobType =
+        filters.jobType === "all" ||
+        contractor.jobApplied
+          .toLowerCase()
+          .includes(filters.jobType.toLowerCase());
+
+      const matchesState =
+        filters.state === "all" || contractor.state === filters.state;
+
+      const matchesCountry =
+        filters.country === "all" || contractor.country === filters.country;
+
+      const matchesService =
+        filters.service === "all" ||
+        (Array.isArray(contractor.servicesOffered) &&
+          contractor.servicesOffered.includes(filters.service));
+
+      const matchesDateRange =
+        filters.dateRange === "all" ||
+        (contractor.applicationDate &&
+          filterByDateRange(contractor.applicationDate, filters.dateRange));
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesJobType &&
+        matchesState &&
+        matchesCountry &&
+        matchesService &&
+        matchesDateRange
+      );
+    });
+  }, [contractors, searchTerm, filters]);
+
+  const filterByDateRange = (dateString, range) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const daysAgo = new Date();
+
+    switch (range) {
+      case "today":
+        return date.toDateString() === now.toDateString();
+      case "week":
+        daysAgo.setDate(now.getDate() - 7);
+        return date >= daysAgo;
+      case "month":
+        daysAgo.setDate(now.getDate() - 30);
+        return date >= daysAgo;
+      case "quarter":
+        daysAgo.setDate(now.getDate() - 90);
+        return date >= daysAgo;
+      default:
+        return true;
+    }
+  };
+
   const formatJobType = (jobType) => {
     const jobTypes = {
       residential_cleaning: "Residential Cleaning",
@@ -157,7 +367,10 @@ const AdminContractor = () => {
       packing_unpacking: "Packing & Unpacking",
       personal_assistance: "Personal Assistance",
     };
-    return jobTypes[jobType] || jobType.replace("_", " ").toUpperCase();
+    return (
+      jobTypes[jobType] ||
+      jobType.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+    );
   };
 
   const formatStatus = (status) => {
@@ -169,145 +382,61 @@ const AdminContractor = () => {
       rejected: "Rejected",
       pending: "Pending",
     };
-    return statusMap[status] || status;
+    return (
+      statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1)
+    );
   };
 
-  // Updated stats data with real database values
-  const statsData = [
-    {
-      label: "Total Applications",
-      value: stats.total_applications.toLocaleString(),
-      icon: FiUsers,
-      color: "from-blue-500 to-blue-600",
-      trend: "+12%",
-    },
-    {
-      label: "Total Interviews",
-      value: stats.total_interviews.toLocaleString(),
-      icon: FiCalendar,
-      color: "from-purple-500 to-purple-600",
-      trend: "+5%",
-    },
-    {
-      label: "Total Hired",
-      value: stats.total_hired.toLocaleString(),
-      icon: FiCheckCircle,
-      color: "from-green-500 to-green-600",
-      trend: "+8%",
-    },
-    {
-      label: "New Applications",
-      value: stats.new_applications.toLocaleString(),
-      icon: FiUserPlus,
-      color: "from-orange-500 to-orange-600",
-      trend: "+23%",
-    },
-    {
-      label: "Rejected",
-      value: stats.rejected.toLocaleString(),
-      icon: FiXCircle,
-      color: "from-red-500 to-red-600",
-      trend: "-4%",
-    },
-    {
-      label: "Pending Review",
-      value: stats.pending_review.toLocaleString(),
-      icon: FiClock,
-      color: "from-yellow-500 to-yellow-600",
-      trend: "+15%",
-    },
-  ];
-
-  // Generate chart data from real data
-  const applicationStats = [
-    { name: "Jan", applications: 45, hired: 12 },
-    { name: "Feb", applications: 23, hired: 8 },
-    { name: "Mar", applications: 34, hired: 15 },
-    { name: "Apr", applications: 28, hired: 10 },
-    { name: "May", applications: 19, hired: 7 },
-    { name: "Jun", applications: 32, hired: 14 },
-  ];
-
-  const statusData = [
-    { name: "Hired", value: stats.total_hired },
-    { name: "Interviewed", value: stats.total_interviews },
-    { name: "New", value: stats.new_applications },
-    { name: "Rejected", value: stats.rejected },
-    { name: "Pending", value: stats.pending_review },
-  ];
-
-  const COLORS = ["#00C49F", "#0088FE", "#FFBB28", "#FF8042", "#8884D8"];
-
-  // Filter contractors based on search
-  const filteredContractors = contractors.filter(
-    (contractor) =>
-      contractor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contractor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contractor.jobApplied.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  // Get upcoming interviews from contractors
-  const upcomingInterviews = contractors
-    .filter((c) => c.interviewDate && new Date(c.interviewDate) >= new Date())
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      job: c.jobApplied,
-      date: c.interviewDate,
-      time: c.interviewTime || "TBD",
-      type: c.interviewType
-        ? c.interviewType === "video_call"
-          ? "Video Call"
-          : c.interviewType === "phone"
-            ? "Phone Call"
-            : "In-person"
-        : "In-person",
-    }))
-    .slice(0, 3); // Limit to 3 for display
-
-  const handleRowClick = (applicant) => {
-    setSelectedApplication(applicant);
-    setSidebarOpen(true);
+  const calculateTrend = (currentValue, previousValue) => {
+    if (previousValue === 0) return currentValue > 0 ? "+100%" : "0%";
+    const change = ((currentValue - previousValue) / previousValue) * 100;
+    return `${change >= 0 ? "+" : ""}${Math.round(change)}%`;
   };
 
-  const handleStatusUpdate = async (contractorId, newStatus) => {
-    const statusMap = {
-      New: "new",
-      Interviewed: "interviewed",
-      Hired: "hired",
-      Rejected: "rejected",
-      Pending: "pending",
-    };
-
-    const { error } = await supabase
-      .from("contractors")
-      .update({
-        application_status: statusMap[newStatus] || newStatus.toLowerCase(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", contractorId);
-
-    if (!error) {
-      fetchDashboardData(); // Refresh data
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not set";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
     }
   };
 
-  const handleDeleteJob = async (jobId) => {
-    if (window.confirm("Are you sure you want to delete this job posting?")) {
-      const { error } = await supabase
-        .from("job_postings")
-        .delete()
-        .eq("id", jobId);
-
-      if (!error) {
-        fetchDashboardData(); // Refresh data
+  const formatDateTime = (dateString, timeString) => {
+    if (!dateString) return "Not scheduled";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
       }
+      const dateFormatted = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+
+      if (timeString) {
+        return `${dateFormatted} at ${timeString}`;
+      }
+      return `${dateFormatted} (Time TBD)`;
+    } catch (error) {
+      console.error("Error formatting date/time:", error);
+      return "Invalid date";
     }
   };
 
   const getStatusColor = (status) => {
     const colors = {
       New: "bg-blue-50 text-blue-700 border-blue-200",
+      Reviewed: "bg-indigo-50 text-indigo-700 border-indigo-200",
       Interviewed: "bg-purple-50 text-purple-700 border-purple-200",
       Hired: "bg-green-50 text-green-700 border-green-200",
       Rejected: "bg-red-50 text-red-700 border-red-200",
@@ -321,456 +450,730 @@ const AdminContractor = () => {
   };
 
   const getInitials = (name) => {
+    if (!name) return "NA";
     return name
       .split(" ")
       .map((n) => n[0])
       .join("")
-      .toUpperCase();
+      .toUpperCase()
+      .slice(0, 2);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Not set";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+  const handleRowClick = (applicant) => {
+    setSelectedApplication(applicant);
+    setSidebarOpen(true);
   };
 
-  const formatDateTime = (dateString, timeString) => {
-    if (!dateString) return "Not scheduled";
-    const date = new Date(dateString);
-    return `${date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })} at ${timeString || "TBD"}`;
+  const handleDeleteApplicant = async (applicantId) => {
+    if (window.confirm("Are you sure you want to delete this applicant?")) {
+      try {
+        const { error } = await supabase
+          .from("contractors")
+          .delete()
+          .eq("id", applicantId);
+
+        if (!error) {
+          fetchDashboardData();
+        }
+      } catch (error) {
+        console.error("Error deleting applicant:", error);
+      }
+    }
   };
+
+  const handleStatusUpdate = async (applicantId, newStatus) => {
+    console.log("Update status:", applicantId, newStatus);
+  };
+
+  const handleDeleteJob = async (jobId) => {
+    if (window.confirm("Are you sure you want to delete this job posting?")) {
+      const { error } = await supabase
+        .from("job_postings")
+        .delete()
+        .eq("id", jobId);
+
+      if (!error) {
+        fetchDashboardData();
+      }
+    }
+  };
+
+  const statsData = [
+    {
+      label: "Total Applications",
+      value: stats.total_applications.toLocaleString(),
+      icon: FiUsers,
+      color: "from-blue-500 to-blue-600",
+      trend: calculateTrend(
+        stats.total_applications,
+        Math.max(0, stats.total_applications - stats.new_applications),
+      ),
+    },
+    {
+      label: "Total Interviews",
+      value: stats.total_interviews.toLocaleString(),
+      icon: FiCalendar,
+      color: "from-purple-500 to-purple-600",
+      trend: calculateTrend(
+        stats.total_interviews,
+        Math.max(0, stats.total_interviews - stats.new_applications * 0.3),
+      ),
+    },
+    {
+      label: "Total Hired",
+      value: stats.total_hired.toLocaleString(),
+      icon: FiCheckCircle,
+      color: "from-green-500 to-green-600",
+      trend: calculateTrend(
+        stats.total_hired,
+        Math.max(0, stats.total_hired - stats.new_applications * 0.1),
+      ),
+    },
+    {
+      label: "New Applications",
+      value: stats.new_applications.toLocaleString(),
+      icon: FiUserPlus,
+      color: "from-orange-500 to-orange-600",
+      trend: calculateTrend(
+        stats.new_applications,
+        Math.max(0, stats.new_applications - 5),
+      ),
+    },
+    {
+      label: "Rejected",
+      value: stats.rejected.toLocaleString(),
+      icon: FiXCircle,
+      color: "from-red-500 to-red-600",
+      trend: calculateTrend(
+        stats.rejected,
+        Math.max(0, stats.rejected - stats.new_applications * 0.2),
+      ),
+    },
+    {
+      label: "Pending Review",
+      value: stats.pending_review.toLocaleString(),
+      icon: FiClock,
+      color: "from-yellow-500 to-yellow-600",
+      trend: calculateTrend(
+        stats.pending_review,
+        Math.max(0, stats.pending_review - stats.new_applications * 0.4),
+      ),
+    },
+  ];
+
+  const COLORS = ["#00C49F", "#0088FE", "#FFBB28", "#FF8042", "#8884D8"];
+  const AREA_COLORS = ["#8884d8", "#82ca9d", "#ffc658"];
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-purple-500 border-r-transparent"></div>
-          <p className="font-quicksand mt-4 text-gray-600">
-            Loading dashboard...
-          </p>
+          <p className="font-quicksand mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 lg:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+      <div className="mb-6">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="font-cinzel mb-2 bg-gradient-to-r from-gray-800 to-purple-600 bg-clip-text text-3xl font-bold text-transparent lg:text-4xl">
+            <h1 className="font-cinzel mb-1 text-xl font-bold text-gray-900 md:text-2xl">
               Contractor Management
             </h1>
-            <p className="font-quicksand text-lg text-gray-600">
+            <p className="font-quicksand text-sm text-gray-600">
               Streamline your hiring process with powerful insights
             </p>
           </div>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row lg:mt-0">
-            <div className="relative min-w-[200px] flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
               <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
               <input
                 type="text"
                 placeholder="Search applicants, jobs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="font-quicksand w-full rounded-xl border border-gray-300 bg-white py-3 pr-4 pl-10 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                className="font-quicksand w-full rounded-lg border border-gray-300 bg-white py-2 pr-4 pl-10 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
               />
             </div>
-            <button className="flex items-center justify-center space-x-2 rounded-xl border border-gray-300 bg-white px-6 py-3 shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md">
-              <FiFilter className="text-gray-600" />
-              <span className="font-quicksand font-medium">Filters</span>
-            </button>
+
             <Link
               to="/admin/job-postings"
-              className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-3 text-white shadow-sm transition-all duration-200 hover:shadow-md"
+              className="flex items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-purple-700"
             >
-              <FiPlus className="text-lg" />
+              <FiPlus className="text-base" />
               <span className="font-quicksand font-medium">Manage Jobs</span>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Statistics Grid */}
-      <div className="mb-8">
-        <h2 className="font-cinzel mb-6 text-2xl font-semibold text-gray-800">
-          Hiring Overview
-        </h2>
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {statsData.map((stat, index) => {
-            const IconComponent = stat.icon;
-            const isPositive = !stat.trend.startsWith("-");
-            return (
-              <div
-                key={index}
-                className="transform rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <div
-                    className={`rounded-xl bg-gradient-to-r p-3 ${stat.color} shadow-md`}
-                  >
-                    <IconComponent className="text-lg text-white" />
-                  </div>
-                  <div
-                    className={`flex items-center space-x-1 rounded-full px-2 py-1 text-xs font-medium ${
-                      isPositive
-                        ? "bg-green-50 text-green-600"
-                        : "bg-red-50 text-red-600"
-                    }`}
-                  >
-                    {isPositive ? (
-                      <FiArrowUp className="text-xs" />
-                    ) : (
-                      <FiArrowDown className="text-xs" />
-                    )}
-                    <span>{stat.trend}</span>
-                  </div>
-                </div>
-                <h3 className="font-cinzel mb-1 text-2xl font-bold text-gray-800">
-                  {stat.value}
-                </h3>
-                <p className="font-quicksand text-sm text-gray-600">
-                  {stat.label}
-                </p>
-                <Link
-                  to="#"
-                  className="font-quicksand mt-2 inline-block text-xs font-medium text-purple-600 hover:text-purple-700"
+      {/* Collapsible Filter Bar */}
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white shadow-sm">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex w-full items-center justify-between p-4 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <FiFilter className="text-purple-600" />
+            <span className="font-quicksand font-medium text-gray-900">
+              Filters
+            </span>
+            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
+              {Object.values(filters).filter((f) => f !== "all").length} active
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">
+              {showFilters ? "Hide" : "Show"} filters
+            </span>
+            {showFilters ? (
+              <FiChevronUp className="text-gray-500" />
+            ) : (
+              <FiChevronDown className="text-gray-500" />
+            )}
+          </div>
+        </button>
+
+        {showFilters && (
+          <div className="border-t border-gray-200 p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+              <div>
+                <label className="font-quicksand mb-1.5 block text-xs font-medium text-gray-700">
+                  Status
+                </label>
+                <select
+                  value={filters.status}
+                  onChange={(e) =>
+                    setFilters({ ...filters, status: e.target.value })
+                  }
+                  className="font-quicksand w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                 >
-                  View details →
-                </Link>
+                  <option value="all">All Statuses</option>
+                  <option value="new">New</option>
+                  <option value="reviewed">Reviewed</option>
+                  <option value="interviewed">Interviewed</option>
+                  <option value="hired">Hired</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="pending">Pending</option>
+                </select>
               </div>
-            );
-          })}
+
+              <div>
+                <label className="font-quicksand mb-1.5 block text-xs font-medium text-gray-700">
+                  Job Type
+                </label>
+                <select
+                  value={filters.jobType}
+                  onChange={(e) =>
+                    setFilters({ ...filters, jobType: e.target.value })
+                  }
+                  className="font-quicksand w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                >
+                  <option value="all">All Types</option>
+                  {filterOptions.jobTypes.map((jobType) => (
+                    <option key={jobType} value={jobType}>
+                      {formatJobType(jobType)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-quicksand mb-1.5 block text-xs font-medium text-gray-700">
+                  State
+                </label>
+                <select
+                  value={filters.state}
+                  onChange={(e) =>
+                    setFilters({ ...filters, state: e.target.value })
+                  }
+                  className="font-quicksand w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                >
+                  <option value="all">All States</option>
+                  {filterOptions.states.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-quicksand mb-1.5 block text-xs font-medium text-gray-700">
+                  Country
+                </label>
+                <select
+                  value={filters.country}
+                  onChange={(e) =>
+                    setFilters({ ...filters, country: e.target.value })
+                  }
+                  className="font-quicksand w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                >
+                  <option value="all">All Countries</option>
+                  {filterOptions.countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-quicksand mb-1.5 block text-xs font-medium text-gray-700">
+                  Service
+                </label>
+                <select
+                  value={filters.service}
+                  onChange={(e) =>
+                    setFilters({ ...filters, service: e.target.value })
+                  }
+                  className="font-quicksand w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                >
+                  <option value="all">All Services</option>
+                  {filterOptions.services.map((service) => (
+                    <option key={service} value={service}>
+                      {formatJobType(service)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="font-quicksand mb-1.5 block text-xs font-medium text-gray-700">
+                  Date Range
+                </label>
+                <select
+                  value={filters.dateRange}
+                  onChange={(e) =>
+                    setFilters({ ...filters, dateRange: e.target.value })
+                  }
+                  className="font-quicksand w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                >
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">Last 7 Days</option>
+                  <option value="month">Last 30 Days</option>
+                  <option value="quarter">Last 90 Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <button
+                onClick={() =>
+                  setFilters({
+                    status: "all",
+                    jobType: "all",
+                    state: "all",
+                    country: "all",
+                    service: "all",
+                    dateRange: "all",
+                  })
+                }
+                className="font-quicksand rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50"
+              >
+                Clear All Filters
+              </button>
+              <div className="text-xs text-gray-500">
+                Showing {filteredContractors.length} of {contractors.length}{" "}
+                applicants
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="space-y-6">
+        {/* Statistics Grid */}
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-cinzel text-lg font-semibold text-gray-900">
+              Hiring Overview
+            </h2>
+            <div className="font-quicksand text-xs text-gray-500">
+              Real-time statistics
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {statsData.map((stat, index) => {
+              const IconComponent = stat.icon;
+              const isPositive = !stat.trend.startsWith("-");
+              return (
+                <div
+                  key={index}
+                  className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <div
+                      className={`rounded-lg bg-gradient-to-r p-2 ${stat.color}`}
+                    >
+                      <IconComponent className="text-base text-white" />
+                    </div>
+                    <div
+                      className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium ${
+                        isPositive
+                          ? "bg-green-50 text-green-600"
+                          : "bg-red-50 text-red-600"
+                      }`}
+                    >
+                      {isPositive ? (
+                        <FiArrowUp className="text-[10px]" />
+                      ) : (
+                        <FiArrowDown className="text-[10px]" />
+                      )}
+                      <span className="text-xs">{stat.trend}</span>
+                    </div>
+                  </div>
+                  <h3 className="font-cinzel mb-0.5 text-lg font-bold text-gray-900">
+                    {stat.value}
+                  </h3>
+                  <p className="font-quicksand text-xs text-gray-600">
+                    {stat.label}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Charts Section */}
-        <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm xl:col-span-2">
-            <h3 className="font-cinzel mb-6 text-lg font-semibold text-gray-800">
-              Applications Trend
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={applicationStats}>
-                <defs>
-                  <linearGradient
-                    id="colorApplications"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="applications"
-                  stroke="#8884d8"
-                  fillOpacity={1}
-                  fill="url(#colorApplications)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="hired"
-                  stroke="#00C49F"
-                  fillOpacity={1}
-                  fill="url(#colorHired)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-cinzel text-lg font-semibold text-gray-900">
+              Analytics
+            </h2>
+            <div className="font-quicksand text-xs text-gray-500">
+              Last 30 days data
+            </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h3 className="font-cinzel mb-6 text-lg font-semibold text-gray-800">
-              Status Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* Application Trend Chart */}
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-cinzel font-medium text-gray-800">
+                  Applications Trend
+                </h3>
+                <span className="font-quicksand text-xs text-gray-500">
+                  30 days
+                </span>
+              </div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData.applicationTrend}>
+                    <defs>
+                      <linearGradient
+                        id="colorApplications"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor={AREA_COLORS[0]}
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor={AREA_COLORS[0]}
+                          stopOpacity={0.1}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 11 }}
+                      interval="preserveStartEnd"
                     />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {statusData.map((entry, index) => (
-                <div key={entry.name} className="flex items-center space-x-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: COLORS[index] }}
-                  />
-                  <span className="font-quicksand text-xs text-gray-600">
-                    {entry.name}: {entry.value}
-                  </span>
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "6px",
+                        border: "1px solid #e5e7eb",
+                        fontSize: "11px",
+                        padding: "8px",
+                      }}
+                      formatter={(value) => [`${value}`, "Applications"]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="applications"
+                      stroke={AREA_COLORS[0]}
+                      strokeWidth={1.5}
+                      fillOpacity={1}
+                      fill="url(#colorApplications)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Status Distribution Chart */}
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-cinzel font-medium text-gray-800">
+                  Status Distribution
+                </h3>
+                <span className="font-quicksand text-xs text-gray-500">
+                  Total: {stats.total_applications}
+                </span>
+              </div>
+              <div className="flex h-56">
+                <div className="w-2/3">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData.statusDistribution}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={70}
+                        paddingAngle={1}
+                        dataKey="value"
+                        label={({ name, percent }) =>
+                          `${(percent * 100).toFixed(0)}%`
+                        }
+                      >
+                        {chartData.statusDistribution.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [`${value}`, "Applicants"]}
+                        contentStyle={{
+                          fontSize: "11px",
+                          padding: "6px",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              ))}
+                <div className="w-1/3 pl-4">
+                  <div className="space-y-2 pt-2">
+                    {chartData.statusDistribution.map((entry, index) => (
+                      <div key={entry.name} className="flex items-center gap-2">
+                        <div
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: COLORS[index] }}
+                        />
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <span className="font-quicksand text-xs font-medium text-gray-700">
+                              {entry.name}
+                            </span>
+                            <span className="font-quicksand text-xs text-gray-600">
+                              {entry.value}
+                            </span>
+                          </div>
+                          <div className="mt-0.5 h-1 w-full rounded-full bg-gray-200">
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${(entry.value / Math.max(...chartData.statusDistribution.map((d) => d.value))) * 100}%`,
+                                backgroundColor: COLORS[index],
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Service Distribution Chart */}
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-cinzel font-medium text-gray-800">
+                  Service Distribution
+                </h3>
+                <span className="font-quicksand text-xs text-gray-500">
+                  Top 8 services
+                </span>
+              </div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData.serviceDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis
+                      dataKey="name"
+                      angle={-45}
+                      textAnchor="end"
+                      height={40}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(value) => [`${value}`, "Applicants"]}
+                      contentStyle={{
+                        fontSize: "11px",
+                        padding: "6px",
+                      }}
+                    />
+                    <Bar
+                      dataKey="applicants"
+                      fill="#8884d8"
+                      radius={[2, 2, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Geographic Distribution Chart */}
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-cinzel font-medium text-gray-800">
+                  Geographic Distribution
+                </h3>
+                <span className="font-quicksand text-xs text-gray-500">
+                  Top states
+                </span>
+              </div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData.geoDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(value) => [`${value}`, "Applicants"]}
+                      contentStyle={{
+                        fontSize: "11px",
+                        padding: "6px",
+                      }}
+                    />
+                    <Bar
+                      dataKey="applicants"
+                      fill="#82ca9d"
+                      radius={[2, 2, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Jobs Table */}
-      <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col border-b border-gray-200 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-cinzel mb-4 text-xl font-semibold text-gray-800 sm:mb-0">
-            Available Positions
-          </h2>
-          <div className="flex space-x-3">
-            <button
-              onClick={() => (window.location.href = "/admin/job-postings/new")}
-              className="font-quicksand transform cursor-pointer rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-2 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              + Add New Job
-            </button>
-            <Link
-              to="/admin/job-postings"
-              className="flex items-center space-x-2 rounded-xl border border-gray-300 bg-white px-4 py-2 transition-all duration-200 hover:bg-gray-50"
-            >
-              <FiExternalLink className="text-gray-600" />
-              <span className="font-quicksand text-sm">View All</span>
-            </Link>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                  Job Title
-                </th>
-                <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                  Applications
-                </th>
-                <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                  Available Until
-                </th>
-                <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                  Status
-                </th>
-                <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobPostings.slice(0, 5).map((job) => (
-                <tr
-                  key={job.id}
-                  className="border-b border-gray-200 transition-colors duration-150 hover:bg-gray-50"
-                >
-                  <td className="px-6 py-4">
-                    <span className="font-quicksand font-semibold text-gray-800">
-                      {job.title}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-quicksand font-medium text-gray-600">
-                      {job.applications}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-quicksand text-gray-600">
-                      {formatDate(job.dateAvailable)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`font-quicksand rounded-full border px-3 py-1.5 text-xs font-medium ${getStatusColor(job.status)}`}
-                    >
-                      {job.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleDeleteJob(job.id)}
-                        className="rounded-lg p-2 text-red-600 transition-colors duration-150 hover:bg-red-50"
-                      >
-                        <FiTrash2 className="text-lg" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
-        {/* Applicants Table */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm xl:col-span-2">
-          <div className="border-b border-gray-200 p-6">
-            <h2 className="font-cinzel text-xl font-semibold text-gray-800">
-              Applicant Management ({contractors.length})
+        {/* Jobs Table */}
+        <div>
+          <div className="mb-3 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <h2 className="font-cinzel text-lg font-semibold text-gray-900">
+              Available Positions
             </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() =>
+                  (window.location.href = "/admin/job-postings/new")
+                }
+                className="font-quicksand rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:bg-purple-700"
+              >
+                + New Job
+              </button>
+              <Link
+                to="/admin/job-postings"
+                className="font-quicksand flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs hover:bg-gray-50"
+              >
+                <FiExternalLink className="text-gray-600" />
+                <span>View All</span>
+              </Link>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                    Applicant
-                  </th>
-                  <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                    Job Applied
-                  </th>
-                  <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                    Applied Date
-                  </th>
-                  <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                    Status
-                  </th>
-                  <th className="font-quicksand px-6 py-4 text-left font-semibold text-gray-600">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredContractors.map((applicant) => (
-                  <tr
-                    key={applicant.id}
-                    className="group cursor-pointer border-b border-gray-200 transition-all duration-150 hover:bg-gray-50"
-                    onClick={() => handleRowClick(applicant)}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-sm transition-shadow group-hover:shadow-md">
-                          <span className="font-quicksand text-sm font-semibold text-white">
-                            {getInitials(applicant.name)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-quicksand block font-semibold text-gray-800">
-                            {applicant.name}
-                          </span>
-                          <span className="font-quicksand text-sm text-gray-500">
-                            {applicant.experience}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-quicksand text-gray-600">
-                        {applicant.jobApplied}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-quicksand text-gray-600">
-                        {formatDate(applicant.applicationDate)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`font-quicksand rounded-full border px-3 py-1.5 text-xs font-medium ${getStatusColor(applicant.status)}`}
-                      >
-                        {applicant.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button className="transform rounded-lg p-2 text-purple-600 transition-all duration-150 group-hover:scale-110 hover:bg-purple-50">
-                        <FiEye className="text-lg" />
-                      </button>
-                    </td>
+
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="font-quicksand px-4 py-2.5 text-left text-xs font-semibold text-gray-700">
+                      Job Title
+                    </th>
+                    <th className="font-quicksand px-4 py-2.5 text-left text-xs font-semibold text-gray-700">
+                      Applications
+                    </th>
+                    <th className="font-quicksand px-4 py-2.5 text-left text-xs font-semibold text-gray-700">
+                      Deadline
+                    </th>
+                    <th className="font-quicksand px-4 py-2.5 text-left text-xs font-semibold text-gray-700">
+                      Status
+                    </th>
+                    <th className="font-quicksand px-4 py-2.5 text-left text-xs font-semibold text-gray-700">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {jobPostings.slice(0, 5).map((job) => (
+                    <tr
+                      key={job.id}
+                      className="transition-colors duration-150 hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-2.5">
+                        <span className="font-quicksand text-sm font-medium text-gray-900">
+                          {job.title}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="font-quicksand text-sm text-gray-700">
+                          {job.applications}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="font-quicksand text-sm text-gray-700">
+                          {formatDate(job.dateAvailable)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span
+                          className={`font-quicksand inline-block rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusColor(job.status)}`}
+                        >
+                          {job.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <button
+                          onClick={() => handleDeleteJob(job.id)}
+                          className="rounded p-1 text-red-600 transition-colors duration-150 hover:bg-red-50"
+                          title="Delete"
+                        >
+                          <FiTrash2 className="text-sm" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        {/* Upcoming Interviews */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-200 p-6">
-            <h2 className="font-cinzel text-xl font-semibold text-gray-800">
-              Upcoming Interviews ({upcomingInterviews.length})
-            </h2>
-          </div>
-          <div className="p-6">
-            {upcomingInterviews.length === 0 ? (
-              <div className="py-8 text-center">
-                <FiCalendar className="mx-auto text-3xl text-gray-400" />
-                <p className="font-quicksand mt-2 text-gray-500">
-                  No upcoming interviews scheduled
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {upcomingInterviews.map((interview) => (
-                  <div
-                    key={interview.id}
-                    className="rounded-xl border border-gray-200 bg-gradient-to-r from-white to-gray-50 p-4 transition-all duration-200 hover:shadow-md"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-green-600 shadow-sm">
-                        <span className="font-quicksand text-sm font-semibold text-white">
-                          {getInitials(interview.name)}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-quicksand font-semibold text-gray-800">
-                          {interview.name}
-                        </h4>
-                        <p className="font-quicksand mb-1 text-sm text-gray-600">
-                          {interview.job}
-                        </p>
-                        <span
-                          className={`font-quicksand rounded-full px-2 py-1 text-xs font-medium ${
-                            interview.type === "Video Call"
-                              ? "border border-blue-200 bg-blue-50 text-blue-700"
-                              : interview.type === "Phone Call"
-                                ? "border border-yellow-200 bg-yellow-50 text-yellow-700"
-                                : "border border-purple-200 bg-purple-50 text-purple-700"
-                          }`}
-                        >
-                          {interview.type}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-gray-200 pt-3">
-                      <div>
-                        <p className="font-quicksand text-sm font-semibold text-gray-800">
-                          {formatDate(interview.date)}
-                        </p>
-                        <p className="font-quicksand text-sm text-gray-600">
-                          {interview.time}
-                        </p>
-                      </div>
-                      <button className="font-quicksand rounded-lg bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-100">
-                        Join
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Applicant Management Component */}
+        <div>
+          <ApplicantManagement
+            contractors={filteredContractors}
+            jobPostings={jobPostings}
+            stats={stats}
+            loading={loading}
+            onRowClick={handleRowClick}
+            onDeleteApplicant={handleDeleteApplicant}
+            onStatusUpdate={handleStatusUpdate}
+            formatDate={formatDate}
+            formatJobType={formatJobType}
+            getStatusColor={getStatusColor}
+            getInitials={getInitials}
+          />
         </div>
       </div>
 
@@ -778,112 +1181,131 @@ const AdminContractor = () => {
       {sidebarOpen && selectedApplication && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="bg-opacity-50 absolute inset-0 bg-black backdrop-blur-sm transition-opacity duration-300"
+            className="bg-opacity-50 absolute inset-0 bg-black backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="relative max-h-[90vh] w-full max-w-2xl scale-100 transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all duration-300">
-            <div className="absolute top-0 right-0 left-0 h-2 bg-gradient-to-r from-purple-500 to-purple-600" />
+          <div className="relative max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-purple-500 to-purple-600" />
 
-            <div className="max-h-[90vh] overflow-y-auto p-6">
+            <div className="max-h-[90vh] overflow-y-auto p-5">
               {/* Header */}
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="font-cinzel text-2xl font-semibold text-gray-800">
+              <div className="mb-5 flex items-center justify-between">
+                <h3 className="font-cinzel text-lg font-semibold text-gray-900">
                   Application Details
                 </h3>
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="rounded-xl p-2 transition-colors duration-150 hover:bg-gray-100"
+                  className="rounded-lg p-1.5 transition-colors duration-150 hover:bg-gray-100"
                 >
-                  <FiXCircle className="text-xl text-gray-600" />
+                  <FiX className="text-gray-600" />
                 </button>
               </div>
 
               {/* Profile Section */}
-              <div className="mb-8 text-center">
-                <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg">
-                  <span className="font-quicksand text-2xl font-bold text-white">
+              <div className="mb-5 text-center">
+                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-purple-600">
+                  <span className="font-quicksand text-lg font-bold text-white">
                     {getInitials(selectedApplication.name)}
                   </span>
                 </div>
-                <h4 className="font-cinzel mb-1 text-xl font-semibold text-gray-800">
+                <h4 className="font-cinzel mb-1 text-base font-semibold text-gray-900">
                   {selectedApplication.name}
                 </h4>
-                <p className="font-quicksand mb-2 text-gray-600">
+                <p className="font-quicksand mb-2 text-sm text-gray-600">
                   {selectedApplication.jobApplied}
                 </p>
                 <span
-                  className={`font-quicksand rounded-full border px-3 py-1.5 text-sm font-medium ${getStatusColor(selectedApplication.status)}`}
+                  className={`font-quicksand inline-block rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusColor(selectedApplication.status)}`}
                 >
                   {selectedApplication.status}
                 </span>
               </div>
 
               {/* Details Grid */}
-              <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-4">
-                  <div className="rounded-xl bg-gray-50 p-4">
-                    <h5 className="font-cinzel mb-3 font-semibold text-gray-800">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h5 className="font-cinzel mb-2 text-sm font-semibold text-gray-800">
                       Contact Info
                     </h5>
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center gap-3">
                         <FiMail className="text-purple-500" />
-                        <span className="font-quicksand text-gray-700">
+                        <span className="font-quicksand text-sm text-gray-700">
                           {selectedApplication.email}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center gap-3">
                         <FiPhone className="text-purple-500" />
-                        <span className="font-quicksand text-gray-700">
+                        <span className="font-quicksand text-sm text-gray-700">
                           {selectedApplication.phone}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center gap-3">
                         <FiMapPin className="text-purple-500" />
-                        <span className="font-quicksand text-gray-700">
+                        <span className="font-quicksand text-sm text-gray-700">
                           {selectedApplication.address}
                         </span>
                       </div>
+                      {selectedApplication.servicesOffered?.length > 0 && (
+                        <div className="pt-2">
+                          <h6 className="font-quicksand mb-1 text-xs font-semibold text-gray-700">
+                            Services Offered:
+                          </h6>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedApplication.servicesOffered.map(
+                              (service, index) => (
+                                <span
+                                  key={index}
+                                  className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700"
+                                >
+                                  {formatJobType(service)}
+                                </span>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="rounded-xl bg-gray-50 p-4">
-                    <h5 className="font-cinzel mb-3 font-semibold text-gray-800">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h5 className="font-cinzel mb-2 text-sm font-semibold text-gray-800">
                       Application Details
                     </h5>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="font-quicksand text-gray-600">
+                        <span className="font-quicksand text-xs text-gray-600">
                           Applied:
                         </span>
-                        <span className="font-quicksand font-medium text-gray-800">
+                        <span className="font-quicksand text-sm font-medium text-gray-800">
                           {formatDate(selectedApplication.applicationDate)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="font-quicksand text-gray-600">
+                        <span className="font-quicksand text-xs text-gray-600">
                           Experience:
                         </span>
-                        <span className="font-quicksand font-medium text-gray-800">
+                        <span className="font-quicksand text-sm font-medium text-gray-800">
                           {selectedApplication.experience}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="font-quicksand text-gray-600">
+                        <span className="font-quicksand text-xs text-gray-600">
                           Expected Salary:
                         </span>
-                        <span className="font-quicksand font-medium text-green-600">
+                        <span className="font-quicksand text-sm font-medium text-green-600">
                           {selectedApplication.salary}
                         </span>
                       </div>
                       {selectedApplication.rawData?.interview_date && (
                         <div className="flex justify-between">
-                          <span className="font-quicksand text-gray-600">
+                          <span className="font-quicksand text-xs text-gray-600">
                             Interview:
                           </span>
-                          <span className="font-quicksand font-medium text-purple-600">
+                          <span className="font-quicksand text-sm font-medium text-purple-600">
                             {formatDateTime(
                               selectedApplication.rawData.interview_date,
                               selectedApplication.rawData.interview_time,
@@ -898,12 +1320,12 @@ const AdminContractor = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row">
-                <button className="font-quicksand flex flex-1 transform items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-3 font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-                  <FiCalendar className="text-lg" />
+                <button className="font-quicksand flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:shadow-md">
+                  <FiCalendar className="text-base" />
                   <span>Schedule Interview</span>
                 </button>
-                <button className="font-quicksand flex flex-1 items-center justify-center space-x-2 rounded-xl border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-50">
-                  <FiDownload className="text-lg" />
+                <button className="font-quicksand flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-50">
+                  <FiDownload className="text-base" />
                   <span>Download Resume</span>
                 </button>
               </div>
