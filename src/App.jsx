@@ -17,6 +17,7 @@ const Location = React.lazy(() => import("./pages/Location"));
 const Policy = React.lazy(() => import("./pages/Policy"));
 const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
+const Contractor = React.lazy(() => import("./pages/Contractor"));
 
 // Lazy load admin components
 const AdminLayout = React.lazy(() => import("./admin/AdminLayout"));
@@ -110,13 +111,21 @@ function App() {
               }
             />
             <Route
+              path="contractor"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <Contractor />
+                </React.Suspense>
+              }
+            />
+            <Route
               path="contact"
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Contact />
                 </React.Suspense>
               }
-            />
+            />{" "}
           </Route>
 
           {/* Admin Login (public route) */}

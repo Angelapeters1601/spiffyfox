@@ -16,6 +16,7 @@ const Nav = () => {
     { name: "Location", path: "/location" },
     { name: "Policy", path: "/policy" },
     { name: "Join", path: "/join" },
+    { name: "Contractor", path: "/contractor" },
     { name: "Contact", path: "/contact" },
   ];
 
@@ -210,26 +211,33 @@ const Nav = () => {
             initial="closed"
             animate="open"
             exit="closed"
-            className="overflow-hidden md:hidden"
+            className="fixed inset-x-0 top-[102px] z-50 max-h-[calc(100vh-72px)] overflow-y-auto border-t border-gray-200 bg-white shadow-xl md:hidden"
           >
-            <div className="spiffy-border spiffy-bg-light space-y-2 border-t bg-white px-2 pt-2 pb-4 sm:px-3">
+            <div className="spiffy-border spiffy-bg-light space-y-1 bg-white p-4">
               {navItems.map((item, index) => (
                 <motion.div
                   key={item.name}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="mb-1"
                 >
                   <Link
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`font-cormorant block rounded-lg px-4 py-3 text-base font-medium transition-all duration-200 ${
+                    className={`font-cormorant flex items-center rounded-xl px-5 py-4 text-lg font-medium transition-all duration-200 ${
                       isActive(item.path)
                         ? "spiffy-bg text-white shadow-lg"
-                        : "hover:spiffy-bg-light hover:spiffy-text text-gray-700"
+                        : "hover:spiffy-bg-light hover:spiffy-text text-gray-700 hover:shadow-md"
                     }`}
                   >
-                    {item.name}
+                    {item.icon && <item.icon className="mr-3 h-5 w-5" />}
+                    <span>{item.name}</span>
+                    {item.badge && (
+                      <span className="ml-auto rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </motion.div>
               ))}
