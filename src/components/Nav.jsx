@@ -11,10 +11,11 @@ const Nav = () => {
 
   const navItems = [
     { name: "Home", path: "/" },
-    { name: "Tips", path: "/tips" },
     { name: "Services", path: "/services" },
+    { name: "Tips", path: "/tips" },
     { name: "Location", path: "/location" },
     { name: "Policy", path: "/policy" },
+    { name: "Help", path: "/help" },
     { name: "Join", path: "/join" },
     { name: "Contractor", path: "/contractor" },
     { name: "Contact", path: "/contact" },

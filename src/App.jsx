@@ -15,6 +15,7 @@ const Services = React.lazy(() => import("./pages/Services"));
 const Reviews = React.lazy(() => import("./pages/Reviews"));
 const Location = React.lazy(() => import("./pages/Location"));
 const Policy = React.lazy(() => import("./pages/Policy"));
+const Help = React.lazy(() => import("./pages/Help"));
 const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const Contractor = React.lazy(() => import("./pages/Contractor"));
@@ -99,6 +100,14 @@ function App() {
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Reviews />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="help"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <Help />
                 </React.Suspense>
               }
             />
