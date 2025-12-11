@@ -13,22 +13,17 @@ import {
   FiDollarSign,
   FiUser,
   FiClock,
-  FiStar,
-  FiChevronRight,
   FiChevronDown,
   FiBookOpen,
   FiPhone,
-  FiMapPin,
   FiCheckCircle,
   FiInfo,
-  FiAlertCircle,
 } from "react-icons/fi";
 import {
   FaHandSparkles,
   FaHome,
   FaBuilding,
   FaTruckMoving,
-  FaBoxOpen,
   FaBroom,
   FaRegLightbulb,
 } from "react-icons/fa";
@@ -38,7 +33,7 @@ const Help = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [expandedArticle, setExpandedArticle] = useState(null);
 
-  // Detailed help articles with full content - using clean structure
+  // Detailed help articles with full content
   const helpArticles = [
     {
       id: 1,
@@ -54,11 +49,6 @@ const Help = () => {
         "Let us know about any special requirements",
         "Pets should be secured during cleaning hours",
       ],
-      related: [
-        "Deep Cleaning Guide",
-        "Pricing Structure",
-        "Cancellation Policy",
-      ],
     },
     {
       id: 2,
@@ -73,7 +63,6 @@ const Help = () => {
         "Provide access cards in advance",
         "Inform us about sensitive equipment",
       ],
-      related: ["Office Cleaning", "COVID-19 Protocols", "Emergency Cleaning"],
     },
     {
       id: 3,
@@ -88,7 +77,6 @@ const Help = () => {
         "Corporate accounts get net-30 terms",
         "First-time customers get 20% off",
       ],
-      related: ["Invoice Access", "Refund Policy", "Service Packages"],
     },
     {
       id: 4,
@@ -103,7 +91,6 @@ const Help = () => {
         "Set up SMS reminders for appointments",
         "Use the app for last-minute bookings",
       ],
-      related: ["Rescheduling", "Cancellation Policy", "Mobile App Guide"],
     },
     {
       id: 5,
@@ -118,7 +105,6 @@ const Help = () => {
         "Use the app to track arrival times",
         "Report any concerns immediately",
       ],
-      related: ["Insurance Coverage", "Background Checks", "Quality Guarantee"],
     },
     {
       id: 6,
@@ -133,7 +119,6 @@ const Help = () => {
         "Ratings help us improve service quality",
         "All contractors speak English fluently",
       ],
-      related: ["Hiring Process", "Training Standards", "Performance Reviews"],
     },
     {
       id: 7,
@@ -148,7 +133,6 @@ const Help = () => {
         "Measure large items for accurate quotes",
         "Ask about our donation receipts for tax purposes",
       ],
-      related: ["Pricing Calculator", "Accepted Items", "Donation Partners"],
     },
     {
       id: 8,
@@ -163,7 +147,6 @@ const Help = () => {
         "Combine with carpet cleaning for best results",
         "Book early for holiday season availability",
       ],
-      related: ["Service Comparison", "Seasonal Packages", "Add-on Services"],
     },
   ];
 
@@ -226,7 +209,7 @@ const Help = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Hero Section - Original Clean Design */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-indigo-50">
         <div className="from-spiffy-bg-light/30 absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] via-transparent to-transparent"></div>
 
@@ -240,7 +223,7 @@ const Help = () => {
               className="space-y-6"
             >
               <div>
-                <span className="bg-spiffy-bg-light border-spiffy-border/30 mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1">
+                <span className="spiffy-bg-dark spiffy-border mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1">
                   <FiHelpCircle className="spiffy-text" />
                   <span className="font-quicksand spiffy-text-dark text-sm font-medium">
                     Help Center
@@ -250,7 +233,7 @@ const Help = () => {
                   How can we <span className="spiffy-text">help</span> you
                   today?
                 </h1>
-                <p className="font-lora mb-8 text-lg text-gray-600 md:text-xl">
+                <p className="font-lora mb-8 text-sm text-gray-600 md:text-xl">
                   Find answers to your questions about our cleaning services,
                   booking process, pricing, and more. Everything you need to
                   know about SpiffyFox.
@@ -264,7 +247,7 @@ const Help = () => {
               >
                 <Link
                   to="/services"
-                  className="border-spiffy-border/20 block rounded-2xl border bg-gradient-to-r from-white to-purple-50 p-6 shadow-lg transition-all duration-300 hover:shadow-xl"
+                  className="spiffy-border block rounded-2xl border bg-gradient-to-r from-white to-purple-200 p-6 shadow-lg transition-all duration-300 hover:shadow-xl"
                 >
                   <div className="flex items-center justify-between">
                     <div className="space-y-3">
@@ -283,7 +266,7 @@ const Help = () => {
                       </div>
                     </div>
                     <div className="spiffy-text flex items-center gap-2 transition-transform duration-300 group-hover:translate-x-2">
-                      <span className="font-quicksand font-semibold">
+                      <span className="font-quicksand text-sm font-semibold">
                         Start from here
                       </span>
                       <FiArrowRight className="text-xl" />
@@ -306,9 +289,9 @@ const Help = () => {
                     placeholder="Search for help articles, guides, or FAQs..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="font-quicksand w-full rounded-xl border border-gray-200 bg-white py-4 pr-4 pl-12 shadow-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30 focus:outline-none"
+                    className="font-quicksand w-full rounded-xl border border-gray-200 bg-white py-4 pr-4 pl-12 text-sm shadow-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30 focus:outline-none"
                   />
-                  <button className="from-spiffy-bg font-quicksand absolute top-1/2 right-2 -translate-y-1/2 transform rounded-lg bg-gradient-to-r to-purple-600 px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90">
+                  <button className="font-quicksand spiffy-bg-dark absolute top-1/2 right-2 -translate-y-1/2 transform rounded-lg px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90">
                     Search
                   </button>
                 </div>
@@ -332,7 +315,7 @@ const Help = () => {
       </section>
 
       {/* Enhanced Categories Section with Filtering */}
-      <section className="bg-white py-16">
+      <section className="spiffy-bg-light py-16">
         <div className="container mx-auto px-4 md:px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -349,7 +332,7 @@ const Help = () => {
             </p>
           </motion.div>
 
-          {/* Enhanced Category Filters - Clean Design */}
+          {/* Enhanced Category Filters*/}
           <div className="mb-12 flex flex-wrap justify-center gap-3">
             {categories.map((category) => (
               <motion.button
@@ -359,8 +342,8 @@ const Help = () => {
                 onClick={() => setActiveCategory(category.id)}
                 className={`font-quicksand flex min-w-[140px] flex-col items-center gap-2 rounded-xl px-5 py-4 font-semibold transition-all duration-300 ${
                   activeCategory === category.id
-                    ? "from-spiffy-bg bg-gradient-to-r to-purple-600 text-white shadow-lg"
-                    : "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+                    ? "spiffy-bg-dark text-white shadow-lg"
+                    : "border border-gray-200 bg-gray-200 text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <div className="text-xl">{category.icon}</div>
@@ -378,7 +361,7 @@ const Help = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-cinzel text-xl font-bold text-gray-900">
+                <h3 className="font-cinzel text-lg font-bold text-gray-900">
                   {activeCategory === "all"
                     ? "All Help Articles"
                     : categories.find((c) => c.id === activeCategory)?.label +
@@ -503,39 +486,6 @@ const Help = () => {
                                 </div>
                               )}
                             </div>
-
-                            {/* Related Column */}
-                            <div>
-                              <h4 className="font-cinzel mb-3 flex items-center gap-2 font-semibold text-gray-900">
-                                <FiArrowRight className="text-purple-500" />
-                                Related Articles
-                              </h4>
-                              <div className="space-y-2">
-                                {article.related?.map((related, index) => (
-                                  <div
-                                    key={index}
-                                    className="font-quicksand cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:border-purple-300 hover:bg-purple-50"
-                                  >
-                                    {related}
-                                  </div>
-                                ))}
-                              </div>
-
-                              <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                                <h4 className="font-cinzel mb-2 flex items-center gap-2 font-semibold text-gray-900">
-                                  <FiAlertCircle className="text-blue-500" />
-                                  Need More Help?
-                                </h4>
-                                <p className="font-quicksand mb-3 text-sm text-gray-700">
-                                  Can't find what you're looking for? Contact
-                                  our support team.
-                                </p>
-                                <button className="font-quicksand flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800">
-                                  Contact Support
-                                  <FiArrowRight />
-                                </button>
-                              </div>
-                            </div>
                           </div>
                         </div>
                       </motion.div>
@@ -548,7 +498,7 @@ const Help = () => {
         </div>
       </section>
 
-      {/* FAQ Section Placeholder - Original Design */}
+      {/* FAQ Section Placeholder */}
       <section className="bg-gradient-to-b from-white to-purple-50 py-16">
         <div className="container mx-auto px-4 md:px-6">
           <motion.div
@@ -590,8 +540,8 @@ const Help = () => {
         </div>
       </section>
 
-      {/* Enhanced Contact CTA - Clean Original Style */}
-      <section className="from-spiffy-bg-dark bg-gradient-to-br to-purple-900 py-20">
+      {/* Contact CTA  */}
+      <section className="bg-purple-100 py-15">
         <div className="container mx-auto px-4 md:px-6">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -599,13 +549,13 @@ const Help = () => {
             viewport={{ once: true }}
             className="mx-auto max-w-4xl text-center"
           >
-            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm">
-              <FiMail className="text-3xl text-white" />
+            <div className="mb-6 inline-flex h-5 w-20 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm">
+              <FiMail className="rounded-full text-3xl text-purple-800 shadow-[0_0_25px] shadow-purple-600/70" />
             </div>
-            <h2 className="font-cinzel mb-4 text-3xl font-bold text-white md:text-4xl">
+            <h2 className="font-cinzel mb-4 text-2xl font-bold text-purple-800 md:text-4xl">
               Didn't find an answer?
             </h2>
-            <p className="font-lora mx-auto mb-8 max-w-2xl text-lg text-purple-100 md:text-xl">
+            <p className="font-lora mx-auto mb-8 max-w-2xl text-sm text-purple-500 md:text-lg">
               Our dedicated support team is just a message away and ready to
               answer your questions personally. We're here to help 24/7.
             </p>
@@ -616,67 +566,21 @@ const Help = () => {
                 href="tel:+15551234567"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="group font-quicksand hover:shadow-3xl inline-flex cursor-pointer items-center justify-center gap-4 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-gray-900 shadow-2xl transition-all duration-300"
+                className="group font-quicksand hover:shadow-3xl inline-flex cursor-pointer items-center justify-center gap-4 rounded-xl bg-purple-50 px-8 py-4 text-lg font-semibold text-gray-900 shadow-2xl transition-all duration-300"
               >
-                <FiPhone className="text-xl" />
-                <span>Call Us: +1 (555) 123-4567</span>
+                <FiPhone className="text-sm" />
+                <span className="text-sm">Call Us: (202) 670-6164</span>
               </motion.a>
 
               <motion.a
                 href="mailto:support@spiffyfox.com"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="group from-spiffy-bg font-quicksand hover:shadow-3xl inline-flex cursor-pointer items-center justify-center gap-4 rounded-xl bg-gradient-to-r to-purple-600 px-8 py-4 text-lg font-semibold text-white shadow-2xl transition-all duration-300"
+                className="group from-spiffy-bg font-quicksand hover:shadow-3xl spiffy-bg-dark inline-flex cursor-pointer items-center justify-center gap-4 rounded-xl px-8 py-4 text-lg font-semibold text-white shadow-2xl transition-all duration-300"
               >
-                <FiMail className="text-xl" />
-                <span>Email Support</span>
+                <FiMail className="text-sm" />
+                <span className="text-sm">Email Support</span>
               </motion.a>
-            </div>
-
-            <div className="mt-12 flex flex-wrap justify-center gap-8 border-t border-white/20 pt-8">
-              <div className="group flex cursor-pointer items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2 transition-colors group-hover:bg-white/20">
-                  <FiPhone className="text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-quicksand text-sm text-white/80">
-                    Phone Support
-                  </p>
-                  <a
-                    href="tel:+15551234567"
-                    className="font-quicksand font-semibold text-white transition-colors hover:text-yellow-300"
-                  >
-                    +1 (555) 123-4567
-                  </a>
-                </div>
-              </div>
-              <div className="group flex cursor-pointer items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2 transition-colors group-hover:bg-white/20">
-                  <FiMail className="text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-quicksand text-sm text-white/80">Email</p>
-                  <a
-                    href="mailto:support@spiffyfox.com"
-                    className="font-quicksand font-semibold text-white transition-colors hover:text-yellow-300"
-                  >
-                    support@spiffyfox.com
-                  </a>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-white/10 p-2">
-                  <FiClock className="text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-quicksand text-sm text-white/80">
-                    Response Time
-                  </p>
-                  <p className="font-quicksand font-semibold text-white">
-                    Under 2 hours
-                  </p>
-                </div>
-              </div>
             </div>
           </motion.div>
         </div>
