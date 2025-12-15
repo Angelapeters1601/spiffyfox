@@ -27,6 +27,7 @@ import {
   FaBroom,
   FaRegLightbulb,
 } from "react-icons/fa";
+import Faq from "./Faq";
 
 const Help = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -412,7 +413,7 @@ const Help = () => {
                         </div>
                         <div className="flex-1">
                           <div className="mb-2 flex items-center gap-3">
-                            <h3 className="font-cinzel text-lg font-semibold text-gray-900">
+                            <h3 className="font-cinzel text-sm font-semibold text-gray-900">
                               {article.title}
                             </h3>
                             <span className="font-quicksand rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
@@ -458,17 +459,17 @@ const Help = () => {
                           <div className="grid gap-8 md:grid-cols-2">
                             {/* Content Column */}
                             <div>
-                              <h4 className="font-cinzel mb-3 flex items-center gap-2 font-semibold text-gray-900">
+                              <h4 className="font-cinzel mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
                                 <FiInfo className="text-blue-500" />
                                 Detailed Information
                               </h4>
-                              <p className="font-quicksand mb-4 leading-relaxed text-gray-700">
+                              <p className="font-quicksand mb-4 text-sm leading-relaxed text-gray-700">
                                 {article.content}
                               </p>
 
                               {article.tips && (
                                 <div className="mt-6">
-                                  <h4 className="font-cinzel mb-3 flex items-center gap-2 font-semibold text-gray-900">
+                                  <h4 className="font-cinzel mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
                                     <FaRegLightbulb className="text-amber-500" />
                                     Pro Tips
                                   </h4>
@@ -476,7 +477,7 @@ const Help = () => {
                                     {article.tips.map((tip, index) => (
                                       <li
                                         key={index}
-                                        className="font-quicksand flex items-start gap-2 text-gray-700"
+                                        className="font-quicksand flex items-start gap-2 text-sm text-gray-700"
                                       >
                                         <FiCheckCircle className="mt-1 flex-shrink-0 text-green-500" />
                                         <span>{tip}</span>
@@ -498,46 +499,10 @@ const Help = () => {
         </div>
       </section>
 
-      {/* FAQ Section Placeholder */}
-      <section className="bg-gradient-to-b from-white to-purple-50 py-16">
-        <div className="container mx-auto px-4 md:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mx-auto max-w-6xl"
-          >
-            <div className="mb-12 text-center">
-              <h2 className="font-cinzel mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-                Frequently Asked <span className="spiffy-text">Questions</span>
-              </h2>
-              <p className="font-lora mx-auto mb-8 max-w-2xl text-gray-600">
-                Quick answers to the most common questions about our services
-              </p>
-            </div>
-
-            {/* FAQ Component Placeholder */}
-            <div className="rounded-2xl border border-gray-200 bg-white/80 p-8 shadow-lg backdrop-blur-sm md:p-12">
-              <div className="py-12 text-center">
-                <div className="bg-spiffy-bg-light mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full">
-                  <FiMessageSquare className="spiffy-text text-3xl" />
-                </div>
-                <h3 className="font-cinzel mb-3 text-2xl font-semibold text-gray-900">
-                  FAQ Component
-                </h3>
-                <p className="font-quicksand mx-auto mb-6 max-w-md text-gray-600">
-                  This is a placeholder for the FAQ component. The actual FAQ
-                  accordion will be rendered here with expandable questions and
-                  answers.
-                </p>
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                  <FiTool className="animate-spin" />
-                  <span className="font-quicksand">Component coming soon</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+      {/* FAQ Section*/}
+      <section className="spiffy-bg py-1">
+        {/* FAQ Component */}
+        <Faq />
       </section>
 
       {/* Contact CTA  */}
