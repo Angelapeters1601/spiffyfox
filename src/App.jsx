@@ -18,7 +18,10 @@ const Policy = React.lazy(() => import("./pages/Policy"));
 const Help = React.lazy(() => import("./pages/Help"));
 const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
+const Client = React.lazy(() => import("./pages/client/Client"));
+const ClientLogin = React.lazy(() => import("./pages/client/ClientLogin"));
 const Contractor = React.lazy(() => import("./pages/Contractor"));
+const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 
 // Lazy load admin components
 const AdminLayout = React.lazy(() => import("./admin/AdminLayout"));
@@ -117,6 +120,17 @@ function App() {
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Join />
                 </React.Suspense>
+              }
+            />
+            <Route path="client-login" element={<ClientLogin />} />
+            <Route
+              path="client"
+              element={
+                <ProtectedRoute allowedRoles={["client"]}>
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <Client />
+                  </React.Suspense>
+                </ProtectedRoute>
               }
             />
             <Route
