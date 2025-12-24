@@ -1,20 +1,46 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signInWithEmail, signUpWithEmail } from "../../services/auth";
 import {
-  signInWithEmail,
-  signUpWithEmail,
-  signInWithGoogle,
-} from "../../services/auth";
-import { FiMail, FiLock, FiLogIn, FiUserPlus } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
+  FiMail,
+  FiLock,
+  FiLogIn,
+  FiUserPlus,
+  FiEye,
+  FiEyeOff,
+} from "react-icons/fi";
 
 export default function Auth() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true); // Toggle login/signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Password validation regex and rules
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const allowedCharactersRegex = /^[A-Za-z\d@$!%*?&]*$/;
+
+  // Password requirement checks
+  const passwordRequirements = {
+    minLength: password.length >= 8,
+    hasLowerCase: /[a-z]/.test(password),
+    hasUpperCase: /[A-Z]/.test(password),
+    hasNumber: /\d/.test(password),
+    hasSpecialChar: /[@$!%*?&]/.test(password),
+    noSpaces: !/\s/.test(password),
+    validCharacters: allowedCharactersRegex.test(password),
+  };
+
+  // Check if all requirements are met
+  const isPasswordValid = passwordRegex.test(password);
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
 
   // Handle email login/signup
   async function handleEmailAuth(e) {
@@ -24,34 +50,43 @@ export default function Auth() {
 
     try {
       if (isLogin) {
+        // SIGN IN
         await signInWithEmail(email, password);
+        navigate("/client");
       } else {
+        // SIGN UP
         await signUpWithEmail(email, password);
+        // Auto-login after signup
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        navigate("/client");
       }
-      // Navigate to dashboard after successful login/signup
-      navigate("/client");
     } catch (err) {
-      console.error(err);
+      console.error("Auth error:", err);
       setError(err.message || "Authentication failed");
     } finally {
       setLoading(false);
     }
   }
 
-  // Handle Google login/signup
-  async function handleGoogleAuth() {
-    setLoading(true);
-    setError("");
-    try {
-      await signInWithGoogle();
-      navigate("/client");
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to login with Google");
-    } finally {
-      setLoading(false);
+  // Handle password input with validation
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+
+    // Prevent spaces
+    if (/\s/.test(value)) {
+      return;
     }
-  }
+
+    // Only allow specific characters
+    if (allowedCharactersRegex.test(value) || value === "") {
+      setPassword(value);
+    }
+  };
+
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -86,31 +121,219 @@ export default function Auth() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
+                  className={`w-full rounded-lg border py-3 pr-4 pl-10 transition outline-none focus:ring-2 focus:ring-purple-500 ${
+                    email && !isEmailValid
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-purple-500"
+                  }`}
                 />
               </div>
+              {email && !isEmailValid && (
+                <p className="text-xs text-red-500">
+                  Please enter a valid email address
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600"
+                >
+                  {showPassword ? (
+                    <>
+                      <FiEyeOff className="text-sm" />
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <FiEye className="text-sm" />
+                      Show
+                    </>
+                  )}
+                </button>
+              </div>
               <div className="relative">
                 <FiLock className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
+                  className={`w-full rounded-lg border py-3 pr-10 pl-10 transition outline-none focus:ring-2 focus:ring-purple-500 ${
+                    !isLogin && password && !isPasswordValid
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-purple-500"
+                  }`}
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute top-1/2 right-3 -translate-y-1/2 transform text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
               </div>
+
+              {/* Password Requirements (only show during signup) */}
+              {!isLogin && (
+                <div className="space-y-1 pt-2">
+                  <p className="text-xs font-medium text-gray-600">
+                    Password must contain:
+                  </p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          passwordRequirements.minLength
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <span
+                        className={`text-xs ${
+                          passwordRequirements.minLength
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        At least 8 characters
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          passwordRequirements.hasLowerCase
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <span
+                        className={`text-xs ${
+                          passwordRequirements.hasLowerCase
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        1 lowercase letter
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          passwordRequirements.hasUpperCase
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <span
+                        className={`text-xs ${
+                          passwordRequirements.hasUpperCase
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        1 uppercase letter
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          passwordRequirements.hasNumber
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <span
+                        className={`text-xs ${
+                          passwordRequirements.hasNumber
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        1 number (0-9)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          passwordRequirements.hasSpecialChar
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <span
+                        className={`text-xs ${
+                          passwordRequirements.hasSpecialChar
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        1 special character (@$!%*?&)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          passwordRequirements.noSpaces
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <span
+                        className={`text-xs ${
+                          passwordRequirements.noSpaces
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        No spaces
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          passwordRequirements.validCharacters
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      ></div>
+                      <span
+                        className={`text-xs ${
+                          passwordRequirements.validCharacters
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        Only letters, numbers, and @$!%*?&
+                      </span>
+                    </div>
+                  </div>
+
+                  {password && (
+                    <p
+                      className={`pt-1 text-xs font-medium ${
+                        isPasswordValid ? "text-green-600" : "text-red-500"
+                      }`}
+                    >
+                      {isPasswordValid
+                        ? "✓ Password meets all requirements"
+                        : "✗ Please fix the requirements above"}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!isLogin && !isPasswordValid)}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 py-3 font-semibold text-white transition-all duration-200 hover:shadow-lg disabled:opacity-50"
             >
               {loading ? (
@@ -123,28 +346,6 @@ export default function Auth() {
               )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          {/* Google Auth */}
-          <button
-            onClick={handleGoogleAuth}
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white py-3 font-medium text-gray-700 transition-all duration-200 hover:bg-gray-50 disabled:opacity-50"
-          >
-            <FcGoogle className="text-xl" />
-            Continue with Google
-          </button>
 
           {/* Toggle Login/Sign Up */}
           <div className="mt-6 text-center text-sm text-gray-600">
