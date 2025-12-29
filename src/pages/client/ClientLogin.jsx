@@ -52,13 +52,13 @@ export default function Auth() {
       if (isLogin) {
         // SIGN IN
         await signInWithEmail(email, password);
-        navigate("/client");
+        navigate("/join");
       } else {
         // SIGN UP
         await signUpWithEmail(email, password);
         // Auto-login after signup
         await new Promise((resolve) => setTimeout(resolve, 300));
-        navigate("/client");
+        navigate("/join");
       }
     } catch (err) {
       console.error("Auth error:", err);

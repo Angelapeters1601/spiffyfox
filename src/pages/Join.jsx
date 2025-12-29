@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase2 } from "../services/supabaseClient";
 import img from "../assets/join.png";
+import { Link } from "react-router-dom";
 
 const Join = () => {
   const [formData, setFormData] = useState({
@@ -226,7 +227,7 @@ const Join = () => {
         )}
       </AnimatePresence>
 
-      {/* Hero Section */}
+      {/* Hero Section with View Profile Button */}
       <div className="relative">
         <div className="font-cinzel spiffy-bg-dark relative flex items-center justify-center overflow-hidden p-12 text-4xl font-bold text-white">
           <motion.div
@@ -240,6 +241,48 @@ const Join = () => {
               Build your career with SpiffyFox and help us transform spaces and
               lives
             </p>
+
+            {/* View Profile Button - Beautifully placed in hero */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="mt-8"
+            >
+              <Link
+                to="/client"
+                className="group font-quicksand relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-white/20 to-white/10 px-8 py-4 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:backdrop-blur-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 via-transparent to-purple-600/30 transition-all duration-300 group-hover:translate-x-full"></div>
+                <svg
+                  className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                <span className="relative">View Your Profile</span>
+                <svg
+                  className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </motion.div>
           </motion.div>
           <div className="absolute inset-0 bg-black opacity-40"></div>
         </div>
@@ -265,13 +308,45 @@ const Join = () => {
             className="lg:col-span-2"
           >
             <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl">
-              <h2 className="font-cinzel mb-2 text-3xl font-bold text-gray-900">
-                Application Form
-              </h2>
-              <p className="font-quicksand mb-8 text-gray-600">
-                Complete the form below to start your journey with SpiffyFox.
-                We're excited to learn more about you!
-              </p>
+              {/* Header with Floating View Profile Button */}
+              <div className="mb-8 flex items-start justify-between">
+                <div>
+                  <h2 className="font-cinzel mb-2 text-3xl font-bold text-gray-900">
+                    Application Form
+                  </h2>
+                  <p className="font-quicksand text-gray-600">
+                    Complete the form below to start your journey with
+                    SpiffyFox. We're excited to learn more about you!
+                  </p>
+                </div>
+
+                {/* Desktop View Profile Button */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="hidden lg:block"
+                >
+                  <Link
+                    to="/client"
+                    className="group font-quicksand relative flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 px-4 py-3 font-semibold text-purple-700 transition-all duration-300 hover:shadow-lg"
+                  >
+                    <svg
+                      className="h-5 w-5 text-purple-600 transition-transform duration-300 group-hover:rotate-12"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    <span>View Profile</span>
+                  </Link>
+                </motion.div>
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Full Name */}
@@ -474,6 +549,49 @@ const Join = () => {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="space-y-6"
           >
+            {/* Quick Access Card */}
+            <div className="rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 p-6 text-white shadow-xl">
+              <h3 className="font-cinzel mb-4 text-xl font-bold">
+                Quick Access
+              </h3>
+              <p className="font-quicksand mb-4 opacity-90">
+                Already have a profile? Check your application status and update
+                your information.
+              </p>
+              <Link
+                to="/client"
+                className="group font-quicksand flex w-full items-center justify-center gap-2 rounded-xl bg-white/20 px-4 py-3 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/30 hover:shadow-lg"
+              >
+                <svg
+                  className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                <span>View Your Profile</span>
+                <svg
+                  className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
+
             {/* Why Join Card */}
             <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xl">
               <h3 className="font-cinzel mb-4 text-xl font-bold text-gray-900">

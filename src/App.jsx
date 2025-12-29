@@ -115,20 +115,21 @@ function App() {
               }
             />
             <Route
-              path="join"
+              path="client"
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
-                  <Join />
+                  <Client />
                 </React.Suspense>
               }
             />
             <Route path="client-login" element={<ClientLogin />} />
             <Route
-              path="client"
+              path="join"
               element={
                 <ProtectedRoute allowedRoles={["client"]}>
                   <React.Suspense fallback={<LoadingFallback />}>
-                    <Client />
+                    {/* <Client /> */}
+                    <Join />
                   </React.Suspense>
                 </ProtectedRoute>
               }
