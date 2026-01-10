@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "../../services/auth";
 import { supabase } from "../../services/supabaseClient";
 import { supabase2 } from "../../services/supabaseClient";
+import { Link } from "react-router-dom";
 import {
   FiUser,
   FiMail,
@@ -550,11 +551,11 @@ const Client = () => {
                       for your email address.
                     </p>
                     <div className="mt-6 flex justify-center gap-4">
-                      <button className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-medium text-white shadow-lg hover:shadow-xl">
-                        Apply Now
+                      <button className="cursor-pointer rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-medium text-white shadow-lg hover:shadow-xl">
+                        <Link to="/join">Apply Now</Link>
                       </button>
                       <button className="rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 shadow hover:bg-gray-50">
-                        Contact Support
+                        <Link to="/contact"> Contact Support</Link>
                       </button>
                     </div>
                   </div>

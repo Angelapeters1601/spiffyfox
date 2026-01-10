@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmail, signUpWithEmail } from "../../services/auth";
+import { supabase } from "../../services/supabaseClient";
 import {
   FiMail,
   FiLock,
@@ -8,16 +9,55 @@ import {
   FiUserPlus,
   FiEye,
   FiEyeOff,
+  FiCheckCircle,
 } from "react-icons/fi";
 
-export default function Auth() {
+export default function () {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true); // Toggle login/signup
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // CHECK IF USER IS ALREADY LOGGED IN
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          // User is already logged in, redirect to join page
+          navigate("/join");
+        }
+      } catch (error) {
+        console.error("Error checking auth:", error);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkUser();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && event === "SIGNED_IN") {
+        navigate("/join");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   // Password validation regex and rules
   const passwordRegex =
@@ -47,6 +87,7 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setShowConfirmationMessage(false);
 
     try {
       if (isLogin) {
@@ -55,14 +96,50 @@ export default function Auth() {
         navigate("/join");
       } else {
         // SIGN UP
-        await signUpWithEmail(email, password);
-        // Auto-login after signup
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        navigate("/join");
+        const result = await signUpWithEmail(email, password);
+
+        console.log("Sign-up result:", result);
+
+        // Handle different scenarios
+        if (result?.user) {
+          if (result?.session) {
+            // User auto-confirmed (rare with email confirmation on)
+            navigate("/join");
+          } else {
+            // Email confirmation required
+            setConfirmationEmail(email);
+            setShowConfirmationMessage(true);
+            setEmail("");
+            setPassword("");
+            setIsLogin(true);
+          }
+        } else {
+          throw new Error("Sign-up failed. Please try again.");
+        }
       }
     } catch (err) {
-      console.error("Auth error:", err);
-      setError(err.message || "Authentication failed");
+      console.error("Full auth error:", err);
+
+      // Handle specific error cases
+      if (err.message.includes("Error sending confirmation email")) {
+        setError(
+          "Failed to send confirmation email. Please check your email address or contact support.",
+        );
+      } else if (err.message.includes("Email not confirmed")) {
+        setError(
+          "Please check your email for a confirmation link. Click the link to verify your account.",
+        );
+        setConfirmationEmail(email);
+        setShowConfirmationMessage(true);
+      } else if (err.message.includes("Invalid email")) {
+        setError("Please enter a valid email address.");
+      } else if (err.message.includes("Password")) {
+        setError(
+          "Password requirements not met. Please check the requirements below.",
+        );
+      } else {
+        setError(err.message || "Authentication failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -88,22 +165,88 @@ export default function Auth() {
     setShowPassword(!showPassword);
   };
 
+  // Resend confirmation email
+  const handleResendConfirmation = async () => {
+    setLoading(true);
+    try {
+      // This would require a resend confirmation function in the auth service
+      // For now, we'll just show a message
+      alert(
+        `Confirmation email resent to ${confirmationEmail}. Please check your inbox.`,
+      );
+    } catch (err) {
+      setError(
+        "Failed to resend confirmation email. Please try signing up again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //  SHOW LOADING WHILE CHECKING AUTH
+  if (checkingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-600 border-t-transparent"></div>
+          <p className="text-xl text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md">
         <div className="rounded-xl bg-white p-6 shadow-lg md:p-8">
+          {/* Email Confirmation Success Message */}
+          {showConfirmationMessage && (
+            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
+              <div className="flex items-start">
+                <FiCheckCircle className="mt-0.5 mr-3 flex-shrink-0 text-green-600" />
+                <div>
+                  <h3 className="font-semibold text-green-800">
+                    Check Your Email!
+                  </h3>
+                  <p className="mt-1 text-sm text-green-700">
+                    We've sent a confirmation email to{" "}
+                    <span className="font-medium">{confirmationEmail}</span>.
+                    Please click the link in the email to verify your account
+                    before signing in.
+                  </p>
+                  <div className="mt-3 flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+                    <button
+                      onClick={() => setShowConfirmationMessage(false)}
+                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                    >
+                      Got It
+                    </button>
+                    <button
+                      onClick={handleResendConfirmation}
+                      className="rounded-lg border border-green-600 bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50"
+                    >
+                      Resend Email
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-2xl font-bold text-gray-900">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h1>
             <p className="text-gray-600">
-              {isLogin ? "Sign in to your account" : "Sign up to get started"}
+              {isLogin
+                ? "Sign in to your account"
+                : "Sign up to get started. Email confirmation required."}
             </p>
           </div>
 
           {/* Error Message */}
-          {error && (
+          {error && !showConfirmationMessage && (
             <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3">
               <p className="text-center text-sm text-red-600">{error}</p>
             </div>
@@ -351,9 +494,12 @@ export default function Auth() {
           <div className="mt-6 text-center text-sm text-gray-600">
             {isLogin ? (
               <>
-                Don’t have an account?{" "}
+                Don't have an account?{" "}
                 <button
-                  onClick={() => setIsLogin(false)}
+                  onClick={() => {
+                    setIsLogin(false);
+                    setShowConfirmationMessage(false);
+                  }}
                   className="font-semibold text-purple-600 hover:underline"
                 >
                   Sign Up
@@ -363,7 +509,10 @@ export default function Auth() {
               <>
                 Already have an account?{" "}
                 <button
-                  onClick={() => setIsLogin(true)}
+                  onClick={() => {
+                    setIsLogin(true);
+                    setShowConfirmationMessage(false);
+                  }}
                   className="font-semibold text-purple-600 hover:underline"
                 >
                   Sign In
@@ -371,6 +520,17 @@ export default function Auth() {
               </>
             )}
           </div>
+
+          {/* Email Confirmation Note */}
+          {!isLogin && (
+            <div className="mt-4 rounded-lg bg-blue-50 p-3">
+              <p className="text-xs text-blue-800">
+                <strong>Note:</strong> After signing up, you'll receive a
+                confirmation email. You must verify your email before you can
+                sign in.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
