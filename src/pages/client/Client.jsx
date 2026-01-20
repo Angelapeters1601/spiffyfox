@@ -365,33 +365,12 @@ const Client = () => {
         >
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div>
-              <h1 className="mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-black text-transparent md:text-5xl">
-                Client Dashboard
+              <h1 className="mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text p-3 font-mono text-3xl font-black text-transparent md:text-4xl">
+                {application?.fullname
+                  ? `Welcome back, ${application.fullname.split("   ")[0]}!`
+                  : `Hello,${user?.email?.split("@")[0] || "there"}!`}{" "}
+                {/* {`Hello, ${application?.fullname || "User"} 👋`} */}
               </h1>
-              <div className="flex items-center gap-3">
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-lg"
-                >
-                  <FaDatabase className="text-purple-600" />
-                  <span className="text-sm font-medium text-gray-700">
-                    Dual Database System
-                  </span>
-                </motion.div>
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2"
-                >
-                  <FiUserCheck className="text-purple-700" />
-                  <span className="text-sm font-medium text-purple-700">
-                    {application ? "Application Loaded" : "No Application"}
-                  </span>
-                </motion.div>
-              </div>
             </div>
 
             <div className="flex items-center gap-4">
@@ -439,7 +418,7 @@ const Client = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSignOut}
-                className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-5 py-3 font-semibold text-white shadow-lg transition-all duration-300"
+                className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-5 py-1 text-sm font-semibold text-white shadow-lg transition-all duration-300"
               >
                 Sign Out
               </motion.button>
@@ -569,11 +548,13 @@ const Client = () => {
               className="overflow-hidden rounded-2xl border border-white bg-white/80 shadow-2xl backdrop-blur-sm transition-all duration-300"
             >
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
-                <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
-                  <FiUser className="text-xl" />
+                <h2 className="flex items-center gap-3 text-xl font-bold text-white">
+                  <FiUser className="text-lg" />
                   User Profile
                 </h2>
-                <p className="mt-2 text-blue-100">Authentication Database</p>
+                <p className="mt-2 text-sm text-blue-100">
+                  Authentication Database
+                </p>
               </div>
 
               <div className="p-6">
@@ -633,11 +614,10 @@ const Client = () => {
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={handleRemovePhoto}
-                              className="flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 shadow hover:bg-red-50"
+                              className="flex items-center gap-2 rounded-lg border border-red-300 bg-white px-2 py-1 text-sm font-medium text-red-600 shadow hover:bg-red-50"
                               disabled={uploading}
                             >
-                              <FaTimes className="text-sm" />
-                              Remove
+                              <FaTimes className="text-xs" />
                             </motion.button>
                           )}
                         </div>
@@ -755,11 +735,13 @@ const Client = () => {
               className="overflow-hidden rounded-2xl border border-white bg-white/80 shadow-2xl backdrop-blur-sm transition-all duration-300"
             >
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
-                <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
+                <h2 className="flex items-center gap-3 text-xl font-bold text-white">
                   <FiCheckCircle className="text-xl" />
                   Application Details
                 </h2>
-                <p className="mt-2 text-purple-100">Applications Database</p>
+                <p className="mt-2 text-sm text-purple-100">
+                  Applications Database
+                </p>
               </div>
 
               <div className="p-6">
@@ -807,9 +789,9 @@ const Client = () => {
                           </motion.div>
                           <div>
                             <h3 className="font-bold text-gray-800">
-                              Full Name
+                              Full Name:
                             </h3>
-                            <p className="mt-1 text-2xl font-black text-gray-900">
+                            <p className="mt-1 text-sm font-semibold text-gray-600">
                               {application.fullname || "Not Provided"}
                             </p>
                           </div>
@@ -864,7 +846,7 @@ const Client = () => {
                             <h3 className="font-bold text-gray-800">
                               Contact Email
                             </h3>
-                            <p className="mt-1 font-medium break-all text-gray-900">
+                            <p className="mt-1 font-semibold break-all text-gray-900">
                               {application.email || user.email}
                             </p>
                           </div>
@@ -887,9 +869,9 @@ const Client = () => {
                           </motion.div>
                           <div>
                             <h3 className="font-bold text-gray-800">
-                              Phone Number
+                              Phone Number:
                             </h3>
-                            <p className="mt-1 text-xl font-black text-gray-900">
+                            <p className="mt-1 text-sm font-semibold text-gray-900">
                               {formatPhoneNumber(application.phone)}
                             </p>
                           </div>
@@ -987,7 +969,7 @@ const Client = () => {
                             <h3 className="font-bold text-gray-800">
                               Application Date
                             </h3>
-                            <p className="mt-1 text-2xl font-black text-gray-900">
+                            <p className="mt-1 text-sm font-semibold text-gray-900">
                               {formatDate(application.created_at)}
                             </p>
                           </div>

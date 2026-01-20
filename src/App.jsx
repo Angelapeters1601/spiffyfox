@@ -22,6 +22,7 @@ const Client = React.lazy(() => import("./pages/client/Client"));
 const ClientLogin = React.lazy(() => import("./pages/client/ClientLogin"));
 const Contractor = React.lazy(() => import("./pages/Contractor"));
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
+const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
 
 // Lazy load admin components
 const AdminLayout = React.lazy(() => import("./admin/AdminLayout"));
@@ -123,6 +124,14 @@ function App() {
               }
             />
             <Route path="client-login" element={<ClientLogin />} />
+            <Route
+              path="reset-password"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <ResetPassword />
+                </React.Suspense>
+              }
+            />
             <Route
               path="join"
               element={

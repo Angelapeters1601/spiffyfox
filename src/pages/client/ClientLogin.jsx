@@ -23,6 +23,9 @@ export default function () {
   const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
 
   // CHECK IF USER IS ALREADY LOGGED IN
   useEffect(() => {
@@ -183,6 +186,28 @@ export default function () {
     }
   };
 
+  // In handleForgotPassword function
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      setResetSent(true);
+      setResetEmail("");
+    } catch (err) {
+      setError(err.message || "Failed to send reset email. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   //  SHOW LOADING WHILE CHECKING AUTH
   if (checkingAuth) {
     return (
@@ -234,16 +259,18 @@ export default function () {
           )}
 
           {/* Header */}
-          <div className="mb-8 text-center">
-            <h1 className="mb-2 text-2xl font-bold text-gray-900">
-              {isLogin ? "Welcome Back" : "Create Account"}
-            </h1>
-            <p className="text-gray-600">
-              {isLogin
-                ? "Sign in to your account"
-                : "Sign up to get started. Email confirmation required."}
-            </p>
-          </div>
+          {!isForgotPassword && (
+            <div className="mb-8 text-center">
+              <h1 className="mb-2 text-2xl font-bold text-gray-900">
+                {isLogin ? "Welcome Back" : "Create Account"}
+              </h1>
+              <p className="text-gray-600">
+                {isLogin
+                  ? "Sign in to your account"
+                  : "Sign up to get started. Email confirmation required."}
+              </p>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && !showConfirmationMessage && (
@@ -253,273 +280,378 @@ export default function () {
           )}
 
           {/* Email Form */}
-          <form onSubmit={handleEmailAuth} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <div className="relative">
-                <FiMail className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className={`w-full rounded-lg border py-3 pr-4 pl-10 transition outline-none focus:ring-2 focus:ring-purple-500 ${
-                    email && !isEmailValid
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:border-purple-500"
-                  }`}
-                />
-              </div>
-              {email && !isEmailValid && (
-                <p className="text-xs text-red-500">
-                  Please enter a valid email address
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
+          {!isForgotPassword && (
+            <form onSubmit={handleEmailAuth} className="space-y-4">
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Password
+                  Email
                 </label>
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600"
-                >
-                  {showPassword ? (
-                    <>
-                      <FiEyeOff className="text-sm" />
-                      Hide
-                    </>
-                  ) : (
-                    <>
-                      <FiEye className="text-sm" />
-                      Show
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="relative">
-                <FiLock className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  required
-                  className={`w-full rounded-lg border py-3 pr-10 pl-10 transition outline-none focus:ring-2 focus:ring-purple-500 ${
-                    !isLogin && password && !isPasswordValid
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-gray-300 focus:border-purple-500"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 transform text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <FiEyeOff /> : <FiEye />}
-                </button>
-              </div>
-
-              {/* Password Requirements (only show during signup) */}
-              {!isLogin && (
-                <div className="space-y-1 pt-2">
-                  <p className="text-xs font-medium text-gray-600">
-                    Password must contain:
-                  </p>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          passwordRequirements.minLength
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                      <span
-                        className={`text-xs ${
-                          passwordRequirements.minLength
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        At least 8 characters
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          passwordRequirements.hasLowerCase
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                      <span
-                        className={`text-xs ${
-                          passwordRequirements.hasLowerCase
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        1 lowercase letter
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          passwordRequirements.hasUpperCase
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                      <span
-                        className={`text-xs ${
-                          passwordRequirements.hasUpperCase
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        1 uppercase letter
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          passwordRequirements.hasNumber
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                      <span
-                        className={`text-xs ${
-                          passwordRequirements.hasNumber
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        1 number (0-9)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          passwordRequirements.hasSpecialChar
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                      <span
-                        className={`text-xs ${
-                          passwordRequirements.hasSpecialChar
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        1 special character (@$!%*?&)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          passwordRequirements.noSpaces
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                      <span
-                        className={`text-xs ${
-                          passwordRequirements.noSpaces
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        No spaces
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          passwordRequirements.validCharacters
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                      <span
-                        className={`text-xs ${
-                          passwordRequirements.validCharacters
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        Only letters, numbers, and @$!%*?&
-                      </span>
-                    </div>
-                  </div>
-
-                  {password && (
-                    <p
-                      className={`pt-1 text-xs font-medium ${
-                        isPasswordValid ? "text-green-600" : "text-red-500"
-                      }`}
-                    >
-                      {isPasswordValid
-                        ? "✓ Password meets all requirements"
-                        : "✗ Please fix the requirements above"}
-                    </p>
-                  )}
+                <div className="relative">
+                  <FiMail className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className={`w-full rounded-lg border py-3 pr-4 pl-10 transition outline-none focus:ring-2 focus:ring-purple-500 ${
+                      email && !isEmailValid
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:border-purple-500"
+                    }`}
+                  />
                 </div>
-              )}
-            </div>
+                {email && !isEmailValid && (
+                  <p className="text-xs text-red-500">
+                    Please enter a valid email address
+                  </p>
+                )}
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading || (!isLogin && !isPasswordValid)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 py-3 font-semibold text-white transition-all duration-200 hover:shadow-lg disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              ) : (
-                <>
-                  {isLogin ? <FiLogIn /> : <FiUserPlus />}
-                  {isLogin ? "Sign In" : "Sign Up"}
-                </>
-              )}
-            </button>
-          </form>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600"
+                  >
+                    {showPassword ? (
+                      <>
+                        <FiEyeOff className="text-sm" />
+                        Hide
+                      </>
+                    ) : (
+                      <>
+                        <FiEye className="text-sm" />
+                        Show
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="relative">
+                  <FiLock className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    required
+                    className={`w-full rounded-lg border py-3 pr-10 pl-10 transition outline-none focus:ring-2 focus:ring-purple-500 ${
+                      !isLogin && password && !isPasswordValid
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:border-purple-500"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute top-1/2 right-3 -translate-y-1/2 transform text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
 
-          {/* Toggle Login/Sign Up */}
-          <div className="mt-6 text-center text-sm text-gray-600">
-            {isLogin ? (
-              <>
-                Don't have an account?{" "}
-                <button
-                  onClick={() => {
-                    setIsLogin(false);
-                    setShowConfirmationMessage(false);
-                  }}
-                  className="font-semibold text-purple-600 hover:underline"
-                >
-                  Sign Up
-                </button>
-              </>
+                {/* Password Requirements (only show during signup) */}
+                {!isLogin && (
+                  <div className="space-y-1 pt-2">
+                    <p className="text-xs font-medium text-gray-600">
+                      Password must contain:
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            passwordRequirements.minLength
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                        <span
+                          className={`text-xs ${
+                            passwordRequirements.minLength
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          At least 8 characters
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            passwordRequirements.hasLowerCase
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                        <span
+                          className={`text-xs ${
+                            passwordRequirements.hasLowerCase
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          1 lowercase letter
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            passwordRequirements.hasUpperCase
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                        <span
+                          className={`text-xs ${
+                            passwordRequirements.hasUpperCase
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          1 uppercase letter
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            passwordRequirements.hasNumber
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                        <span
+                          className={`text-xs ${
+                            passwordRequirements.hasNumber
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          1 number (0-9)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            passwordRequirements.hasSpecialChar
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                        <span
+                          className={`text-xs ${
+                            passwordRequirements.hasSpecialChar
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          1 special character (@$!%*?&)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            passwordRequirements.noSpaces
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                        <span
+                          className={`text-xs ${
+                            passwordRequirements.noSpaces
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          No spaces
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            passwordRequirements.validCharacters
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        ></div>
+                        <span
+                          className={`text-xs ${
+                            passwordRequirements.validCharacters
+                              ? "text-green-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          Only letters, numbers, and @$!%*?&
+                        </span>
+                      </div>
+                    </div>
+
+                    {password && (
+                      <p
+                        className={`pt-1 text-xs font-medium ${
+                          isPasswordValid ? "text-green-600" : "text-red-500"
+                        }`}
+                      >
+                        {isPasswordValid
+                          ? "✓ Password meets all requirements"
+                          : "✗ Please fix the requirements above"}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || (!isLogin && !isPasswordValid)}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 py-3 font-semibold text-white transition-all duration-200 hover:shadow-lg disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <>
+                    {isLogin ? <FiLogIn /> : <FiUserPlus />}
+                    {isLogin ? "Sign In" : "Sign Up"}
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* Toggle Login/Sign Up & Forgot Password */}
+          <div className="mt-6 space-y-3 text-center text-sm text-gray-600">
+            {isLogin && !isForgotPassword && (
+              <button
+                onClick={() => setIsForgotPassword(true)}
+                className="block font-semibold text-purple-600 hover:underline"
+              >
+                Forgot your password?
+              </button>
+            )}
+
+            {isForgotPassword ? (
+              <button
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setIsLogin(true);
+                }}
+                className="font-semibold text-purple-600 hover:underline"
+              >
+                Back to Sign In
+              </button>
             ) : (
               <>
-                Already have an account?{" "}
-                <button
-                  onClick={() => {
-                    setIsLogin(true);
-                    setShowConfirmationMessage(false);
-                  }}
-                  className="font-semibold text-purple-600 hover:underline"
-                >
-                  Sign In
-                </button>
+                {isLogin ? (
+                  <>
+                    Don't have an account?{" "}
+                    <button
+                      onClick={() => {
+                        setIsLogin(false);
+                        setShowConfirmationMessage(false);
+                      }}
+                      className="font-semibold text-purple-600 hover:underline"
+                    >
+                      Sign Up
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Already have an account?{" "}
+                    <button
+                      onClick={() => {
+                        setIsLogin(true);
+                        setShowConfirmationMessage(false);
+                      }}
+                      className="font-semibold text-purple-600 hover:underline"
+                    >
+                      Sign In
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>
+
+          {/* Forgot Password Form */}
+          {isForgotPassword && (
+            <div className="space-y-4">
+              {resetSent ? (
+                <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
+                  <div className="flex items-start">
+                    <FiCheckCircle className="mt-0.5 mr-3 flex-shrink-0 text-green-600" />
+                    <div>
+                      <h3 className="font-semibold text-green-800">
+                        Check Your Email!
+                      </h3>
+                      <p className="mt-1 text-sm text-green-700">
+                        We've sent a password reset link to your email. Please
+                        check your inbox and follow the instructions to reset
+                        your password.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setIsForgotPassword(false);
+                          setResetSent(false);
+                        }}
+                        className="mt-3 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                      >
+                        Back to Sign In
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4 text-center">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Reset Password
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Enter your email address and we'll send you a link to
+                      reset your password.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        Email
+                      </label>
+                      <div className="relative">
+                        <FiMail className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
+                        <input
+                          type="email"
+                          placeholder="you@example.com"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          required
+                          className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 py-3 font-semibold text-white transition-all duration-200 hover:shadow-lg disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      ) : (
+                        <>
+                          <FiMail />
+                          Send Reset Link
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Email Confirmation Note */}
           {!isLogin && (
