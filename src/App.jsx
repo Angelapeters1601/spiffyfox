@@ -20,7 +20,10 @@ const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const Client = React.lazy(() => import("./pages/client/Client"));
 const ClientLogin = React.lazy(() => import("./pages/client/ClientLogin"));
-const Contractor = React.lazy(() => import("./pages/Contractor"));
+const ContractorLogin = React.lazy(
+  () => import("./pages/contractor/ContractorLogin"),
+);
+const Contractor = React.lazy(() => import("./pages/contractor/Contractor"));
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
 
@@ -137,7 +140,6 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["client"]}>
                   <React.Suspense fallback={<LoadingFallback />}>
-                    {/* <Client /> */}
                     <Join />
                   </React.Suspense>
                 </ProtectedRoute>
@@ -146,11 +148,14 @@ function App() {
             <Route
               path="contractor"
               element={
-                <React.Suspense fallback={<LoadingFallback />}>
-                  <Contractor />
-                </React.Suspense>
+                <ProtectedRoute allowedRoles={["contractor"]}>
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <Contractor />
+                  </React.Suspense>
+                </ProtectedRoute>
               }
             />
+            <Route path="contractor-login" element={<ContractorLogin />} />
             <Route
               path="contact"
               element={
