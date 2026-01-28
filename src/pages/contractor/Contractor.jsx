@@ -15,7 +15,7 @@ import {
   FiAward,
   FiArrowLeft,
 } from "react-icons/fi";
-import img1 from "../assets/img1.jpg";
+import img1 from "../../assets/img1.jpg";
 
 const Contractor = () => {
   const navigate = useNavigate();

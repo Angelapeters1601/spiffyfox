@@ -39,7 +39,13 @@ export default function ContractorLogin() {
           // Check if user is a contractor
           const userRole = await getUserRole(session.user.id);
           if (userRole === "contractor") {
-            navigate("/contractor");
+            // Check if profile is complete
+            const isComplete = await checkProfileComplete(session.user.id);
+            if (isComplete) {
+              navigate("/contractor");
+            } else {
+              navigate("/contractor/profile-setup");
+            }
           }
         }
       } catch (error) {
@@ -56,11 +62,21 @@ export default function ContractorLogin() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === "SIGNED_IN") {
+        // Check if this is an existing contractor without user_id
+        const userEmail = session.user.email;
+        await checkAndUpdateExistingContractor(session.user.id, userEmail);
+
         // Check role after sign in
         try {
           const userRole = await getUserRole(session.user.id);
           if (userRole === "contractor") {
-            navigate("/contractor");
+            // Check if profile is complete
+            const isComplete = await checkProfileComplete(session.user.id);
+            if (isComplete) {
+              navigate("/contractor");
+            } else {
+              navigate("/contractor/profile-setup");
+            }
           }
         } catch (error) {
           console.error("Error checking role:", error);
@@ -76,33 +92,44 @@ export default function ContractorLogin() {
   // Helper function to get user role
   async function getUserRole(userId) {
     try {
-      // Check contractors table first
+      // Check contractors table by user_id
       const { data: contractorData, error: contractorError } = await supabase
         .from("contractors")
         .select("id")
         .eq("user_id", userId)
         .single();
 
+      // If found and no error, user is a contractor
       if (contractorData && !contractorError) {
         return "contractor";
       }
 
-      // Check clients table if needed (or your existing role system)
-      const { data: clientData, error: clientError } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
-
-      if (clientData && !clientError) {
-        return "client";
-      }
-
-      // Default or admin check if needed
       return null;
     } catch (error) {
       console.error("Error getting user role:", error);
       return null;
+    }
+  }
+
+  // Check if contractor profile is complete (has first_name)
+  async function checkProfileComplete(userId) {
+    try {
+      const { data, error } = await supabase
+        .from("contractors")
+        .select("first_name")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error checking profile:", error);
+        return false;
+      }
+
+      // Profile is complete if first_name is not null/empty
+      return data?.first_name && data.first_name.trim() !== "";
+    } catch (error) {
+      console.error("Error in checkProfileComplete:", error);
+      return false;
     }
   }
 
@@ -150,7 +177,19 @@ export default function ContractorLogin() {
         if (result?.user) {
           if (result?.session) {
             // User auto-confirmed
-            await createContractorRecord(result.user.id, email);
+            const profileStatus = await createContractorRecord(
+              result.user.id,
+              email,
+            );
+
+            if (profileStatus === "incomplete") {
+              // Redirect to profile completion page
+              navigate("/contractor/profile-setup");
+              return;
+            } else {
+              // Profile already exists and is complete
+              navigate("/contractor");
+            }
           } else {
             // Email confirmation required
             setConfirmationEmail(email);
@@ -158,6 +197,9 @@ export default function ContractorLogin() {
             setEmail("");
             setPassword("");
             setIsLogin(true);
+
+            // Still create contractor record (it will be incomplete)
+            await createContractorRecord(result.user.id, email);
           }
         } else {
           throw new Error("Sign-up failed. Please try again.");
@@ -191,24 +233,152 @@ export default function ContractorLogin() {
     }
   }
 
-  // Function to create contractor record
+  // Function to create/update contractor record with all fields
   async function createContractorRecord(userId, email) {
     try {
-      // Insert into your contractors table
-      const { error } = await supabase.from("contractors").insert([
-        {
-          user_id: userId,
-          email: email,
-          created_at: new Date().toISOString(),
-          status: "pending", // or 'active' depending on your workflow
-        },
-      ]);
+      // First, check if a contractor with this email already exists
+      const { data: existingContractor, error: checkError } = await supabase
+        .from("contractors")
+        .select("id, user_id, email, first_name")
+        .eq("email", email)
+        .maybeSingle();
 
-      if (error) throw error;
-      console.log("Contractor record created successfully");
+      if (checkError) {
+        console.error("Error checking existing contractor:", checkError);
+      }
+
+      if (existingContractor) {
+        // Contractor exists - update with user_id
+        if (!existingContractor.user_id) {
+          // Update existing record with user_id
+          const { error: updateError } = await supabase
+            .from("contractors")
+            .update({
+              user_id: userId,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingContractor.id);
+
+          if (updateError) throw updateError;
+          console.log("Updated existing contractor with user_id");
+
+          // Check if profile is complete
+          if (
+            !existingContractor.first_name ||
+            existingContractor.first_name.trim() === ""
+          ) {
+            return "incomplete";
+          }
+
+          return "complete";
+        } else {
+          // user_id already exists
+          if (existingContractor.user_id !== userId) {
+            console.warn("Email already linked to different user_id");
+          }
+
+          // Check if profile is complete
+          if (
+            !existingContractor.first_name ||
+            existingContractor.first_name.trim() === ""
+          ) {
+            return "incomplete";
+          }
+
+          return "exists";
+        }
+      } else {
+        // Create new contractor record
+        const { error: insertError } = await supabase
+          .from("contractors")
+          .insert([
+            {
+              user_id: userId,
+              email: email,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              application_status: "pending",
+              // Required fields (set to null/empty)
+              first_name: null,
+              last_name: null,
+              phone: null,
+              address: null,
+              city: null,
+              state: null,
+              zip_code: null,
+              country: null,
+              job_applied: null,
+              application_date: new Date().toISOString(),
+              experience_years: null,
+              expected_salary: null,
+              interview_date: null,
+              interview_time: null,
+              interview_type: null,
+              interview_status: null,
+              services_offered: null,
+              service_areas: null,
+              availability: null,
+              has_vehicle: null,
+              vehicle_type: null,
+              has_equipment: null,
+              insurance_coverage: null,
+              background_check_status: null,
+              resume_url: null,
+              profile_image_url: null,
+              admin_notes: null,
+              rating: null,
+            },
+          ]);
+
+        if (insertError) throw insertError;
+        console.log("New contractor record created (incomplete)");
+        return "incomplete";
+      }
     } catch (error) {
-      console.error("Error creating contractor record:", error);
-      throw error;
+      console.error("Error in createContractorRecord:", error);
+      return "error";
+    }
+  }
+
+  // Function to check/update existing contractors by email
+  async function checkAndUpdateExistingContractor(userId, email) {
+    try {
+      // Check if there's a contractor with this email but no user_id
+      const { data: existingContractor, error } = await supabase
+        .from("contractors")
+        .select("id, user_id, first_name")
+        .eq("email", email)
+        .is("user_id", null)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking for existing contractor:", error);
+        return false;
+      }
+
+      if (existingContractor && !existingContractor.user_id) {
+        // Update with user_id
+        const { error: updateError } = await supabase
+          .from("contractors")
+          .update({
+            user_id: userId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingContractor.id);
+
+        if (updateError) {
+          console.error("Error updating existing contractor:", updateError);
+          return false;
+        }
+
+        console.log("Linked existing contractor to auth user");
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error in checkAndUpdateExistingContractor:", error);
+      return false;
     }
   }
 
@@ -230,6 +400,14 @@ export default function ContractorLogin() {
   const handleResendConfirmation = async () => {
     setLoading(true);
     try {
+      // Try to resend confirmation email through Supabase
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: confirmationEmail,
+      });
+
+      if (error) throw error;
+
       alert(
         `Confirmation email resent to ${confirmationEmail}. Please check your inbox.`,
       );

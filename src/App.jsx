@@ -128,6 +128,14 @@ function App() {
             />
             <Route path="client-login" element={<ClientLogin />} />
             <Route
+              path="contractor-login"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <ContractorLogin />
+                </React.Suspense>
+              }
+            />
+            <Route
               path="reset-password"
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
@@ -155,7 +163,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="contractor-login" element={<ContractorLogin />} />
             <Route
               path="contact"
               element={
