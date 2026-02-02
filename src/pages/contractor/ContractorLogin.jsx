@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmail, signUpWithEmail } from "../../services/auth";
+import { signInWithEmail, signUpContractor } from "../../services/auth";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiMail,
@@ -170,8 +170,7 @@ export default function ContractorLogin() {
         // Navigation will be handled by the auth state change listener
       } else {
         // SIGN UP - For contractors
-        const result = await signUpWithEmail(email, password);
-
+        const result = await signUpContractor(email, password);
         console.log("Contractor sign-up result:", result);
 
         if (result?.user) {
@@ -198,7 +197,7 @@ export default function ContractorLogin() {
             setPassword("");
             setIsLogin(true);
 
-            // Still create contractor record (it will be incomplete)
+            // Still create contractor record
             await createContractorRecord(result.user.id, email);
           }
         } else {
