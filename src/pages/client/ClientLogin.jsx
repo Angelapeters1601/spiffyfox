@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmail, signUpWithEmail } from "../../services/auth";
+import { signInWithEmail, signUpClient } from "../../services/auth";
+import { getUserRole } from "../../services/userRole";
 import { supabase } from "../../services/supabaseClient";
 import {
   FiMail,
@@ -27,7 +28,7 @@ export default function () {
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
 
-  // CHECK IF USER IS ALREADY LOGGED IN
+  // CHECK IF USER IS ALREADY LOGGED IN AS CLIENT
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -36,8 +37,14 @@ export default function () {
         } = await supabase.auth.getSession();
 
         if (session) {
-          // User is already logged in, redirect to join page
-          navigate("/join");
+          // Check if logged-in user is a CLIENT
+          const userRole = await getUserRole(session.user.id);
+
+          // ONLY redirect if user is a client
+          if (userRole === "client") {
+            navigate("/join");
+          }
+          // If not a client (contractor, admin, etc.), stay on login page
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -51,9 +58,20 @@ export default function () {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === "SIGNED_IN") {
-        navigate("/join");
+        // Check role after sign in
+        try {
+          const userRole = await getUserRole(session.user.id);
+
+          // ONLY navigate to /join if user is a client
+          if (userRole === "client") {
+            navigate("/join");
+          }
+          // Contractors and others stay on this page
+        } catch (error) {
+          console.error("Error checking role:", error);
+        }
       }
     });
 
@@ -99,7 +117,7 @@ export default function () {
         navigate("/join");
       } else {
         // SIGN UP
-        const result = await signUpWithEmail(email, password);
+        const result = await signUpClient(email, password);
 
         console.log("Sign-up result:", result);
 

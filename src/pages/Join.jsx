@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase2 } from "../services/supabaseClient";
 import img from "../assets/join.png";
 import { Link } from "react-router-dom";
+import { signOut } from "../services/auth";
 
 const Join = () => {
   const [formData, setFormData] = useState({
@@ -21,6 +22,8 @@ const Join = () => {
     message: "",
   });
   const [errors, setErrors] = useState({});
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const roles = [
     "Residential Cleaning Specialist",
@@ -37,6 +40,32 @@ const Join = () => {
       () => setNotification({ show: false, type: "", message: "" }),
       5000,
     );
+  };
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      setNotification({
+        show: true,
+        type: "success",
+        message: "Successfully signed out. Redirecting...",
+      });
+
+      setTimeout(() => {
+        window.location.href = "/client-login";
+      }, 1500);
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setNotification({
+        show: true,
+        type: "error",
+        message: "Failed to sign out. Please try again.",
+      });
+    } finally {
+      setSigningOut(false);
+      setShowProfileDropdown(false);
+    }
   };
 
   const validateForm = () => {
@@ -242,20 +271,21 @@ const Join = () => {
               lives
             </p>
 
-            {/* View Profile Button - Beautifully placed in hero */}
+            {/* Account Options Dropdown */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="mt-8"
+              className="relative mt-8 inline-block"
             >
-              <Link
-                to="/client"
-                className="group font-quicksand relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-white/20 to-white/10 px-8 py-4 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:backdrop-blur-lg"
+              {/* Profile Dropdown Button - Made smaller */}
+              <button
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="group font-quicksand relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-white/20 to-white/10 px-6 py-3 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-xl hover:backdrop-blur-lg"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 via-transparent to-purple-600/30 transition-all duration-300 group-hover:translate-x-full"></div>
                 <svg
-                  className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                  className="h-4 w-4 transition-transform duration-300 group-hover:scale-110"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -267,9 +297,11 @@ const Join = () => {
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                   />
                 </svg>
-                <span className="relative">View Your Profile</span>
+                <span className="relative text-sm">Account Options</span>
                 <svg
-                  className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                  className={`ml-1 h-3 w-3 transition-transform duration-300 ${
+                    showProfileDropdown ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -278,10 +310,102 @@ const Join = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M9 5l7 7-7 7"
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </Link>
+              </button>
+
+              {/* Dropdown Menu - Made smaller and positioned above */}
+              <AnimatePresence>
+                {showProfileDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute bottom-full left-1/2 z-40 mb-2 w-56 -translate-x-1/2 transform"
+                    onMouseLeave={() => setShowProfileDropdown(false)}
+                  >
+                    <div className="overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5">
+                      <div className="p-1">
+                        <Link
+                          to="/client"
+                          className="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-gray-700 transition-all duration-200 hover:bg-purple-50"
+                          onClick={() => setShowProfileDropdown(false)}
+                        >
+                          <svg
+                            className="h-4 w-4 text-purple-600 transition-transform duration-300 group-hover:scale-110"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                          <div>
+                            <p className="font-quicksand text-sm font-semibold">
+                              View Profile
+                            </p>
+                            <p className="font-quicksand text-xs text-gray-500">
+                              Check application status
+                            </p>
+                          </div>
+                        </Link>
+
+                        <div className="my-1 border-t border-gray-100"></div>
+
+                        <button
+                          onClick={handleSignOut}
+                          disabled={signingOut}
+                          className="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-gray-700 transition-all duration-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {signingOut ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+                              <div>
+                                <p className="font-quicksand text-sm font-semibold text-red-600">
+                                  Signing Out...
+                                </p>
+                                <p className="font-quicksand text-xs text-gray-500">
+                                  Please wait
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                className="h-4 w-4 text-red-600 transition-transform duration-300 group-hover:scale-110"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                />
+                              </svg>
+                              <div>
+                                <p className="font-quicksand text-sm font-semibold text-red-600">
+                                  Sign Out
+                                </p>
+                                <p className="font-quicksand text-xs text-gray-500">
+                                  End current session
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </motion.div>
           <div className="absolute inset-0 bg-black opacity-40"></div>
@@ -319,33 +443,143 @@ const Join = () => {
                     SpiffyFox. We're excited to learn more about you!
                   </p>
                 </div>
-
-                {/* Desktop View Profile Button */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="hidden lg:block"
-                >
-                  <Link
-                    to="/client"
-                    className="group font-quicksand relative flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 px-4 py-3 font-semibold text-purple-700 transition-all duration-300 hover:shadow-lg"
+                {/* Desktop Account Options Button */}
+                <div className="hidden lg:block">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative"
                   >
-                    <svg
-                      className="h-5 w-5 text-purple-600 transition-transform duration-300 group-hover:rotate-12"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <button
+                      onClick={() =>
+                        setShowProfileDropdown(!showProfileDropdown)
+                      }
+                      className="group font-quicksand relative flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 px-4 py-3 font-semibold text-purple-700 transition-all duration-300 hover:shadow-lg"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    <span>View Profile</span>
-                  </Link>
-                </motion.div>
+                      <svg
+                        className="h-5 w-5 text-purple-600 transition-transform duration-300 group-hover:rotate-12"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      <span>Account Options</span>
+                      <svg
+                        className={`ml-1 h-4 w-4 transition-transform duration-300 ${
+                          showProfileDropdown ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    {/* Desktop Dropdown Menu */}
+                    <AnimatePresence>
+                      {showProfileDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute right-0 z-40 mt-2 w-64 transform"
+                          onMouseLeave={() => setShowProfileDropdown(false)}
+                        >
+                          <div className="overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5">
+                            <div className="p-1">
+                              <Link
+                                to="/client"
+                                className="group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-gray-700 transition-all duration-200 hover:bg-purple-50"
+                                onClick={() => setShowProfileDropdown(false)}
+                              >
+                                <svg
+                                  className="h-5 w-5 text-purple-600 transition-transform duration-300 group-hover:scale-110"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                  />
+                                </svg>
+                                <div>
+                                  <p className="font-quicksand font-semibold">
+                                    View Profile
+                                  </p>
+                                  <p className="font-quicksand text-sm text-gray-500">
+                                    Check your application status
+                                  </p>
+                                </div>
+                              </Link>
+
+                              <div className="my-1 border-t border-gray-100"></div>
+
+                              <button
+                                onClick={handleSignOut}
+                                disabled={signingOut}
+                                className="group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-gray-700 transition-all duration-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {signingOut ? (
+                                  <>
+                                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+                                    <div>
+                                      <p className="font-quicksand font-semibold text-red-600">
+                                        Signing Out...
+                                      </p>
+                                      <p className="font-quicksand text-sm text-gray-500">
+                                        Please wait
+                                      </p>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg
+                                      className="h-5 w-5 text-red-600 transition-transform duration-300 group-hover:scale-110"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                      />
+                                    </svg>
+                                    <div>
+                                      <p className="font-quicksand font-semibold text-red-600">
+                                        Sign Out
+                                      </p>
+                                      <p className="font-quicksand text-sm text-gray-500">
+                                        End your current session
+                                      </p>
+                                    </div>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -552,44 +786,62 @@ const Join = () => {
             {/* Quick Access Card */}
             <div className="rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 p-6 text-white shadow-xl">
               <h3 className="font-cinzel mb-4 text-xl font-bold">
-                Quick Access
+                Account Management
               </h3>
               <p className="font-quicksand mb-4 opacity-90">
-                Already have a profile? Check your application status and update
-                your information.
+                Manage your profile and account settings. View your application
+                status or sign out if needed.
               </p>
-              <Link
-                to="/client"
-                className="group font-quicksand flex w-full items-center justify-center gap-2 rounded-xl bg-white/20 px-4 py-3 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/30 hover:shadow-lg"
-              >
-                <svg
-                  className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="space-y-3">
+                <Link
+                  to="/client"
+                  className="group font-quicksand flex w-full items-center justify-center gap-2 rounded-xl bg-white/20 px-4 py-3 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/30 hover:shadow-lg"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                <span>View Your Profile</span>
-                <svg
-                  className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  <svg
+                    className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  <span>View Your Profile</span>
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="group font-quicksand flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/20 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </Link>
+                  {signingOut ? (
+                    <>
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      <span>Signing Out...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      <span>Sign Out</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Why Join Card */}

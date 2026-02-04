@@ -126,7 +126,14 @@ function App() {
                 </React.Suspense>
               }
             />
-            <Route path="client-login" element={<ClientLogin />} />
+            <Route
+              path="client-login"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <ClientLogin />
+                </React.Suspense>
+              }
+            />
             <Route
               path="contractor-login"
               element={
