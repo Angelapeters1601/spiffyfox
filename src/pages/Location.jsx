@@ -10,30 +10,6 @@ import philadelphia from "../assets/philadelphia.jpg";
 import stLouis from "../assets/st louis.jpg";
 import washingtonDc from "../assets/washington dc.jpg";
 
-// 3D Animated Sphere Component
-const AnimatedSphere = () => {
-  const meshRef = useRef();
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime) * 0.2;
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.1;
-    }
-  });
-
-  return (
-    <Sphere ref={meshRef} args={[1, 100, 200]} scale={2}>
-      <MeshDistortMaterial
-        color="#6017b4"
-        attach="material"
-        distort={0.5}
-        speed={2}
-        roughness={0.2}
-        metalness={0.8}
-      />
-    </Sphere>
-  );
-};
-
 const Location = () => {
   const containerRef = useRef();
   const [selectedCity, setSelectedCity] = useState(null);
@@ -194,20 +170,6 @@ const Location = () => {
       {/* Hero Section with 3D */}
       <section className="relative flex h-screen items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900" />
-
-        {/* 3D Background */}
-        <div className="absolute inset-0 opacity-20">
-          <Canvas>
-            <ambientLight intensity={0.5} />
-            <directionalLight position={[10, 10, 5]} intensity={1} />
-            <AnimatedSphere />
-            <OrbitControls
-              enableZoom={false}
-              autoRotate
-              autoRotateSpeed={0.5}
-            />
-          </Canvas>
-        </div>
 
         <div className="relative z-10 px-4 text-center text-white">
           <div className="mb-8">
