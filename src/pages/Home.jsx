@@ -132,7 +132,7 @@ const Home = () => {
                     >
                       The best Cleaning service company in{" "}
                       <span className="bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-5xl text-transparent">
-                        NYC
+                        DELAWARE
                       </span>
                     </motion.h1>
 
@@ -557,7 +557,7 @@ const Home = () => {
                     <div className={`${feature.color} mb-3 text-4xl`}>
                       <IconComponent />
                     </div>
-                    <h3 className="font-cormorant mb-4 border-b-2 border-purple-200 text-2xl font-bold font-semibold text-purple-600">
+                    <h3 className="font-cormorant mb-4 border-b-2 border-purple-200 text-2xl font-semibold text-purple-600">
                       {feature.title}
                     </h3>
                     <p className="font-lora text-sm text-stone-800">

@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import { supabase2 } from "../services/supabaseClient";
+import { supabase } from "../services/supabaseClient";
 import img from "../assets/join.png";
 import { Link } from "react-router-dom";
 import { signOut } from "../services/auth";
@@ -24,6 +24,20 @@ const Join = () => {
   const [errors, setErrors] = useState({});
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  // Get current user ID
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    getUser();
+  }, []);
 
   const roles = [
     "Residential Cleaning Specialist",
@@ -206,9 +220,9 @@ const Join = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Notification */}
-      <AnimatePresence>
+      <div>
         {notification.show && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
@@ -252,14 +266,14 @@ const Join = () => {
                 {notification.message}
               </span>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Hero Section with View Profile Button */}
       <div className="relative">
         <div className="font-cinzel spiffy-bg-dark relative flex items-center justify-center overflow-hidden p-12 text-4xl font-bold text-white">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -272,13 +286,13 @@ const Join = () => {
             </p>
 
             {/* Account Options Dropdown */}
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
               className="relative mt-8 inline-block"
             >
-              {/* Profile Dropdown Button - Made smaller */}
+              {/* Profile Dropdown Button */}
               <button
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                 className="group font-quicksand relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-white/20 to-white/10 px-6 py-3 font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-xl hover:backdrop-blur-lg"
@@ -315,10 +329,10 @@ const Join = () => {
                 </svg>
               </button>
 
-              {/* Dropdown Menu - Made smaller and positioned above */}
-              <AnimatePresence>
+              {/* Dropdown Menu  */}
+              <div>
                 {showProfileDropdown && (
-                  <motion.div
+                  <div
                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -329,7 +343,7 @@ const Join = () => {
                     <div className="overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5">
                       <div className="p-1">
                         <Link
-                          to="/client"
+                          to={userId ? `/client/${userId}` : "/client"}
                           className="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-gray-700 transition-all duration-200 hover:bg-purple-50"
                           onClick={() => setShowProfileDropdown(false)}
                         >
@@ -403,11 +417,11 @@ const Join = () => {
                         </button>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
-            </motion.div>
-          </motion.div>
+              </div>
+            </div>
+          </div>
           <div className="absolute inset-0 bg-black opacity-40"></div>
         </div>
 
@@ -425,7 +439,7 @@ const Join = () => {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
           {/* Application Form */}
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -445,7 +459,7 @@ const Join = () => {
                 </div>
                 {/* Desktop Account Options Button */}
                 <div className="hidden lg:block">
-                  <motion.div
+                  <div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="relative"
@@ -488,9 +502,9 @@ const Join = () => {
                     </button>
 
                     {/* Desktop Dropdown Menu */}
-                    <AnimatePresence>
+                    <div>
                       {showProfileDropdown && (
-                        <motion.div
+                        <div
                           initial={{ opacity: 0, y: -10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -501,7 +515,7 @@ const Join = () => {
                           <div className="overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/5">
                             <div className="p-1">
                               <Link
-                                to="/client"
+                                to={userId ? `/client/${userId}` : "/client"}
                                 className="group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-gray-700 transition-all duration-200 hover:bg-purple-50"
                                 onClick={() => setShowProfileDropdown(false)}
                               >
@@ -575,10 +589,10 @@ const Join = () => {
                               </button>
                             </div>
                           </div>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </motion.div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -774,10 +788,10 @@ const Join = () => {
                 </div>
               </form>
             </div>
-          </motion.div>
+          </div>
 
           {/* Sidebar */}
-          <motion.div
+          <div
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
@@ -1048,7 +1062,7 @@ const Join = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

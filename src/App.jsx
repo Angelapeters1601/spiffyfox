@@ -119,7 +119,7 @@ function App() {
               }
             />
             <Route
-              path="client"
+              path="/client/:userId"
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Client />
