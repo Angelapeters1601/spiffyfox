@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import { motion } from "framer-motion";
 import { signOut } from "../../services/auth";
 import { supabase } from "../../services/supabaseClient";
 import { supabase2 } from "../../services/supabaseClient";
@@ -338,12 +337,7 @@ const Client = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-purple-50 p-4 md:p-6"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-purple-50 p-4 md:p-6">
       {/* Hidden file input */}
       <input
         type="file"
@@ -355,7 +349,7 @@ const Client = () => {
 
       <div className="mx-auto max-w-7xl">
         {/* Header Section */}
-        <motion.div
+        <div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
@@ -374,10 +368,7 @@ const Client = () => {
             <div className="flex items-center gap-4">
               {/* Profile Photo with Upload Button */}
               {user && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="group relative"
-                >
+                <div whileHover={{ scale: 1.05 }} className="group relative">
                   <div className="relative h-14 w-14 overflow-hidden rounded-full border-4 border-white shadow-lg">
                     {profilePhoto ? (
                       <img
@@ -394,16 +385,14 @@ const Client = () => {
                       <FiCamera className="text-xl text-white" />
                     </div>
                   </div>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                  <button
                     onClick={triggerFileInput}
                     className="absolute -right-2 -bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
                     title="Change photo"
                   >
                     <FiEdit className="text-sm" />
-                  </motion.button>
-                </motion.div>
+                  </button>
+                </div>
               )}
 
               {user && (
@@ -412,21 +401,19 @@ const Client = () => {
                   <p className="text-sm text-gray-500">Logged in</p>
                 </div>
               )}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={handleSignOut}
                 className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-5 py-1 text-sm font-semibold text-white shadow-lg transition-all duration-300"
               >
                 Sign Out
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Upload Progress/Error */}
         {uploading && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 rounded-2xl bg-white p-5 shadow-xl"
@@ -439,12 +426,11 @@ const Client = () => {
                 <div className="flex-1">
                   <h3 className="font-bold text-gray-800">Uploading Photo</h3>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                    <motion.div
+                    <div
                       className="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500"
-                      initial={{ width: 0 }}
                       animate={{ width: `${uploadProgress}%` }}
                       transition={{ duration: 0.3 }}
-                    ></motion.div>
+                    ></div>
                   </div>
                   <p className="mt-1 text-sm text-gray-600">
                     {uploadProgress}% complete
@@ -452,11 +438,11 @@ const Client = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {uploadError && (
-          <motion.div
+          <div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5"
@@ -478,12 +464,12 @@ const Client = () => {
                 <FaTimes />
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Database Connection Status */}
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <motion.div
+          <div
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -504,9 +490,9 @@ const Client = () => {
               </div>
               <div className="h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
+          <div
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -529,19 +515,19 @@ const Client = () => {
                 className={`h-3 w-3 animate-pulse rounded-full ${application ? "bg-green-500" : "bg-yellow-500"}`}
               ></div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Main Content */}
         <div className="grid gap-8 lg:grid-cols-3">
           {/* User Profile Card - From Supabase (Auth DB) */}
-          <motion.div
+          <div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
             className="lg:col-span-1"
           >
-            <motion.div
+            <div
               whileHover={{ y: -5 }}
               className="overflow-hidden rounded-2xl border border-white bg-white/80 shadow-2xl backdrop-blur-sm transition-all duration-300"
             >
@@ -559,7 +545,7 @@ const Client = () => {
                 {user ? (
                   <div className="space-y-6">
                     {/* Profile Photo Section */}
-                    <motion.div
+                    <div
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.5 }}
@@ -569,19 +555,16 @@ const Client = () => {
                         <h3 className="font-semibold text-gray-800">
                           Profile Photo
                         </h3>
-                        <motion.div
+                        <div
                           whileHover={{ rotate: 15 }}
                           className="rounded-full bg-white p-2 shadow"
                         >
                           <FiCamera className="text-indigo-600" />
-                        </motion.div>
+                        </div>
                       </div>
 
                       <div className="flex flex-col items-center">
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          className="relative mb-4 h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-xl"
-                        >
+                        <div className="relative mb-4 h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-xl">
                           {profilePhoto ? (
                             <img
                               src={profilePhoto}
@@ -593,10 +576,10 @@ const Client = () => {
                               <FiUser className="text-4xl text-white" />
                             </div>
                           )}
-                        </motion.div>
+                        </div>
 
                         <div className="flex gap-3">
-                          <motion.button
+                          <button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={triggerFileInput}
@@ -605,10 +588,10 @@ const Client = () => {
                           >
                             <FiUpload className="text-sm" />
                             {profilePhoto ? "Change Photo" : "Upload Photo"}
-                          </motion.button>
+                          </button>
 
                           {profilePhoto && (
-                            <motion.button
+                            <button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={handleRemovePhoto}
@@ -616,7 +599,7 @@ const Client = () => {
                               disabled={uploading}
                             >
                               <FaTimes className="text-xs" />
-                            </motion.button>
+                            </button>
                           )}
                         </div>
 
@@ -624,9 +607,9 @@ const Client = () => {
                           Max file size: 5MB • Supported: JPG, PNG, GIF
                         </p>
                       </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div
+                    <div
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.6 }}
@@ -636,12 +619,12 @@ const Client = () => {
                         <h3 className="font-semibold text-gray-800">
                           Account Info
                         </h3>
-                        <motion.div
+                        <div
                           whileHover={{ rotate: 15 }}
                           className="rounded-full bg-white p-2 shadow"
                         >
                           <FiUserCheck className="text-blue-600" />
-                        </motion.div>
+                        </div>
                       </div>
 
                       <div className="space-y-4">
@@ -658,7 +641,7 @@ const Client = () => {
                             <code className="font-mono text-sm text-gray-700">
                               {user.id.substring(0, 16)}...
                             </code>
-                            <motion.button
+                            <button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               onClick={() =>
@@ -667,7 +650,7 @@ const Client = () => {
                               className="rounded-lg bg-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-300"
                             >
                               Copy
-                            </motion.button>
+                            </button>
                           </div>
                         </div>
 
@@ -680,9 +663,9 @@ const Client = () => {
                           </p>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div
+                    <div
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.7 }}
@@ -707,7 +690,7 @@ const Client = () => {
                           </span>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   </div>
                 ) : (
                   <div className="py-10 text-center">
@@ -718,17 +701,17 @@ const Client = () => {
                   </div>
                 )}
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Application Details Card - From Supabase2 (Applications DB) */}
-          <motion.div
+          <div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
             className="lg:col-span-2"
           >
-            <motion.div
+            <div
               whileHover={{ y: -5 }}
               className="overflow-hidden rounded-2xl border border-white bg-white/80 shadow-2xl backdrop-blur-sm transition-all duration-300"
             >
@@ -744,7 +727,7 @@ const Client = () => {
 
               <div className="p-6">
                 {appLoading ? (
-                  <motion.div
+                  <div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="flex flex-col items-center justify-center py-16"
@@ -762,16 +745,16 @@ const Client = () => {
                     <p className="mt-2 text-gray-500">
                       Querying applications database...
                     </p>
-                  </motion.div>
+                  </div>
                 ) : application ? (
-                  <motion.div
+                  <div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="space-y-6"
                   >
                     {/* Personal Information Row */}
                     <div className="grid gap-6 md:grid-cols-2">
-                      <motion.div
+                      <div
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.6 }}
@@ -779,12 +762,12 @@ const Client = () => {
                         className="rounded-xl bg-gradient-to-br from-blue-50 to-white p-5 shadow-lg transition-all duration-300"
                       >
                         <div className="mb-4 flex items-center gap-3">
-                          <motion.div
+                          <div
                             whileHover={{ rotate: 360 }}
                             className="rounded-lg bg-blue-100 p-3"
                           >
                             <FiUser className="text-blue-600" />
-                          </motion.div>
+                          </div>
                           <div>
                             <h3 className="font-bold text-gray-800">
                               Full Name:
@@ -794,9 +777,9 @@ const Client = () => {
                             </p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
 
-                      <motion.div
+                      <div
                         initial={{ x: 20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.7 }}
@@ -804,12 +787,12 @@ const Client = () => {
                         className="rounded-xl bg-gradient-to-br from-pink-50 to-white p-5 shadow-lg transition-all duration-300"
                       >
                         <div className="mb-4 flex items-center gap-3">
-                          <motion.div
+                          <div
                             whileHover={{ rotate: 360 }}
                             className="rounded-lg bg-pink-100 p-3"
                           >
                             {getGenderIcon(application.gender).icon}
-                          </motion.div>
+                          </div>
                           <div>
                             <h3 className="font-bold text-gray-800">Gender</h3>
                             <div className="mt-2 inline-flex items-center gap-2">
@@ -821,12 +804,12 @@ const Client = () => {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     </div>
 
                     {/* Contact Information Row */}
                     <div className="grid gap-6 md:grid-cols-2">
-                      <motion.div
+                      <div
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.8 }}
@@ -834,12 +817,12 @@ const Client = () => {
                         className="rounded-xl bg-gradient-to-br from-emerald-50 to-white p-5 shadow-lg transition-all duration-300"
                       >
                         <div className="mb-4 flex items-center gap-3">
-                          <motion.div
+                          <div
                             whileHover={{ rotate: 360 }}
                             className="rounded-lg bg-emerald-100 p-3"
                           >
                             <FiMail className="text-emerald-600" />
-                          </motion.div>
+                          </div>
                           <div>
                             <h3 className="font-bold text-gray-800">
                               Contact Email
@@ -849,9 +832,9 @@ const Client = () => {
                             </p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
 
-                      <motion.div
+                      <div
                         initial={{ x: 20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.9 }}
@@ -859,12 +842,12 @@ const Client = () => {
                         className="rounded-xl bg-gradient-to-br from-amber-50 to-white p-5 shadow-lg transition-all duration-300"
                       >
                         <div className="mb-4 flex items-center gap-3">
-                          <motion.div
+                          <div
                             whileHover={{ rotate: 360 }}
                             className="rounded-lg bg-amber-100 p-3"
                           >
                             <FiPhone className="text-amber-600" />
-                          </motion.div>
+                          </div>
                           <div>
                             <h3 className="font-bold text-gray-800">
                               Phone Number:
@@ -874,11 +857,11 @@ const Client = () => {
                             </p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     </div>
 
                     {/* Address Information */}
-                    <motion.div
+                    <div
                       initial={{ y: 20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 1.0 }}
@@ -886,12 +869,12 @@ const Client = () => {
                       className="rounded-xl bg-gradient-to-br from-indigo-50 to-white p-6 shadow-lg transition-all duration-300"
                     >
                       <div className="mb-4 flex items-center gap-3">
-                        <motion.div
+                        <div
                           whileHover={{ rotate: 360 }}
                           className="rounded-lg bg-indigo-100 p-3"
                         >
                           <FiHome className="text-indigo-600" />
-                        </motion.div>
+                        </div>
                         <div>
                           <h3 className="font-bold text-gray-800">
                             Address Information
@@ -918,11 +901,11 @@ const Client = () => {
                           </div>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
 
                     {/* Application Status Row */}
                     <div className="grid gap-6 md:grid-cols-2">
-                      <motion.div
+                      <div
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 1.1 }}
@@ -930,12 +913,12 @@ const Client = () => {
                         className="rounded-xl bg-gradient-to-br from-purple-50 to-white p-5 shadow-lg transition-all duration-300"
                       >
                         <div className="mb-4 flex items-center gap-3">
-                          <motion.div
+                          <div
                             whileHover={{ rotate: 360 }}
                             className="rounded-lg bg-purple-100 p-3"
                           >
                             <FaUserTie className="text-purple-600" />
-                          </motion.div>
+                          </div>
                           <div>
                             <h3 className="font-bold text-gray-800">
                               Applied Role
@@ -947,9 +930,9 @@ const Client = () => {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
 
-                      <motion.div
+                      <div
                         initial={{ x: 20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 1.2 }}
@@ -957,12 +940,12 @@ const Client = () => {
                         className="rounded-xl bg-gradient-to-br from-rose-50 to-white p-5 shadow-lg transition-all duration-300"
                       >
                         <div className="mb-4 flex items-center gap-3">
-                          <motion.div
+                          <div
                             whileHover={{ rotate: 360 }}
                             className="rounded-lg bg-rose-100 p-3"
                           >
                             <FiCalendar className="text-rose-600" />
-                          </motion.div>
+                          </div>
                           <div>
                             <h3 className="font-bold text-gray-800">
                               Application Date
@@ -972,11 +955,11 @@ const Client = () => {
                             </p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ) : (
-                  <motion.div
+                  <div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.6 }}
@@ -993,61 +976,29 @@ const Client = () => {
                       for your email address.
                     </p>
                     <div className="mt-6 flex justify-center gap-4">
-                      <motion.button
+                      <button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="cursor-pointer rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-medium text-white shadow-lg"
                       >
                         <Link to="/join">Apply Now</Link>
-                      </motion.button>
-                      <motion.button
+                      </button>
+                      <button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 shadow hover:bg-gray-50"
                       >
                         <Link to="/contact"> Contact Support</Link>
-                      </motion.button>
+                      </button>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Footer */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1.3 }}
-          className="mt-10 rounded-2xl bg-white/50 p-6 backdrop-blur-sm"
-        >
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div>
-              <p className="font-medium text-gray-800">
-                SpiffyFox Client Portal
-              </p>
-              <p className="text-sm text-gray-500">
-                Dual database architecture • Secure & Scalable
-              </p>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-center">
-                <p className="text-sm text-gray-500">Auth Database</p>
-                <p className="font-medium text-gray-800">Connected</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-500">Apps Database</p>
-                <p className="font-medium text-gray-800">
-                  {application ? "Connected" : "No Data"}
-                </p>
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
-
 export default Client;

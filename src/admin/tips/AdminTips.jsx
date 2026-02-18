@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../services/supabaseClient";
 import { getYouTubeVideoDetails } from "../../services/youtubeAPI";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   FiYoutube,
   FiUpload,
@@ -341,7 +340,7 @@ const AdminTips = () => {
               Curate professional training content for your team
             </p>
           </div>
-          <motion.button
+          <button
             whileHover={{
               scale: 1.05,
               boxShadow: "0 10px 25px -5px rgba(177, 156, 217, 0.4)",
@@ -357,13 +356,13 @@ const AdminTips = () => {
           >
             <FiUpload className="mr-2" />
             {showUploadForm ? "Cancel" : "Add Training Video"}
-          </motion.button>
+          </button>
         </div>
 
         {/* Upload Form */}
-        <AnimatePresence>
+        <div>
           {showUploadForm && (
-            <motion.div
+            <div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -488,7 +487,7 @@ const AdminTips = () => {
                 </div>
 
                 {uploadError && (
-                  <motion.div
+                  <div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-4 flex items-start rounded-xl border-2 border-red-200 bg-red-50 p-4 text-red-700"
@@ -500,11 +499,11 @@ const AdminTips = () => {
                       </p>
                       <p className="font-quicksand text-sm">{uploadError}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {uploadSuccess && (
-                  <motion.div
+                  <div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-4 flex items-start rounded-xl border-2 border-green-200 bg-green-50 p-4 text-green-700"
@@ -522,12 +521,12 @@ const AdminTips = () => {
                           : "Video added to your training library."}
                       </p>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
 
         {/* Filters  */}
         <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg backdrop-blur-sm">
@@ -586,7 +585,7 @@ const AdminTips = () => {
         ) : filteredVideos.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {filteredVideos.map((video) => (
-              <motion.div
+              <div
                 key={video.id}
                 whileHover={{ y: -8, scale: 1.02 }}
                 className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg transition-all duration-300 hover:shadow-2xl"
@@ -617,9 +616,9 @@ const AdminTips = () => {
                         <FiMoreVertical />
                       </button>
 
-                      <AnimatePresence>
+                      <div>
                         {openActionsId === video.id && (
-                          <motion.div
+                          <div
                             initial={{ opacity: 0, y: -10, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.9 }}
@@ -670,9 +669,9 @@ const AdminTips = () => {
                                 )}
                               </button>
                             </div>
-                          </motion.div>
+                          </div>
                         )}
-                      </AnimatePresence>
+                      </div>
                     </div>
                   </div>
 
@@ -708,7 +707,7 @@ const AdminTips = () => {
                     Watch Training Video
                   </a>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         ) : (

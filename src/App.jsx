@@ -7,6 +7,7 @@ import UnauthorizedPage from "./components/UnauthorizedPage";
 import { ScrollToTopHandler } from "./ui/ScrollToTop";
 import JobPostings from "./admin/contractor/JobPostings";
 import JobPostingForm from "./admin/contractor/JobPostingForm";
+import ContractorLogin from "./pages/contractor/contractorLogin";
 
 // Lazy load main pages
 const Home = React.lazy(() => import("./pages/Home"));
@@ -20,9 +21,6 @@ const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const Client = React.lazy(() => import("./pages/client/Client"));
 const ClientLogin = React.lazy(() => import("./pages/client/ClientLogin"));
-const ContractorLogin = React.lazy(
-  () => import("./pages/contractor/ContractorLogin"),
-);
 const Contractor = React.lazy(() => import("./pages/contractor/Contractor"));
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 const ResetPassword = React.lazy(() => import("./components/ResetPassword"));

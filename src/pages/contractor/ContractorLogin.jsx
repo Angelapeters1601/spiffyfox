@@ -261,7 +261,7 @@ export default function ContractorLogin() {
           if (updateError) throw updateError;
           console.log("Updated existing contractor with user_id");
 
-          // Check if profile is complete
+          // Check if profile is complete (has first_name)
           if (
             !existingContractor.first_name ||
             existingContractor.first_name.trim() === ""
@@ -287,50 +287,78 @@ export default function ContractorLogin() {
           return "exists";
         }
       } else {
-        // Create new contractor record
+        // Create new contractor record with ALL fields from your list
+        const newContractor = {
+          // Core fields
+          user_id: userId,
+          email: email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+
+          // Application status
+          application_status: "pending",
+          application_date: new Date().toISOString(),
+
+          // Personal info (all null initially)
+          first_name: null,
+          last_name: null,
+          phone: null,
+          address: null,
+          city: null,
+          state: null,
+          zip_code: null,
+          country: null,
+
+          // Job details
+          job_applied: null,
+          experience_years: null,
+          expected_salary: null,
+
+          // Interview details
+          interview_date: null,
+          interview_time: null,
+          interview_type: null,
+          interview_status: null,
+          interview_notes: null,
+          interview_scheduled_by: null,
+          interview_location: null,
+
+          // Services
+          services_offered: null,
+          service_areas: null,
+          availability: null,
+
+          // Equipment/Vehicle
+          has_vehicle: null,
+          vehicle_type: null,
+          has_equipment: null,
+          insurance_coverage: null,
+          insurance_url: null,
+
+          // Background
+          background_check_status: null,
+
+          // Media
+          resume_url: null,
+          profile_image_url: null,
+
+          // Admin
+          admin_notes: null,
+          rating: null,
+        };
+
         const { error: insertError } = await supabase
           .from("contractors")
-          .insert([
-            {
-              user_id: userId,
-              email: email,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              application_status: "pending",
-              // Required fields (set to null/empty)
-              first_name: null,
-              last_name: null,
-              phone: null,
-              address: null,
-              city: null,
-              state: null,
-              zip_code: null,
-              country: null,
-              job_applied: null,
-              application_date: new Date().toISOString(),
-              experience_years: null,
-              expected_salary: null,
-              interview_date: null,
-              interview_time: null,
-              interview_type: null,
-              interview_status: null,
-              services_offered: null,
-              service_areas: null,
-              availability: null,
-              has_vehicle: null,
-              vehicle_type: null,
-              has_equipment: null,
-              insurance_coverage: null,
-              background_check_status: null,
-              resume_url: null,
-              profile_image_url: null,
-              admin_notes: null,
-              rating: null,
-            },
-          ]);
+          .insert([newContractor]);
 
-        if (insertError) throw insertError;
-        console.log("New contractor record created (incomplete)");
+        if (insertError) {
+          console.error("Error creating contractor record:", insertError);
+          throw insertError;
+        }
+
+        console.log(
+          "New contractor record created with all fields (incomplete)",
+        );
         return "incomplete";
       }
     } catch (error) {
