@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../services/supabaseClient";
 import { getYouTubeVideoDetails } from "../../services/youtubeAPI";
 import {
