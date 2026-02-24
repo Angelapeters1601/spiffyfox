@@ -1,3 +1,4 @@
+import Contractor from "../pages/contractor/Contractor";
 import { supabase } from "./supabaseClient";
 
 // SIGN UP CLIENT
@@ -5,6 +6,9 @@ export async function signUpClient(email, password) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/join`,
+    },
   });
 
   if (error) throw error;
@@ -22,11 +26,14 @@ export async function signUpContractor(email, password) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/contractor`,
+    },
   });
 
   if (error) throw error;
 
-  // Create contractor profile
+  // Create contractor profile with role="contractor" in profiles table
   if (data.user) {
     await createProfile(data.user.id, email, "contractor");
   }
@@ -37,26 +44,47 @@ export async function signUpContractor(email, password) {
 // Helper to create/update profile
 async function createProfile(userId, email, role) {
   try {
-    const { error } = await supabase.from("profiles").upsert(
-      [
+    // First check if profile exists
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      // Insert new profile
+      const { error } = await supabase.from("profiles").insert([
         {
-          id: userId,
+          id: data.user.id,
+          email: email,
+          role: Contractor,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) {
+        console.error("Error creating profile:", error);
+      } else {
+        console.log(`Profile created for ${email} with role: ${role}`);
+      }
+    } else {
+      // Update existing profile
+      const { error } = await supabase
+        .from("profiles")
+        .update({
           email: email,
           role: role,
           updated_at: new Date().toISOString(),
-        },
-      ],
-      {
-        onConflict: "id", // Update if exists
-        ignoreDuplicates: false,
-      },
-    );
+        })
+        .eq("id", userId);
 
-    if (error) {
-      console.error("Error in createProfile:", error);
+      if (error) {
+        console.error("Error updating profile:", error);
+      }
     }
   } catch (error) {
-    console.error("Error creating profile:", error);
+    console.error("Error in createProfile:", error);
   }
 }
 
@@ -76,7 +104,7 @@ export async function signOut() {
   if (error) throw error;
 }
 
-// OLD FUNCTION
+// OLD FUNCTION (keep for backwards compatibility)
 export async function signUpWithEmail(email, password) {
   return signUpClient(email, password);
 }

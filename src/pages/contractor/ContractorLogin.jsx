@@ -44,7 +44,7 @@ export default function ContractorLogin() {
             if (isComplete) {
               navigate("/contractor");
             } else {
-              navigate("/contractor/profile-setup");
+              navigate("/contractor");
             }
           }
         }
@@ -62,10 +62,6 @@ export default function ContractorLogin() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === "SIGNED_IN") {
-        // Check if this is an existing contractor without user_id
-        const userEmail = session.user.email;
-        await checkAndUpdateExistingContractor(session.user.id, userEmail);
-
         // Check role after sign in
         try {
           const userRole = await getUserRole(session.user.id);
@@ -75,7 +71,7 @@ export default function ContractorLogin() {
             if (isComplete) {
               navigate("/contractor");
             } else {
-              navigate("/contractor/profile-setup");
+              navigate("/contractor");
             }
           }
         } catch (error) {
@@ -89,24 +85,23 @@ export default function ContractorLogin() {
     };
   }, [navigate]);
 
-  // Helper function to get user role
+  // Helper function to get user role from profiles table
   async function getUserRole(userId) {
     try {
-      // Check contractors table by user_id
-      const { data: contractorData, error: contractorError } = await supabase
-        .from("contractors")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .maybeSingle();
 
-      // If found and no error, user is a contractor
-      if (contractorData && !contractorError) {
-        return "contractor";
+      if (error) {
+        console.error("Error getting user role from profiles:", error);
+        return null;
       }
 
-      return null;
+      return data?.role || null;
     } catch (error) {
-      console.error("Error getting user role:", error);
+      console.error("Error in getUserRole:", error);
       return null;
     }
   }
@@ -118,7 +113,7 @@ export default function ContractorLogin() {
         .from("contractors")
         .select("first_name")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error checking profile:", error);
@@ -174,59 +169,19 @@ export default function ContractorLogin() {
         console.log("Contractor sign-up result:", result);
 
         if (result?.user) {
-          if (result?.session) {
-            // User auto-confirmed
-            const profileStatus = await createContractorRecord(
-              result.user.id,
-              email,
-            );
+          // Create contractor record in contractors table
+          await createContractorRecord(result.user.id, email);
 
-            if (profileStatus === "incomplete") {
-              // Redirect to profile completion page
-              navigate("/contractor/profile-setup");
-              return;
-            } else {
-              // Profile already exists and is complete
-              navigate("/contractor");
-            }
-          } else {
-            // Email confirmation required
-            setConfirmationEmail(email);
-            setShowConfirmationMessage(true);
-            setEmail("");
-            setPassword("");
-            setIsLogin(true);
-
-            // Still create contractor record
-            await createContractorRecord(result.user.id, email);
-          }
+          // Auto-confirm email for testing (remove in production)
+          // For testing, we'll just redirect to profile setup
+          navigate("/contractor");
         } else {
           throw new Error("Sign-up failed. Please try again.");
         }
       }
     } catch (err) {
       console.error("Contractor auth error:", err);
-
-      // Handle specific error cases
-      if (err.message.includes("Error sending confirmation email")) {
-        setError(
-          "Failed to send confirmation email. Please check your email address or contact support.",
-        );
-      } else if (err.message.includes("Email not confirmed")) {
-        setError(
-          "Please check your email for a confirmation link. Click the link to verify your account.",
-        );
-        setConfirmationEmail(email);
-        setShowConfirmationMessage(true);
-      } else if (err.message.includes("Invalid email")) {
-        setError("Please enter a valid email address.");
-      } else if (err.message.includes("Password")) {
-        setError(
-          "Password requirements not met. Please check the requirements below.",
-        );
-      } else {
-        setError(err.message || "Authentication failed. Please try again.");
-      }
+      setError(err.message || "Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -260,6 +215,7 @@ export default function ContractorLogin() {
 
           if (updateError) throw updateError;
           console.log("Updated existing contractor with user_id");
+<<<<<<< Updated upstream
 
           // Check if profile is complete
           if (
@@ -288,6 +244,51 @@ export default function ContractorLogin() {
         }
       } else {
         // Create new contractor record
+=======
+        }
+      } else {
+        // Create new contractor record with basic fields
+        const newContractor = {
+          user_id: userId,
+          email: email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          application_status: "pending",
+          application_date: new Date().toISOString(),
+          first_name: null,
+          last_name: null,
+          phone: null,
+          address: null,
+          city: null,
+          state: null,
+          zip_code: null,
+          country: null,
+          job_applied: null,
+          experience_years: null,
+          expected_salary: null,
+          interview_date: null,
+          interview_time: null,
+          interview_type: null,
+          interview_status: null,
+          interview_notes: null,
+          interview_scheduled_by: null,
+          interview_location: null,
+          services_offered: null,
+          service_areas: null,
+          availability: null,
+          has_vehicle: null,
+          vehicle_type: null,
+          has_equipment: null,
+          insurance_coverage: null,
+          insurance_url: null,
+          background_check_status: null,
+          resume_url: null,
+          profile_image_url: null,
+          admin_notes: null,
+          rating: null,
+        };
+
+>>>>>>> Stashed changes
         const { error: insertError } = await supabase
           .from("contractors")
           .insert([
@@ -329,55 +330,21 @@ export default function ContractorLogin() {
             },
           ]);
 
+<<<<<<< Updated upstream
         if (insertError) throw insertError;
         console.log("New contractor record created (incomplete)");
         return "incomplete";
+=======
+        if (insertError) {
+          console.error("Error creating contractor record:", insertError);
+          throw insertError;
+        }
+
+        console.log("New contractor record created");
+>>>>>>> Stashed changes
       }
     } catch (error) {
       console.error("Error in createContractorRecord:", error);
-      return "error";
-    }
-  }
-
-  // Function to check/update existing contractors by email
-  async function checkAndUpdateExistingContractor(userId, email) {
-    try {
-      // Check if there's a contractor with this email but no user_id
-      const { data: existingContractor, error } = await supabase
-        .from("contractors")
-        .select("id, user_id, first_name")
-        .eq("email", email)
-        .is("user_id", null)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error checking for existing contractor:", error);
-        return false;
-      }
-
-      if (existingContractor && !existingContractor.user_id) {
-        // Update with user_id
-        const { error: updateError } = await supabase
-          .from("contractors")
-          .update({
-            user_id: userId,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingContractor.id);
-
-        if (updateError) {
-          console.error("Error updating existing contractor:", updateError);
-          return false;
-        }
-
-        console.log("Linked existing contractor to auth user");
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error("Error in checkAndUpdateExistingContractor:", error);
-      return false;
     }
   }
 
@@ -393,30 +360,6 @@ export default function ContractorLogin() {
   // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  // Resend confirmation email
-  const handleResendConfirmation = async () => {
-    setLoading(true);
-    try {
-      // Try to resend confirmation email through Supabase
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: confirmationEmail,
-      });
-
-      if (error) throw error;
-
-      alert(
-        `Confirmation email resent to ${confirmationEmail}. Please check your inbox.`,
-      );
-    } catch (err) {
-      setError(
-        "Failed to resend confirmation email. Please try signing up again.",
-      );
-    } finally {
-      setLoading(false);
-    }
   };
 
   // Handle forgot password
@@ -446,7 +389,7 @@ export default function ContractorLogin() {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          <p className="text-xl text-gray-600">Checking authentication...</p>
+          <p className="font-mono text-xl text-gray-600">loading ...</p>
         </div>
       </div>
     );
@@ -456,7 +399,7 @@ export default function ContractorLogin() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md">
         <div className="rounded-xl bg-white p-6 shadow-lg md:p-8">
-          {/* Email Confirmation Success Message */}
+          {/* Email Confirmation Success Message - HIDDEN FOR TESTING */}
           {showConfirmationMessage && (
             <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
               <div className="flex items-start">
@@ -468,23 +411,7 @@ export default function ContractorLogin() {
                   <p className="mt-1 text-sm text-green-700">
                     We've sent a confirmation email to{" "}
                     <span className="font-medium">{confirmationEmail}</span>.
-                    Please click the link in the email to verify your contractor
-                    account.
                   </p>
-                  <div className="mt-3 flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
-                    <button
-                      onClick={() => setShowConfirmationMessage(false)}
-                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-                    >
-                      Got It
-                    </button>
-                    <button
-                      onClick={handleResendConfirmation}
-                      className="rounded-lg border border-green-600 bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50"
-                    >
-                      Resend Email
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -819,8 +746,7 @@ export default function ContractorLogin() {
                         Check Your Email!
                       </h3>
                       <p className="mt-1 text-sm text-green-700">
-                        We've sent a password reset link to your email. Please
-                        check your inbox and follow the instructions.
+                        We've sent a password reset link to your email.
                       </p>
                       <button
                         onClick={() => {
@@ -880,17 +806,6 @@ export default function ContractorLogin() {
                   </form>
                 </>
               )}
-            </div>
-          )}
-
-          {/* Email Confirmation Note */}
-          {!isLogin && (
-            <div className="mt-4 rounded-lg bg-blue-50 p-3">
-              <p className="text-xs text-blue-800">
-                <strong>Note:</strong> After registering, you'll receive a
-                confirmation email. Verify your email to access the contractor
-                portal.
-              </p>
             </div>
           )}
         </div>
