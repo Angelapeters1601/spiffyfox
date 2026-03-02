@@ -215,36 +215,6 @@ export default function ContractorLogin() {
 
           if (updateError) throw updateError;
           console.log("Updated existing contractor with user_id");
-<<<<<<< Updated upstream
-
-          // Check if profile is complete
-          if (
-            !existingContractor.first_name ||
-            existingContractor.first_name.trim() === ""
-          ) {
-            return "incomplete";
-          }
-
-          return "complete";
-        } else {
-          // user_id already exists
-          if (existingContractor.user_id !== userId) {
-            console.warn("Email already linked to different user_id");
-          }
-
-          // Check if profile is complete
-          if (
-            !existingContractor.first_name ||
-            existingContractor.first_name.trim() === ""
-          ) {
-            return "incomplete";
-          }
-
-          return "exists";
-        }
-      } else {
-        // Create new contractor record
-=======
         }
       } else {
         // Create new contractor record with basic fields
@@ -288,7 +258,6 @@ export default function ContractorLogin() {
           rating: null,
         };
 
->>>>>>> Stashed changes
         const { error: insertError } = await supabase
           .from("contractors")
           .insert([
@@ -330,18 +299,12 @@ export default function ContractorLogin() {
             },
           ]);
 
-<<<<<<< Updated upstream
-        if (insertError) throw insertError;
-        console.log("New contractor record created (incomplete)");
-        return "incomplete";
-=======
         if (insertError) {
           console.error("Error creating contractor record:", insertError);
           throw insertError;
         }
 
         console.log("New contractor record created");
->>>>>>> Stashed changes
       }
     } catch (error) {
       console.error("Error in createContractorRecord:", error);

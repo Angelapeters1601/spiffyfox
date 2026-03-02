@@ -18,6 +18,8 @@ import {
   FiPhoneCall,
   FiUser,
   FiDollarSign,
+  FiImage,
+  FiMaximize2,
 } from "react-icons/fi";
 import { supabase } from "../../services/supabaseClient";
 
@@ -38,6 +40,9 @@ const ApplicantManagement = ({
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imageError, setImageError] = useState({});
   const [interviewSchedule, setInterviewSchedule] = useState({
     date: "",
     time: "",
@@ -61,8 +66,12 @@ const ApplicantManagement = ({
 
   // Status options
   const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "new", label: "New", color: "bg-blue-100 text-blue-800" },
+    { value: "all", label: "All Status", color: "bg-blue-100 text-blue-800" },
+    {
+      value: "new",
+      label: "New",
+      color: "bg-blue-100 text-blue-800",
+    },
     {
       value: "reviewed",
       label: "Reviewed",
@@ -102,7 +111,11 @@ const ApplicantManagement = ({
       packing_unpacking: "Packing & Unpacking",
       personal_assistance: "Personal Assistance",
     };
-    return jobTypes[jobType] || jobType.replace("_", " ").toUpperCase();
+    return (
+      jobTypes[jobType] ||
+      jobType?.replace(/_/g, " ").toUpperCase() ||
+      "Not specified"
+    );
   };
 
   // Format status for display
@@ -115,30 +128,39 @@ const ApplicantManagement = ({
       rejected: "Rejected",
       pending: "Pending",
     };
-    return statusMap[status] || status;
+    return statusMap[status?.toLowerCase()] || status || "Pending";
   };
 
   // Get status color
   const getStatusColor = (status) => {
     const colors = {
-      New: "bg-blue-50 text-blue-700 border-blue-200",
-      Reviewed: "bg-purple-50 text-purple-700 border-purple-200",
-      Interviewed: "bg-indigo-50 text-indigo-700 border-indigo-200",
-      Hired: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      Rejected: "bg-rose-50 text-rose-700 border-rose-200",
-      Pending: "bg-amber-50 text-amber-700 border-amber-200",
+      new: "bg-blue-50 text-blue-700 border-blue-200",
+      reviewed: "bg-purple-50 text-purple-700 border-purple-200",
+      interviewed: "bg-indigo-50 text-indigo-700 border-indigo-200",
+      hired: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      rejected: "bg-rose-50 text-rose-700 border-rose-200",
+      pending: "bg-amber-50 text-amber-700 border-amber-200",
     };
-    return colors[status] || "bg-gray-50 text-gray-700 border-gray-200";
+    return (
+      colors[status?.toLowerCase()] ||
+      "bg-gray-50 text-gray-700 border-gray-200"
+    );
   };
 
-  // Get initials for avatar
-  const getInitials = (name) => {
-    if (!name) return "NA";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+  // Get initials for avatar (fallback when no image)
+  const getInitials = (firstName, lastName) => {
+    if (!firstName && !lastName) return "?";
+    const first = firstName?.[0] || "";
+    const last = lastName?.[0] || "";
+    return (first + last).toUpperCase() || "?";
+  };
+
+  // Get display name
+  const getDisplayName = (applicant) => {
+    if (applicant.name) return applicant.name;
+    const firstName = applicant.rawData?.first_name || "";
+    const lastName = applicant.rawData?.last_name || "";
+    return `${firstName} ${lastName}`.trim() || "Unknown";
   };
 
   // Format date
@@ -175,6 +197,22 @@ const ApplicantManagement = ({
     }
   };
 
+  // Handle image click to view full size
+  const handleImageClick = (imageUrl, applicantName) => {
+    setSelectedImage({ url: imageUrl, name: applicantName });
+    setShowImageModal(true);
+  };
+
+  // Handle image load error
+  const handleImageError = (applicantId) => {
+    setImageError((prev) => ({ ...prev, [applicantId]: true }));
+  };
+
+  // Get profile image URL from applicant data
+  const getProfileImageUrl = (applicant) => {
+    return applicant.rawData?.profile_image_url || null;
+  };
+
   // Handle row click
   const handleRowClick = (applicant) => {
     setSelectedApplication(applicant);
@@ -182,13 +220,13 @@ const ApplicantManagement = ({
     setSidebarOpen(true);
 
     // Pre-fill interview schedule if exists
-    if (applicant.interviewDate) {
+    if (applicant.rawData?.interview_date) {
       setInterviewSchedule({
-        date: applicant.interviewDate,
-        time: applicant.interviewTime || "",
-        type: applicant.interviewType || "video_call",
-        notes: applicant.interviewNotes || "",
-        location: applicant.interviewLocation || "",
+        date: applicant.rawData.interview_date,
+        time: applicant.rawData.interview_time || "",
+        type: applicant.rawData.interview_type || "video_call",
+        notes: applicant.rawData.interview_notes || "",
+        location: applicant.rawData.interview_location || "",
       });
     }
   };
@@ -204,7 +242,10 @@ const ApplicantManagement = ({
       };
 
       // If changing to interviewed and scheduling needed, open modal
-      if (newStatus === "interviewed" && !selectedApplication.interviewDate) {
+      if (
+        newStatus === "Interviewed" &&
+        !selectedApplication.rawData?.interview_date
+      ) {
         setShowScheduleModal(true);
         return;
       }
@@ -218,7 +259,11 @@ const ApplicantManagement = ({
         // Update local state
         setSelectedApplication((prev) => ({
           ...prev,
-          status: formatStatus(newStatus.toLowerCase()),
+          status: newStatus,
+          rawData: {
+            ...prev.rawData,
+            application_status: newStatus.toLowerCase(),
+          },
         }));
 
         // Refresh parent data
@@ -254,11 +299,15 @@ const ApplicantManagement = ({
         setSelectedApplication((prev) => ({
           ...prev,
           status: "Interviewed",
-          interviewDate: interviewSchedule.date,
-          interviewTime: interviewSchedule.time,
-          interviewType: interviewSchedule.type,
-          interviewNotes: interviewSchedule.notes,
-          interviewLocation: interviewSchedule.location,
+          rawData: {
+            ...prev.rawData,
+            application_status: "interviewed",
+            interview_date: interviewSchedule.date,
+            interview_time: interviewSchedule.time,
+            interview_type: interviewSchedule.type,
+            interview_notes: interviewSchedule.notes,
+            interview_location: interviewSchedule.location,
+          },
         }));
 
         setShowScheduleModal(false);
@@ -300,16 +349,15 @@ const ApplicantManagement = ({
 
   // Handle resume download
   const handleDownloadResume = async (applicant) => {
-    if (!applicant.resumeUrl) {
+    if (!applicant.rawData?.resume_url) {
       alert("Resume not available for this applicant");
       return;
     }
 
     try {
-      // Create a temporary link to trigger download
       const link = document.createElement("a");
-      link.href = applicant.resumeUrl;
-      link.download = `resume-${applicant.name.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+      link.href = applicant.rawData.resume_url;
+      link.download = `resume-${getDisplayName(applicant).replace(/\s+/g, "-").toLowerCase()}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -322,30 +370,35 @@ const ApplicantManagement = ({
   // Sort and filter applicants
   const getFilteredAndSortedApplicants = () => {
     let filtered = contractors.filter((applicant) => {
+      const displayName = getDisplayName(applicant);
+      const email = applicant.email || applicant.rawData?.email || "";
+      const jobApplied =
+        applicant.jobApplied || applicant.rawData?.job_applied || "";
+      const city = applicant.rawData?.city || "";
+      const state = applicant.rawData?.state || "";
+
       // Search term filter
       const matchesSearch =
         searchTerm === "" ||
-        applicant.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        applicant.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        applicant.jobApplied
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        applicant.rawData?.city
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        applicant.rawData?.state
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase());
+        displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        jobApplied.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        state.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Status filter
+      const applicantStatus =
+        applicant.status?.toLowerCase() ||
+        applicant.rawData?.application_status?.toLowerCase() ||
+        "pending";
       const matchesStatus =
         filterStatus === "all" ||
-        applicant.status?.toLowerCase() === filterStatus.toLowerCase();
+        applicantStatus === filterStatus.toLowerCase();
 
       // Job type filter
+      const applicantJob = applicant.rawData?.job_applied || "";
       const matchesJobType =
-        filterJobType === "all" ||
-        applicant.rawData?.job_applied === filterJobType;
+        filterJobType === "all" || applicantJob === filterJobType;
 
       return matchesSearch && matchesStatus && matchesJobType;
     });
@@ -353,13 +406,24 @@ const ApplicantManagement = ({
     // Sorting
     filtered.sort((a, b) => {
       const { key, direction } = sortConfig;
-      let aValue = a[key];
-      let bValue = b[key];
+      let aValue, bValue;
 
-      // Handle special cases
-      if (key === "applicationDate") {
-        aValue = new Date(aValue).getTime();
-        bValue = new Date(bValue).getTime();
+      switch (key) {
+        case "name":
+          aValue = getDisplayName(a);
+          bValue = getDisplayName(b);
+          break;
+        case "applicationDate":
+          aValue = new Date(
+            a.applicationDate || a.rawData?.application_date || 0,
+          ).getTime();
+          bValue = new Date(
+            b.applicationDate || b.rawData?.application_date || 0,
+          ).getTime();
+          break;
+        default:
+          aValue = a[key] || a.rawData?.[key] || "";
+          bValue = b[key] || b.rawData?.[key] || "";
       }
 
       if (aValue < bValue) {
@@ -378,22 +442,25 @@ const ApplicantManagement = ({
 
   // Get upcoming interviews
   const upcomingInterviews = contractors
-    .filter((c) => c.interviewDate && new Date(c.interviewDate) >= new Date())
+    .filter((c) => {
+      const interviewDate = c.rawData?.interview_date;
+      return interviewDate && new Date(interviewDate) >= new Date();
+    })
     .map((c) => ({
       id: c.id,
-      name: c.name,
-      job: c.jobApplied,
-      date: c.interviewDate,
-      time: c.interviewTime,
+      name: getDisplayName(c),
+      job: formatJobType(c.rawData?.job_applied),
+      date: c.rawData?.interview_date,
+      time: c.rawData?.interview_time,
       type:
-        c.interviewType === "video_call"
+        c.rawData?.interview_type === "video_call"
           ? "Video Call"
-          : c.interviewType === "phone"
+          : c.rawData?.interview_type === "phone"
             ? "Phone Call"
             : "In-person",
-      location: c.interviewLocation,
+      location: c.rawData?.interview_location,
     }))
-    .slice(0, 4); // Limit to 4 for display
+    .slice(0, 4);
 
   // Sort handler
   const handleSort = (key) => {
@@ -553,76 +620,118 @@ const ApplicantManagement = ({
                   </td>
                 </tr>
               ) : (
-                filteredApplicants.map((applicant) => (
-                  <tr
-                    key={applicant.id}
-                    onClick={() => handleRowClick(applicant)}
-                    className="group cursor-pointer border-b border-gray-100 transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50/30 hover:to-white"
-                  >
-                    <td className="border-r border-gray-100 px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-sm transition-shadow group-hover:shadow-md">
-                          <span className="font-quicksand text-sm font-semibold text-white">
-                            {getInitials(applicant.name)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-cinzel block text-sm font-semibold text-gray-800 group-hover:text-purple-700">
-                            {applicant.name}
-                          </span>
-                          <span className="font-quicksand text-xs text-gray-500">
-                            {applicant.rawData?.city},{" "}
-                            {applicant.rawData?.state}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="border-r border-gray-100 px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <FiBriefcase className="h-4 w-4 text-gray-400" />
-                        <span className="font-quicksand text-sm text-gray-600">
-                          {applicant.jobApplied}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="border-r border-gray-100 px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <FiCalendar className="h-4 w-4 text-gray-400" />
-                        <span className="font-quicksand text-sm text-gray-600">
-                          {formatDate(applicant.applicationDate)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="border-r border-gray-100 px-6 py-4">
-                      <span
-                        className={`font-quicksand inline-block rounded-full border px-3 py-1.5 text-xs font-medium ${getStatusColor(applicant.status)}`}
-                      >
-                        {applicant.status}
-                      </span>
-                    </td>
-                    <td
-                      className="px-6 py-4"
-                      onClick={(e) => e.stopPropagation()}
+                filteredApplicants.map((applicant) => {
+                  const profileImage = getProfileImageUrl(applicant);
+                  const hasImageError = imageError[applicant.id];
+                  const displayName = getDisplayName(applicant);
+                  const firstName = applicant.rawData?.first_name || "";
+                  const lastName = applicant.rawData?.last_name || "";
+
+                  return (
+                    <tr
+                      key={applicant.id}
+                      onClick={() => handleRowClick(applicant)}
+                      className="group cursor-pointer border-b border-gray-100 transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50/30 hover:to-white"
                     >
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleRowClick(applicant)}
-                          className="rounded-lg p-2 text-purple-600 transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:text-purple-600"
-                          title="View Details"
+                      <td className="border-r border-gray-100 px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {/* Profile Image with Click Handler */}
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (profileImage && !hasImageError) {
+                                handleImageClick(profileImage, displayName);
+                              }
+                            }}
+                            className={`relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl shadow-sm transition-all ${
+                              profileImage && !hasImageError
+                                ? "cursor-pointer hover:opacity-90 hover:shadow-md"
+                                : ""
+                            }`}
+                          >
+                            {profileImage && !hasImageError ? (
+                              <img
+                                src={profileImage}
+                                alt={displayName}
+                                className="h-full w-full object-cover"
+                                onError={() => handleImageError(applicant.id)}
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-purple-500 to-purple-600">
+                                <span className="font-quicksand text-sm font-semibold text-white">
+                                  {getInitials(firstName, lastName)}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Zoom icon overlay on hover */}
+                            {profileImage && !hasImageError && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
+                                <FiMaximize2 className="h-4 w-4 text-white" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <span className="font-cinzel block text-sm font-semibold text-gray-800 group-hover:text-purple-700">
+                              {displayName}
+                            </span>
+                            <span className="font-quicksand text-xs text-gray-500">
+                              {applicant.rawData?.city},{" "}
+                              {applicant.rawData?.state}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="border-r border-gray-100 px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <FiBriefcase className="h-4 w-4 text-gray-400" />
+                          <span className="font-quicksand text-sm text-gray-600">
+                            {formatJobType(applicant.rawData?.job_applied)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="border-r border-gray-100 px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <FiCalendar className="h-4 w-4 text-gray-400" />
+                          <span className="font-quicksand text-sm text-gray-600">
+                            {formatDate(applicant.rawData?.application_date)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="border-r border-gray-100 px-6 py-4">
+                        <span
+                          className={`font-quicksand inline-block rounded-full border px-3 py-1.5 text-xs font-medium ${getStatusColor(
+                            applicant.rawData?.application_status,
+                          )}`}
                         >
-                          <FiEye className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteConfirm(applicant.id)}
-                          className="rounded-lg p-2 text-red-600 transition-all duration-200 hover:bg-gradient-to-r hover:from-rose-50 hover:to-rose-100 hover:text-rose-600"
-                          title="Delete"
-                        >
-                          <FiTrash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {formatStatus(applicant.rawData?.application_status)}
+                        </span>
+                      </td>
+                      <td
+                        className="px-6 py-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleRowClick(applicant)}
+                            className="rounded-lg p-2 text-purple-600 transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:text-purple-600"
+                            title="View Details"
+                          >
+                            <FiEye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setShowDeleteConfirm(applicant.id)}
+                            className="rounded-lg p-2 text-red-600 transition-all duration-200 hover:bg-gradient-to-r hover:from-rose-50 hover:to-rose-100 hover:text-rose-600"
+                            title="Delete"
+                          >
+                            <FiTrash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -664,7 +773,10 @@ const ApplicantManagement = ({
                   <div className="flex items-center gap-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 shadow-sm">
                       <span className="font-quicksand text-sm font-semibold text-white">
-                        {getInitials(interview.name)}
+                        {getInitials(
+                          interview.name.split(" ")[0] || "",
+                          interview.name.split(" ")[1] || "",
+                        )}
                       </span>
                     </div>
                     <div className="flex-1">
@@ -767,27 +879,82 @@ const ApplicantManagement = ({
                   {/* Profile Card */}
                   <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     <div className="mb-6 flex items-center gap-4">
-                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg">
-                        <span className="font-cinzel text-2xl font-bold text-white">
-                          {getInitials(selectedApplication.name)}
-                        </span>
+                      {/* Large Profile Image in Details View */}
+                      <div
+                        onClick={() => {
+                          const profileImage =
+                            getProfileImageUrl(selectedApplication);
+                          if (
+                            profileImage &&
+                            !imageError[selectedApplication.id]
+                          ) {
+                            handleImageClick(
+                              profileImage,
+                              getDisplayName(selectedApplication),
+                            );
+                          }
+                        }}
+                        className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl shadow-lg ${
+                          getProfileImageUrl(selectedApplication) &&
+                          !imageError[selectedApplication.id]
+                            ? "cursor-pointer hover:opacity-90 hover:shadow-xl"
+                            : ""
+                        }`}
+                      >
+                        {getProfileImageUrl(selectedApplication) &&
+                        !imageError[selectedApplication.id] ? (
+                          <img
+                            src={getProfileImageUrl(selectedApplication)}
+                            alt={getDisplayName(selectedApplication)}
+                            className="h-full w-full object-cover"
+                            onError={() =>
+                              handleImageError(selectedApplication.id)
+                            }
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-purple-500 to-purple-600">
+                            <span className="font-cinzel text-2xl font-bold text-white">
+                              {getInitials(
+                                selectedApplication.rawData?.first_name,
+                                selectedApplication.rawData?.last_name,
+                              )}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Zoom icon overlay */}
+                        {getProfileImageUrl(selectedApplication) &&
+                          !imageError[selectedApplication.id] && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all hover:bg-black/40 hover:opacity-100">
+                              <FiMaximize2 className="h-6 w-6 text-white" />
+                            </div>
+                          )}
                       </div>
+
                       <div className="flex-1">
                         <h3 className="font-cinzel text-2xl font-bold text-gray-800">
-                          {selectedApplication.name}
+                          {getDisplayName(selectedApplication)}
                         </h3>
                         <p className="font-quicksand text-gray-600">
-                          {selectedApplication.jobApplied}
+                          {formatJobType(
+                            selectedApplication.rawData?.job_applied,
+                          )}
                         </p>
                         <div className="mt-2 flex items-center gap-2">
                           <span
-                            className={`font-quicksand rounded-full border px-3 py-1 text-xs font-medium ${getStatusColor(selectedApplication.status)}`}
+                            className={`font-quicksand rounded-full border px-3 py-1 text-xs font-medium ${getStatusColor(
+                              selectedApplication.rawData?.application_status,
+                            )}`}
                           >
-                            {selectedApplication.status}
+                            {formatStatus(
+                              selectedApplication.rawData?.application_status,
+                            )}
                           </span>
                           <span className="font-quicksand text-xs text-gray-500">
                             Applied{" "}
-                            {formatDate(selectedApplication.applicationDate)}
+                            {formatDate(
+                              selectedApplication.rawData?.application_date,
+                            )}
                           </span>
                         </div>
                       </div>
@@ -804,7 +971,9 @@ const ApplicantManagement = ({
                             key={status.value}
                             onClick={() => handleStatusUpdate(status.label)}
                             className={`font-quicksand rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                              selectedApplication.status === status.label
+                              formatStatus(
+                                selectedApplication.rawData?.application_status,
+                              ) === status.label
                                 ? `${status.color} border`
                                 : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                             }`}
@@ -825,7 +994,8 @@ const ApplicantManagement = ({
                               Email
                             </p>
                             <p className="font-quicksand font-medium text-gray-800">
-                              {selectedApplication.email}
+                              {selectedApplication.email ||
+                                selectedApplication.rawData?.email}
                             </p>
                           </div>
                         </div>
@@ -836,7 +1006,9 @@ const ApplicantManagement = ({
                               Phone
                             </p>
                             <p className="font-quicksand font-medium text-gray-800">
-                              {selectedApplication.phone}
+                              {selectedApplication.phone ||
+                                selectedApplication.rawData?.phone ||
+                                "Not provided"}
                             </p>
                           </div>
                         </div>
@@ -849,8 +1021,8 @@ const ApplicantManagement = ({
                               Location
                             </p>
                             <p className="font-quicksand font-medium text-gray-800">
-                              {selectedApplication.rawData?.city},{" "}
-                              {selectedApplication.rawData?.state}
+                              {selectedApplication.rawData?.city || ""},{" "}
+                              {selectedApplication.rawData?.state || ""}
                             </p>
                           </div>
                         </div>
@@ -861,7 +1033,10 @@ const ApplicantManagement = ({
                               Expected Salary
                             </p>
                             <p className="font-quicksand font-medium text-emerald-600">
-                              {selectedApplication.salary}
+                              {selectedApplication.salary ||
+                                (selectedApplication.rawData?.expected_salary
+                                  ? `$${selectedApplication.rawData.expected_salary}`
+                                  : "Not specified")}
                             </p>
                           </div>
                         </div>
@@ -929,7 +1104,7 @@ const ApplicantManagement = ({
                   </div>
 
                   {/* Interview Details */}
-                  {selectedApplication.interviewDate && (
+                  {selectedApplication.rawData?.interview_date && (
                     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                       <h4 className="font-cinzel mb-4 text-lg font-semibold text-gray-800">
                         Interview Details
@@ -940,7 +1115,9 @@ const ApplicantManagement = ({
                             Date
                           </span>
                           <span className="font-quicksand font-medium text-gray-800">
-                            {formatDate(selectedApplication.interviewDate)}
+                            {formatDate(
+                              selectedApplication.rawData.interview_date,
+                            )}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -948,7 +1125,9 @@ const ApplicantManagement = ({
                             Time
                           </span>
                           <span className="font-quicksand font-medium text-gray-800">
-                            {formatTime(selectedApplication.interviewTime)}
+                            {formatTime(
+                              selectedApplication.rawData.interview_time,
+                            )}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -957,37 +1136,41 @@ const ApplicantManagement = ({
                           </span>
                           <span
                             className={`font-quicksand rounded-full px-2 py-1 text-xs font-medium ${
-                              selectedApplication.interviewType === "video_call"
+                              selectedApplication.rawData.interview_type ===
+                              "video_call"
                                 ? "bg-blue-100 text-blue-800"
-                                : selectedApplication.interviewType === "phone"
+                                : selectedApplication.rawData.interview_type ===
+                                    "phone"
                                   ? "bg-amber-100 text-amber-800"
                                   : "bg-purple-100 text-purple-800"
                             }`}
                           >
-                            {selectedApplication.interviewType === "video_call"
+                            {selectedApplication.rawData.interview_type ===
+                            "video_call"
                               ? "Video Call"
-                              : selectedApplication.interviewType === "phone"
+                              : selectedApplication.rawData.interview_type ===
+                                  "phone"
                                 ? "Phone Call"
                                 : "In-person"}
                           </span>
                         </div>
-                        {selectedApplication.interviewLocation && (
+                        {selectedApplication.rawData.interview_location && (
                           <div className="flex items-center justify-between">
                             <span className="font-quicksand text-gray-600">
                               Location
                             </span>
                             <span className="font-quicksand font-medium text-gray-800">
-                              {selectedApplication.interviewLocation}
+                              {selectedApplication.rawData.interview_location}
                             </span>
                           </div>
                         )}
-                        {selectedApplication.interviewNotes && (
+                        {selectedApplication.rawData.interview_notes && (
                           <div>
                             <span className="font-quicksand text-gray-600">
                               Notes
                             </span>
                             <p className="font-quicksand mt-1 text-sm text-gray-700">
-                              {selectedApplication.interviewNotes}
+                              {selectedApplication.rawData.interview_notes}
                             </p>
                           </div>
                         )}
@@ -1230,6 +1413,36 @@ const ApplicantManagement = ({
                   Delete Applicant
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-Size Image Modal */}
+      {showImageModal && selectedImage && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="relative z-10 max-h-[90vh] max-w-4xl overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="relative">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.name}
+                className="max-h-[90vh] w-auto object-contain"
+              />
+              <button
+                onClick={() => setShowImageModal(false)}
+                className="absolute top-4 right-4 rounded-full bg-black/50 p-2 text-white transition-all hover:bg-black/70"
+              >
+                <FiX className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="border-t border-gray-200 bg-white p-3 text-center">
+              <p className="font-quicksand text-sm text-gray-700">
+                {selectedImage.name}
+              </p>
             </div>
           </div>
         </div>

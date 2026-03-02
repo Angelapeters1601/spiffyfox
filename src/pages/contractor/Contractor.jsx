@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../../services/supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +14,8 @@ import {
   FiArrowRight,
   FiAward,
   FiArrowLeft,
+  FiLogOut,
+  FiUserCheck,
 } from "react-icons/fi";
 import img1 from "../../assets/img1.jpg";
 
@@ -24,6 +26,25 @@ const Contractor = () => {
   const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [user, setUser] = useState(null);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+
+  // Check current user on component mount
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        setFormData((prev) => ({
+          ...prev,
+          email: user.email,
+        }));
+      }
+    };
+    getUser();
+  }, []);
 
   // Initialize form data with all fields and proper types
   const initialFormData = useMemo(
@@ -57,6 +78,18 @@ const Contractor = () => {
   );
 
   const [formData, setFormData] = useState(initialFormData);
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/contractor-login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setError("Failed to sign out. Please try again.");
+    }
+  };
 
   // List of countries for dropdown
   const countries = [
@@ -229,11 +262,11 @@ const Contractor = () => {
       }
     });
 
-    // Add timestamp
+    //  timestamp
     submissionData.updated_at = new Date().toISOString();
-    // Add application date
+    //  application date
     submissionData.application_date = new Date().toISOString().split("T")[0];
-    // Add default application status
+    // default application status
     submissionData.application_status = "new";
 
     return submissionData;
@@ -245,9 +278,36 @@ const Contractor = () => {
     setSubmitMessage("");
 
     try {
-      const submissionData = prepareSubmissionData();
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (!user) {
+        throw new Error("You must be logged in to submit an application");
+      }
+
+      // check if application already exists
+      const { data: existing } = await supabase
+        .from("contractors")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existing) {
+        throw new Error("You have already submitted an application.");
+      }
+
+      const submissionData = {
+        ...prepareSubmissionData(),
+        user_id: user.id, // Add the user_id to link to auth
+      };
 
       console.log("Submitting data:", submissionData);
+
+      console.log("FORM DATA:", formData);
+      console.log("SUBMISSION DATA:", submissionData);
 
       const { data, error: submitError } = await supabase
         .from("contractors")
@@ -259,10 +319,10 @@ const Contractor = () => {
         throw submitError;
       }
 
-      // Only set success to true, don't navigate automatically
+      // Show success notification
       setSuccess(true);
       setSubmitMessage(
-        "Application submitted successfully! Thank you for applying.",
+        "✓ Application submitted successfully! Thank you for applying.",
       );
     } catch (err) {
       console.error("Error submitting application:", err);
@@ -386,7 +446,7 @@ const Contractor = () => {
     [currentStep, steps],
   );
 
-  // Step Components with optimized rendering
+  // Step Components
   const Step1 = useMemo(
     () => (
       <motion.div
@@ -441,7 +501,7 @@ const Contractor = () => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              required
+              disabled
               className="font-quicksand w-full rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none md:rounded-xl"
               placeholder="john@example.com"
             />
@@ -952,6 +1012,7 @@ const Contractor = () => {
     [formData, formatJobType, countryNames],
   );
 
+  // Success screen with View Profile button
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
@@ -971,6 +1032,19 @@ const Contractor = () => {
             Thank you for applying to join SpiffyFox. We've received your
             application and will review it shortly.
           </p>
+
+          {/* Success Notification */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100 p-5 md:p-6"
+          >
+            <div className="flex items-center gap-3 text-emerald-800">
+              <FiCheckCircle className="text-2xl" />
+              <p className="font-quicksand font-medium">{submitMessage}</p>
+            </div>
+          </motion.div>
+
           <div className="mb-6 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 p-5 md:p-6">
             <h4 className="font-cinzel mb-2 font-semibold text-purple-800">
               What's Next?
@@ -982,16 +1056,27 @@ const Contractor = () => {
               <li>✓ Final decision</li>
             </ul>
           </div>
+
+          {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={() => navigate("/")}
-              className="font-quicksand w-full rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl md:px-8 md:py-3"
+              onClick={() => navigate(`/contractor/${user.id}`)}
+              className="font-quicksand flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl md:px-8 md:py-3"
             >
-              Return to Home
+              <FiUserCheck className="text-lg" />
+              View My Profile
             </button>
+
+            <button
+              onClick={handleSignOut}
+              className="font-quicksand flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-white px-6 py-3 font-semibold text-red-600 transition-all duration-200 hover:border-red-300 hover:bg-red-50 md:px-8 md:py-3"
+            >
+              <FiLogOut className="text-lg" />
+              Sign Out
+            </button>
+
             <button
               onClick={() => {
-                // Reset form and allow new application
                 setSuccess(false);
                 setCurrentStep(1);
                 setFormData(initialFormData);
@@ -1025,13 +1110,52 @@ const Contractor = () => {
               transition={{ duration: 0.6 }}
               className="max-w-6xl"
             >
-              <button
-                onClick={() => navigate(-1)}
-                className="font-quicksand mb-4 flex items-center gap-2 rounded-xl bg-white/20 px-3 py-2 text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/30 md:mb-6 md:px-4 md:py-2.5"
-              >
-                <FiArrowLeft className="text-sm md:text-base" />
-                <span className="text-sm md:text-base">Back</span>
-              </button>
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="font-quicksand mb-4 flex items-center gap-2 rounded-xl bg-white/20 px-3 py-2 text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/30 md:mb-6 md:px-4 md:py-2.5"
+                >
+                  <FiArrowLeft className="text-sm md:text-base" />
+                  <span className="text-sm md:text-base">Back</span>
+                </button>
+
+                {/* User Menu */}
+                <div className="flex items-center gap-2">
+                  {user && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        {/* User Email Badge */}
+                        <div className="hidden items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur-sm md:flex">
+                          <div className="h-2 w-2 animate-pulse rounded-full bg-green-400"></div>
+                          <span className="text-sm font-medium text-white">
+                            {user.email}
+                          </span>
+                        </div>
+
+                        {/* View Profile Button */}
+                        <button
+                          onClick={() => navigate(`/contractor/${user.id}`)}
+                          className="group relative flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl md:px-5 md:py-2 md:text-base"
+                        >
+                          <div className="absolute inset-0 translate-y-full bg-white/20 transition-transform duration-300 group-hover:translate-y-0"></div>
+                          <FiUserCheck className="relative z-10 text-base md:text-lg" />
+                          <span className="relative z-10">Profile</span>
+                        </button>
+
+                        {/* Sign Out Button */}
+                        <button
+                          onClick={() => setShowSignOutConfirm(true)}
+                          className="group relative flex items-center gap-2 overflow-hidden rounded-full bg-red-500/20 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-red-500/30 md:px-5 md:py-2 md:text-base"
+                        >
+                          <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0"></div>
+                          <FiLogOut className="relative z-10 text-base md:text-lg" />
+                          <span className="relative z-10">Sign Out</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
               <h1 className="font-cinzel mb-2 text-2xl font-bold text-white md:mb-3 md:text-4xl">
                 Join SpiffyFox Team
               </h1>
@@ -1111,7 +1235,7 @@ const Contractor = () => {
                     submitMessage.includes("Failed") ||
                     submitMessage.includes("Error")
                       ? "bg-gradient-to-r from-rose-500 to-rose-600"
-                      : "bg-gradient-to-r from-blue-500 to-blue-600"
+                      : "bg-gradient-to-r from-emerald-500 to-emerald-600"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -1190,6 +1314,39 @@ const Contractor = () => {
           </div>
         </div>
       </div>
+
+      {/* Sign Out Confirmation Modal */}
+      {showSignOutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+          >
+            <h3 className="font-cinzel mb-2 text-xl font-bold text-gray-900">
+              Sign Out
+            </h3>
+            <p className="font-quicksand mb-6 text-gray-600">
+              Are you sure you want to sign out? Any unsaved changes will be
+              lost.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSignOutConfirm(false)}
+                className="font-quicksand flex-1 rounded-lg border-2 border-gray-300 bg-white px-4 py-2 font-semibold text-gray-700 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="font-quicksand flex-1 rounded-lg bg-gradient-to-r from-red-500 to-red-600 px-4 py-2 font-semibold text-white transition-all duration-200 hover:shadow-lg"
+              >
+                Sign Out
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
