@@ -158,10 +158,20 @@ export default function ContractorLogin() {
     setError("");
     setShowConfirmationMessage(false);
 
+    console.log("Email:", email);
+    console.log("Password:", password);
+
     try {
       if (isLogin) {
         // SIGN IN
         await signInWithEmail(email, password);
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user) {
+          await createProfile(session.user.id, email, "contractor");
+        }
         // Navigation will be handled by the auth state change listener
       } else {
         // SIGN UP - For contractors

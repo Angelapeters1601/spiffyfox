@@ -31,9 +31,11 @@ export async function signUpContractor(email, password) {
     },
   });
 
+  console.log("SIGNUP DATA:", data);
+  console.log("SIGNUP ERROR:", error);
+
   if (error) throw error;
 
-  // Create contractor profile with role="contractor" in profiles table
   if (data.user) {
     await createProfile(data.user.id, email, "contractor");
   }
@@ -55,9 +57,9 @@ async function createProfile(userId, email, role) {
       // Insert new profile
       const { error } = await supabase.from("profiles").insert([
         {
-          id: data.user.id,
+          id: userId,
           email: email,
-          role: Contractor,
+          role: role,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
