@@ -164,7 +164,7 @@ export default function ContractorLogin() {
     try {
       if (isLogin) {
         // SIGN IN
-        await signInWithEmail(email, password);
+        await signInWithEmail(email, password, "contractor");
         const {
           data: { session },
         } = await supabase.auth.getSession();

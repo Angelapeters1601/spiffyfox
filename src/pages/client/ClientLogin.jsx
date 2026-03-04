@@ -113,7 +113,7 @@ export default function () {
     try {
       if (isLogin) {
         // SIGN IN
-        await signInWithEmail(email, password);
+        await signInWithEmail(email, password, "client");
         navigate("/join");
       } else {
         // SIGN UP
@@ -153,7 +153,7 @@ export default function () {
         setConfirmationEmail(email);
         setShowConfirmationMessage(true);
       } else if (err.message.includes("Invalid email")) {
-        setError("Please enter a valid email address.");
+        setError("Invalid email address or password.");
       } else if (err.message.includes("Password")) {
         setError(
           "Password requirements not met. Please check the requirements below.",
