@@ -1,7 +1,6 @@
 import img1 from "../assets/contactImg1.jpg";
 import img2 from "../assets/contactImg2.jpg";
 import Map from "../ui/Map";
-import { motion } from "framer-motion";
 import { supabase } from "../services/supabaseClient";
 import { useState } from "react";
 
@@ -20,69 +19,6 @@ const Contact = () => {
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   const [contactError, setContactError] = useState("");
   const [newsletterError, setNewsletterError] = useState("");
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
-    },
-  };
-
-  const leftSlideVariants = {
-    hidden: {
-      opacity: 0,
-      x: -50,
-    },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-        duration: 0.8,
-      },
-    },
-  };
-
-  const rightSlideVariants = {
-    hidden: {
-      opacity: 0,
-      x: 50,
-    },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-        duration: 0.8,
-      },
-    },
-  };
-
-  const bottomUpVariants = {
-    hidden: {
-      opacity: 0,
-      y: 50,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-        duration: 0.8,
-      },
-    },
-  };
 
   // Handle contact form submission
   const handleContactSubmit = async (e) => {
@@ -194,12 +130,7 @@ const Contact = () => {
   };
 
   return (
-    <motion.div
-      className="min-h-screen"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <div className="min-h-screen" initial="hidden" animate="visible">
       {/* Hero Header */}
       <div className="font-cinzel spiffy-bg-light relative flex justify-center overflow-hidden p-14 text-5xl font-bold tracking-wider text-white">
         <div className="absolute inset-0"></div>
@@ -214,11 +145,8 @@ const Contact = () => {
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-2">
-          {/* Contact Form Section - Slides from left */}
-          <motion.div
-            className="rounded-2xl bg-transparent p-8 shadow-lg"
-            variants={leftSlideVariants}
-          >
+          {/* Contact Form Section */}
+          <div className="rounded-2xl bg-transparent p-8 shadow-lg">
             <div className="mb-8 text-center">
               <h2 className="font-cinzel spiffy-text-dark mb-3 text-3xl font-bold">
                 Get In Touch
@@ -231,7 +159,7 @@ const Contact = () => {
 
             {/* Success Message */}
             {contactSuccess && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4"
@@ -239,12 +167,12 @@ const Contact = () => {
                 <p className="font-quicksand text-center text-green-700">
                   ✅ Thank you! Your message has been sent successfully.
                 </p>
-              </motion.div>
+              </div>
             )}
 
             {/* Error Message */}
             {contactError && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
@@ -252,12 +180,12 @@ const Contact = () => {
                 <p className="font-quicksand text-center text-red-700">
                   ❌ {contactError}
                 </p>
-              </motion.div>
+              </div>
             )}
 
             <form onSubmit={handleContactSubmit} className="space-y-6">
               {/* Full Name */}
-              <motion.div variants={leftSlideVariants}>
+              <div>
                 <label
                   htmlFor="fullName"
                   className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
@@ -275,13 +203,10 @@ const Contact = () => {
                   placeholder="Enter your full name"
                   disabled={contactLoading}
                 />
-              </motion.div>
+              </div>
 
               {/* Email & Contact */}
-              <motion.div
-                className="grid grid-cols-1 gap-4 md:grid-cols-2"
-                variants={leftSlideVariants}
-              >
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label
                     htmlFor="email"
@@ -319,10 +244,10 @@ const Contact = () => {
                     disabled={contactLoading}
                   />
                 </div>
-              </motion.div>
+              </div>
 
               {/* Country */}
-              <motion.div variants={leftSlideVariants}>
+              <div>
                 <label
                   htmlFor="country"
                   className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
@@ -347,10 +272,10 @@ const Contact = () => {
                   <option value="FR">France</option>
                   <option value="other">Other</option>
                 </select>
-              </motion.div>
+              </div>
 
               {/* Message */}
-              <motion.div variants={leftSlideVariants}>
+              <div>
                 <label
                   htmlFor="message"
                   className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
@@ -368,10 +293,10 @@ const Contact = () => {
                   placeholder="Tell us how we can help you..."
                   disabled={contactLoading}
                 ></textarea>
-              </motion.div>
+              </div>
 
               {/* Submit Button */}
-              <motion.div variants={leftSlideVariants}>
+              <div>
                 <button
                   type="submit"
                   disabled={contactLoading}
@@ -379,7 +304,7 @@ const Contact = () => {
                 >
                   {contactLoading ? (
                     <div className="flex items-center justify-center">
-                      <motion.div
+                      <div
                         animate={{ rotate: 360 }}
                         transition={{
                           duration: 1,
@@ -394,17 +319,14 @@ const Contact = () => {
                     "Send Message"
                   )}
                 </button>
-              </motion.div>
+              </div>
             </form>
-          </motion.div>
+          </div>
 
-          {/* Image & Newsletter Section - Slides from right */}
-          <motion.div className="space-y-8" variants={rightSlideVariants}>
+          {/* Image & Newsletter Section  */}
+          <div className="space-y-8">
             {/* Contact Image */}
-            <motion.div
-              className="group relative"
-              variants={rightSlideVariants}
-            >
+            <div className="group relative">
               <img
                 src={img1}
                 alt="Professional team collaboration"
@@ -420,13 +342,10 @@ const Contact = () => {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Newsletter Section */}
-            <motion.div
-              className="spiffy-bg-medium rounded-2xl p-8 text-white shadow-2xl"
-              variants={rightSlideVariants}
-            >
+            <div className="spiffy-bg-medium rounded-2xl p-8 text-white shadow-2xl">
               <div className="mb-6 text-center">
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
                   <svg
@@ -455,7 +374,7 @@ const Contact = () => {
 
               {/* Newsletter Success Message */}
               {newsletterSuccess && (
-                <motion.div
+                <div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3"
@@ -463,12 +382,12 @@ const Contact = () => {
                   <p className="font-quicksand text-center text-sm text-green-700">
                     ✅ Successfully subscribed to our newsletter!
                   </p>
-                </motion.div>
+                </div>
               )}
 
               {/* Newsletter Error Message */}
               {newsletterError && (
-                <motion.div
+                <div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
@@ -476,7 +395,7 @@ const Contact = () => {
                   <p className="font-quicksand text-center text-sm text-red-700">
                     ❌ {newsletterError}
                   </p>
-                </motion.div>
+                </div>
               )}
 
               <form onSubmit={handleNewsletterSubmit} className="space-y-4">
@@ -507,7 +426,7 @@ const Contact = () => {
                 >
                   {newsletterLoading ? (
                     <div className="flex items-center justify-center">
-                      <motion.div
+                      <div
                         animate={{ rotate: 360 }}
                         transition={{
                           duration: 1,
@@ -531,13 +450,10 @@ const Contact = () => {
                   time.
                 </p>
               </div>
-            </motion.div>
+            </div>
 
             {/* Contact Info */}
-            <motion.div
-              className="spiffy-bg-medium rounded-2xl p-6 shadow-lg"
-              variants={rightSlideVariants}
-            >
+            <div className="spiffy-bg-medium rounded-2xl p-6 shadow-lg">
               <h3 className="font-cinzel spiffy-text-dark mb-6 text-center text-xl font-bold text-gray-800">
                 Quick Contact
               </h3>
@@ -545,7 +461,7 @@ const Contact = () => {
               {/* Call and Email Grid */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Call Section */}
-                <motion.div
+                <div
                   className="group cursor-pointer text-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -569,10 +485,10 @@ const Contact = () => {
                       </p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
 
                 {/* Email Section */}
-                <motion.div
+                <div
                   className="group cursor-pointer text-center"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -596,7 +512,7 @@ const Contact = () => {
                       </p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
 
               {/* Address Section */}
@@ -626,16 +542,16 @@ const Contact = () => {
                   </span>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
 
-        {/* Map Section - Slides from bottom */}
-        <motion.div className="col-span-full mt-5" variants={bottomUpVariants}>
+        {/* Map Section  */}
+        <div className="col-span-full mt-5">
           <Map />
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

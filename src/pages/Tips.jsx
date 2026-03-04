@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "../services/supabaseClient";
@@ -174,48 +173,6 @@ const Tip = () => {
     return videos.filter((video) => video.service === serviceName);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
-    },
-    hover: {
-      scale: 1.02,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-      },
-    },
-  };
-
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
@@ -234,31 +191,16 @@ const Tip = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden"
-      >
+      <div className="relative overflow-hidden">
         <div className="font-cinzel spiffy-bg-light relative flex items-center justify-center p-8 text-3xl font-bold text-white sm:p-12 sm:text-4xl md:p-16 md:text-5xl">
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="relative z-10 text-center">
             Expert Tips & Training
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: "120px sm:160px md:200px" }}
-              transition={{ delay: 0.5, duration: 1 }}
-              className="mx-auto mt-3 h-1 rounded-full bg-white sm:mt-4"
-            />
           </div>
         </div>
 
         {/* Hero Content */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="relative z-10 mx-auto max-w-4xl px-4 py-8 text-center sm:py-12"
-        >
+        <div className="relative z-10 mx-auto max-w-4xl px-4 py-8 text-center sm:py-12">
           <h2 className="font-cinzel mb-4 text-2xl font-bold text-gray-800 sm:mb-6 sm:text-3xl">
             Professional Training & Mastery
           </h2>
@@ -267,16 +209,11 @@ const Tip = () => {
             Learn expert techniques, proven methods, and industry secrets from
             SpiffyFox professionals.
           </p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Features Grid */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="mx-auto max-w-7xl px-4 py-12 sm:py-16"
-      >
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
         <div className="mb-12 grid grid-cols-1 gap-4 sm:mb-16 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[
             {
@@ -300,10 +237,9 @@ const Tip = () => {
               color: "text-purple-500",
             },
           ].map((feature, index) => (
-            <motion.div
+            <div
               key={index}
-              variants={itemVariants}
-              className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-lg transition-all duration-300 hover:shadow-xl sm:p-6"
+              className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-lg sm:p-6"
             >
               <div
                 className={`${feature.color} mb-3 flex justify-center text-2xl sm:mb-4 sm:text-3xl`}
@@ -313,48 +249,31 @@ const Tip = () => {
               <h3 className="font-cinzel text-base font-semibold text-gray-800 sm:text-lg">
                 {feature.text}
               </h3>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Services Sections */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-12 sm:space-y-20"
-        >
+        <div className="space-y-12 sm:space-y-20">
           {services.map((service, index) => {
             const serviceVideos = getServiceVideos(service.title);
             const isLastService = index === services.length - 1;
 
             return (
               <div key={service.id}>
-                <motion.section
-                  variants={itemVariants}
+                <section
                   className={`flex flex-col ${index % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-6 sm:gap-8 lg:gap-12`}
                 >
                   {/* Image/Video Section */}
-                  <motion.div
-                    variants={cardVariants}
-                    whileHover="hover"
-                    className="w-full flex-1"
-                  >
+                  <div className="w-full flex-1">
                     <div className="group relative">
-                      {/* Dark Overlay Container */}
                       <div className="relative overflow-hidden rounded-2xl shadow-2xl sm:rounded-3xl">
                         <img
                           src={service.fallbackImage}
                           alt={service.title}
-                          className="h-64 w-full transform object-cover transition-transform duration-500 group-hover:scale-105 sm:h-72 md:h-80 lg:h-96"
+                          className="h-64 w-full object-cover sm:h-72 md:h-80 lg:h-96"
                         />
-                        {/* Permanent Dark Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
-
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                        {/* Content Overlay */}
                         <div className="absolute right-3 bottom-3 left-3 text-white sm:right-4 sm:bottom-4 sm:left-4">
                           <p className="font-quicksand text-xs font-medium sm:text-sm">
                             {serviceVideos.length} Training Videos Available
@@ -362,13 +281,10 @@ const Tip = () => {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
 
                   {/* Content Section */}
-                  <motion.div
-                    variants={cardVariants}
-                    className="w-full flex-1 space-y-4 sm:space-y-6"
-                  >
+                  <div className="w-full flex-1 space-y-4 sm:space-y-6">
                     {/* Service Header */}
                     <div className="mb-4 flex items-center space-x-3 sm:mb-6 sm:space-x-4">
                       <div
@@ -411,7 +327,6 @@ const Tip = () => {
 
                           {/* Featured Video Preview */}
                           <div className="group relative overflow-hidden rounded-xl border border-gray-200">
-                            {/* Dark Overlay for Thumbnail */}
                             <div className="relative">
                               <img
                                 src={
@@ -419,14 +334,9 @@ const Tip = () => {
                                   `https://img.youtube.com/vi/${extractYouTubeId(serviceVideos[0].url)}/hqdefault.jpg`
                                 }
                                 alt={serviceVideos[0].title}
-                                className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                className="aspect-video w-full object-cover"
                               />
-                              {/* Permanent Dark Overlay */}
                               <div className="absolute inset-0 bg-black/30" />
-
-                              {/* Hover Overlay */}
-                              <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
                               <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
                                 <span
                                   className={`inline-block rounded-full border px-2 py-1 text-xs font-medium sm:px-3 ${service.badgeColor}`}
@@ -455,11 +365,6 @@ const Tip = () => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="rounded-full bg-white/20 p-3 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 sm:p-4">
-                                  <FaPlay className="text-xl text-white sm:text-2xl" />
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -474,48 +379,31 @@ const Tip = () => {
                     </div>
 
                     {/* Call to Action */}
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="inline-block"
-                    >
+                    <div className="inline-block">
                       <a
                         href="#videos-section"
-                        className={`font-quicksand bg-gradient-to-r px-4 py-2 sm:px-6 sm:py-3 ${service.color} flex items-center space-x-2 rounded-xl text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl sm:text-base`}
+                        className={`font-quicksand bg-gradient-to-r px-4 py-2 sm:px-6 sm:py-3 ${service.color} flex items-center space-x-2 rounded-xl text-sm font-semibold text-white shadow-lg sm:text-base`}
                       >
                         <FaPlay className="text-xs sm:text-sm" />
                         <span>Watch Training Videos</span>
                       </a>
-                    </motion.div>
-                  </motion.div>
-                </motion.section>
+                    </div>
+                  </div>
+                </section>
 
                 {/* Horizontal Separator - Don't show after last service */}
                 {!isLastService && (
-                  <motion.div
-                    initial={{ opacity: 0, scaleX: 0 }}
-                    whileInView={{ opacity: 1, scaleX: 1 }}
-                    transition={{ delay: 0.3, duration: 0.8 }}
-                    viewport={{ once: true }}
-                    className="mt-12 flex justify-center sm:mt-20"
-                  >
+                  <div className="mt-12 flex justify-center sm:mt-20">
                     <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-gray-500 to-transparent" />
-                  </motion.div>
+                  </div>
                 )}
               </div>
             );
           })}
-        </motion.div>
+        </div>
 
         {/* All Videos Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          id="videos-section"
-          className="mt-12 sm:mt-20"
-        >
+        <section id="videos-section" className="mt-12 sm:mt-20">
           <div className="mb-8 text-center sm:mb-12">
             <h2 className="font-cinzel mb-3 text-2xl font-bold text-gray-800 sm:mb-4 sm:text-3xl md:text-4xl">
               Complete Training Library
@@ -546,16 +434,11 @@ const Tip = () => {
                 const youtubeId = extractYouTubeId(video.url);
 
                 return (
-                  <motion.div
+                  <div
                     key={video.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg transition-all duration-300 hover:shadow-2xl"
+                    className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"
                   >
                     <div className="relative">
-                      {/* Dark Overlay for Thumbnail */}
                       <div className="relative overflow-hidden">
                         <img
                           src={
@@ -563,14 +446,9 @@ const Tip = () => {
                             `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
                           }
                           alt={video.title}
-                          className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="aspect-video w-full object-cover"
                         />
-                        {/* Permanent Dark Overlay */}
                         <div className="absolute inset-0 bg-black/30" />
-
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
                         <div className="absolute right-2 bottom-2 rounded-lg bg-black/80 px-2 py-1 text-xs text-white backdrop-blur-sm sm:right-3 sm:bottom-3">
                           {formatDuration(video.duration_seconds)}
                         </div>
@@ -580,11 +458,6 @@ const Tip = () => {
                           >
                             {video.service}
                           </span>
-                        </div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="rounded-full bg-white/20 p-3 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 sm:p-4">
-                            <FaPlay className="text-xl text-white sm:text-2xl" />
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -612,13 +485,13 @@ const Tip = () => {
                         href={`https://youtu.be/${youtubeId}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-quicksand mt-3 flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-3 py-2 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg sm:mt-4 sm:px-4 sm:py-3 sm:text-base"
+                        className="font-quicksand mt-3 flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-lg sm:mt-4 sm:px-4 sm:py-3 sm:text-base"
                       >
                         <FaPlay className="text-xs sm:text-sm" />
                         <span>Watch Video</span>
                       </a>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -634,17 +507,11 @@ const Tip = () => {
               </p>
             </div>
           )}
-        </motion.section>
-      </motion.div>
+        </section>
+      </div>
 
       {/* CTA Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="spiffy-bg py-12 text-white sm:py-16"
-      >
+      <section className="spiffy-bg py-12 text-white sm:py-16">
         <div className="mx-auto max-w-4xl px-4 text-center">
           <h2 className="font-cinzel mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl md:text-4xl">
             Ready to Master Your Skills?
@@ -654,23 +521,15 @@ const Tip = () => {
             techniques from SpiffyFox experts.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="font-quicksand rounded-xl bg-white px-6 py-3 text-sm font-semibold text-purple-600 shadow-lg transition-all duration-300 hover:shadow-xl sm:px-8 sm:py-4 sm:text-base"
-            >
+            <button className="font-quicksand rounded-xl bg-white px-6 py-3 text-sm font-semibold text-purple-600 shadow-lg sm:px-8 sm:py-4 sm:text-base">
               <Link to="/contact">Get Professional Training</Link>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="font-quicksand rounded-xl border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-white hover:text-purple-600 sm:px-8 sm:py-4 sm:text-base"
-            >
+            </button>
+            <button className="font-quicksand rounded-xl border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white hover:bg-white hover:text-purple-600 sm:px-8 sm:py-4 sm:text-base">
               <Link to="/services">Explore All Services</Link>
-            </motion.button>
+            </button>
           </div>
         </div>
-      </motion.section>
+      </section>
     </div>
   );
 };

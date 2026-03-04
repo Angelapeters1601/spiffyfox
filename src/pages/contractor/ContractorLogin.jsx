@@ -229,12 +229,48 @@ export default function ContractorLogin() {
       } else {
         // Create new contractor record with basic fields
         const newContractor = {
+
+          // Check if profile is complete (has first_name)
+          if (
+            !existingContractor.first_name ||
+            existingContractor.first_name.trim() === ""
+          ) {
+            return "incomplete";
+          }
+
+          return "complete";
+        } else {
+          // user_id already exists
+          if (existingContractor.user_id !== userId) {
+            console.warn("Email already linked to different user_id");
+          }
+
+          // Check if profile is complete
+          if (
+            !existingContractor.first_name ||
+            existingContractor.first_name.trim() === ""
+          ) {
+            return "incomplete";
+          }
+
+          return "exists";
+        }
+      } else {
+        // Create new contractor record with ALL fields from your list
+        const newContractor = {
+          // Core fields
           user_id: userId,
           email: email,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           application_status: "pending",
           application_date: new Date().toISOString(),
+
+          // Application status
+          application_status: "pending",
+          application_date: new Date().toISOString(),
+
+          // Personal info (all null initially)
           first_name: null,
           last_name: null,
           phone: null,
@@ -246,6 +282,13 @@ export default function ContractorLogin() {
           job_applied: null,
           experience_years: null,
           expected_salary: null,
+
+          // Job details
+          job_applied: null,
+          experience_years: null,
+          expected_salary: null,
+
+          // Interview details
           interview_date: null,
           interview_time: null,
           interview_type: null,
@@ -256,6 +299,13 @@ export default function ContractorLogin() {
           services_offered: null,
           service_areas: null,
           availability: null,
+
+          // Services
+          services_offered: null,
+          service_areas: null,
+          availability: null,
+
+          // Equipment/Vehicle
           has_vehicle: null,
           vehicle_type: null,
           has_equipment: null,
@@ -264,50 +314,22 @@ export default function ContractorLogin() {
           background_check_status: null,
           resume_url: null,
           profile_image_url: null,
+
+          // Background
+          background_check_status: null,
+
+          // Media
+          resume_url: null,
+          profile_image_url: null,
+
+          // Admin
           admin_notes: null,
           rating: null,
         };
 
         const { error: insertError } = await supabase
           .from("contractors")
-          .insert([
-            {
-              user_id: userId,
-              email: email,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              application_status: "pending",
-              // Required fields (set to null/empty)
-              first_name: null,
-              last_name: null,
-              phone: null,
-              address: null,
-              city: null,
-              state: null,
-              zip_code: null,
-              country: null,
-              job_applied: null,
-              application_date: new Date().toISOString(),
-              experience_years: null,
-              expected_salary: null,
-              interview_date: null,
-              interview_time: null,
-              interview_type: null,
-              interview_status: null,
-              services_offered: null,
-              service_areas: null,
-              availability: null,
-              has_vehicle: null,
-              vehicle_type: null,
-              has_equipment: null,
-              insurance_coverage: null,
-              background_check_status: null,
-              resume_url: null,
-              profile_image_url: null,
-              admin_notes: null,
-              rating: null,
-            },
-          ]);
+          .insert([newContractor]);
 
         if (insertError) {
           console.error("Error creating contractor record:", insertError);
@@ -315,6 +337,10 @@ export default function ContractorLogin() {
         }
 
         console.log("New contractor record created");
+        console.log(
+          "New contractor record created with all fields (incomplete)",
+        );
+        return "incomplete";
       }
     } catch (error) {
       console.error("Error in createContractorRecord:", error);

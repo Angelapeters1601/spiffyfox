@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../services/supabaseClient";
 
 const FAQ = () => {
@@ -24,7 +23,7 @@ const FAQ = () => {
         .select("*")
         .order("order", { ascending: true });
 
-      console.log("FAQ Response:", { data, error }); // Add this
+      console.log("FAQ Response:", { data, error });
 
       if (error) throw error;
       setFaqs(data || []);
@@ -156,52 +155,11 @@ const FAQ = () => {
     return categorized;
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
-    },
-  };
-
-  const accordionVariants = {
-    closed: {
-      height: 0,
-      opacity: 0,
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut",
-      },
-    },
-    open: {
-      height: "auto",
-      opacity: 1,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut",
-      },
-    },
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <motion.div
+        <div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
@@ -214,15 +172,15 @@ const FAQ = () => {
             Manage frequently asked questions for SpiffyFox with real-time
             updates.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-3">
             {/* Add/Edit Form */}
-            <AnimatePresence>
+            <div>
               {(isAdding || editingId) && (
-                <motion.div
+                <div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
@@ -348,12 +306,12 @@ const FAQ = () => {
                       </button>
                     </div>
                   </form>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </div>
 
             {/* Filter Section */}
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -389,15 +347,10 @@ const FAQ = () => {
                   ))}
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* FAQ List */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-6"
-            >
+            <div initial="hidden" animate="visible" className="space-y-6">
               {loading && faqs.length === 0 ? (
                 // Skeleton Loading
                 <div className="space-y-4">
@@ -414,9 +367,8 @@ const FAQ = () => {
               ) : Object.entries(getFaqsByCategory()).length > 0 ? (
                 Object.entries(getFaqsByCategory()).map(
                   ([category, categoryFaqs]) => (
-                    <motion.div
+                    <div
                       key={category}
-                      variants={itemVariants}
                       className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md"
                     >
                       <div className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white px-6 py-4">
@@ -434,7 +386,7 @@ const FAQ = () => {
 
                       <div className="divide-y divide-gray-100">
                         {categoryFaqs.map((faq) => (
-                          <motion.div
+                          <div
                             key={faq.id}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -532,7 +484,7 @@ const FAQ = () => {
                                     </svg>
                                   </button>
                                 </div>
-                                <motion.div
+                                <div
                                   animate={{
                                     rotate: expandedId === faq.id ? 180 : 0,
                                   }}
@@ -552,14 +504,13 @@ const FAQ = () => {
                                       d="M19 9l-7 7-7-7"
                                     />
                                   </svg>
-                                </motion.div>
+                                </div>
                               </div>
                             </div>
 
-                            <AnimatePresence>
+                            <div>
                               {expandedId === faq.id && (
-                                <motion.div
-                                  variants={accordionVariants}
+                                <div
                                   initial="closed"
                                   animate="open"
                                   exit="closed"
@@ -572,17 +523,17 @@ const FAQ = () => {
                                       </p>
                                     </div>
                                   </div>
-                                </motion.div>
+                                </div>
                               )}
-                            </AnimatePresence>
-                          </motion.div>
+                            </div>
+                          </div>
                         ))}
                       </div>
-                    </motion.div>
+                    </div>
                   ),
                 )
               ) : (
-                <motion.div
+                <div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="py-16 text-center"
@@ -614,14 +565,14 @@ const FAQ = () => {
                   >
                     Add New FAQ
                   </button>
-                </motion.div>
+                </div>
               )}
-            </motion.div>
+            </div>
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <motion.div
+            <div
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
@@ -696,7 +647,7 @@ const FAQ = () => {
                   </li>
                 </ul>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

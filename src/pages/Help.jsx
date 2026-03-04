@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -6,8 +6,6 @@ import {
   FiArrowRight,
   FiMail,
   FiHelpCircle,
-  FiMessageSquare,
-  FiTool,
   FiShield,
   FiCalendar,
   FiDollarSign,
@@ -217,7 +215,7 @@ const Help = () => {
         <div className="relative container mx-auto px-4 py-12 md:px-6 md:py-20">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             {/* Left Content */}
-            <motion.div
+            <div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
@@ -242,7 +240,7 @@ const Help = () => {
               </div>
 
               {/* New to SpiffyFox Card */}
-              <motion.div
+              <div
                 whileHover={{ scale: 1.02, x: 5 }}
                 className="group cursor-pointer"
               >
@@ -274,10 +272,10 @@ const Help = () => {
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
 
               {/* Search Bar */}
-              <motion.div
+              <div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -296,11 +294,11 @@ const Help = () => {
                     Search
                   </button>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
 
             {/* Right Image/Graphics */}
-            <motion.div
+            <div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -310,7 +308,7 @@ const Help = () => {
                 <div className="from-spiffy-bg/20 absolute inset-0 z-10 bg-gradient-to-r to-purple-400/10"></div>
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200')] bg-cover bg-center"></div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -318,7 +316,7 @@ const Help = () => {
       {/* Enhanced Categories Section with Filtering */}
       <section className="spiffy-bg-light py-16">
         <div className="container mx-auto px-4 md:px-6">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -331,12 +329,12 @@ const Help = () => {
               Click on any category to filter articles. Each expands with
               detailed information.
             </p>
-          </motion.div>
+          </div>
 
           {/* Enhanced Category Filters*/}
           <div className="mb-12 flex flex-wrap justify-center gap-3">
             {categories.map((category) => (
-              <motion.button
+              <button
                 key={category.id}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -354,7 +352,7 @@ const Help = () => {
                     {category.count} articles
                   </div>
                 </div>
-              </motion.button>
+              </button>
             ))}
           </div>
 
@@ -389,7 +387,7 @@ const Help = () => {
           <div className="space-y-4">
             <AnimatePresence mode="wait">
               {filteredArticles.map((article) => (
-                <motion.div
+                <div
                   key={article.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -446,9 +444,9 @@ const Help = () => {
                   </button>
 
                   {/* Expanded Content */}
-                  <AnimatePresence>
+                  <div>
                     {expandedArticle === article.id && (
-                      <motion.div
+                      <div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -489,10 +487,10 @@ const Help = () => {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
-                </motion.div>
+                  </div>
+                </div>
               ))}
             </AnimatePresence>
           </div>

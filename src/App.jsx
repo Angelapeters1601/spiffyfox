@@ -7,6 +7,7 @@ import UnauthorizedPage from "./components/UnauthorizedPage";
 import { ScrollToTopHandler } from "./ui/ScrollToTop";
 import JobPostings from "./admin/contractor/JobPostings";
 import JobPostingForm from "./admin/contractor/JobPostingForm";
+import ContractorLogin from "./pages/contractor/contractorLogin";
 
 // Lazy load main pages
 const Home = React.lazy(() => import("./pages/Home"));
@@ -20,9 +21,12 @@ const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const Client = React.lazy(() => import("./pages/client/Client"));
 const ClientLogin = React.lazy(() => import("./pages/client/ClientLogin"));
+<<<<<<< HEAD
 const ContractorLogin = React.lazy(
   () => import("./pages/contractor/contractorLogin"),
 );
+=======
+>>>>>>> origin/feature/ui
 const Contractor = React.lazy(() => import("./pages/contractor/Contractor"));
 const ContractorProfile = React.lazy(
   () => import("./pages/contractor/ContractorProfile"),
@@ -122,7 +126,7 @@ function App() {
               }
             />
             <Route
-              path="client"
+              path="/client/:userId"
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Client />

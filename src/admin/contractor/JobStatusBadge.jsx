@@ -1,6 +1,3 @@
-// components/JobStatusBadge.jsx
-import React from "react";
-
 const JobStatusBadge = ({
   status,
   size = "md",
