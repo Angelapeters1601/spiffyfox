@@ -44,7 +44,7 @@ export default function ContractorLogin() {
             if (isComplete) {
               navigate("/contractor");
             } else {
-              navigate("/contractor");
+              navigate(`/contractor/${session.user.id}`);
             }
           }
         }
@@ -71,7 +71,7 @@ export default function ContractorLogin() {
             if (isComplete) {
               navigate("/contractor");
             } else {
-              navigate("/contractor");
+              navigate(`/contractor/${session.user.id}`); // Navigate to contractor ID page
             }
           }
         } catch (error) {
@@ -128,6 +128,28 @@ export default function ContractorLogin() {
     }
   }
 
+  // Create profile in profiles table
+  async function createProfile(userId, email, role) {
+    try {
+      const { error } = await supabase.from("profiles").upsert([
+        {
+          id: userId,
+          email: email,
+          role: role,
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) {
+        console.error("Error creating profile:", error);
+      } else {
+        console.log(`Profile created for ${email} with role: ${role}`);
+      }
+    } catch (error) {
+      console.error("Error in createProfile:", error);
+    }
+  }
+
   // Password validation regex and rules
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -158,20 +180,10 @@ export default function ContractorLogin() {
     setError("");
     setShowConfirmationMessage(false);
 
-    console.log("Email:", email);
-    console.log("Password:", password);
-
     try {
       if (isLogin) {
         // SIGN IN
-        await signInWithEmail(email, password, "contractor");
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (session?.user) {
-          await createProfile(session.user.id, email, "contractor");
-        }
+        await signInWithEmail(email, password);
         // Navigation will be handled by the auth state change listener
       } else {
         // SIGN UP - For contractors
@@ -179,12 +191,30 @@ export default function ContractorLogin() {
         console.log("Contractor sign-up result:", result);
 
         if (result?.user) {
-          // Create contractor record in contractors table
-          await createContractorRecord(result.user.id, email);
+          // Create profile in profiles table
+          await createProfile(result.user.id, email, "contractor");
 
-          // Auto-confirm email for testing (remove in production)
-          // For testing, we'll just redirect to profile setup
-          navigate("/contractor");
+          // Create contractor record in contractors table
+          const profileStatus = await createContractorRecord(
+            result.user.id,
+            email,
+          );
+
+          if (result?.session) {
+            // User auto-confirmed
+            if (profileStatus === "incomplete") {
+              navigate(`/contractor/${result.user.id}`);
+            } else {
+              navigate("/contractor");
+            }
+          } else {
+            // Email confirmation required
+            setConfirmationEmail(email);
+            setShowConfirmationMessage(true);
+            setEmail("");
+            setPassword("");
+            setIsLogin(true);
+          }
         } else {
           throw new Error("Sign-up failed. Please try again.");
         }
@@ -226,47 +256,23 @@ export default function ContractorLogin() {
           if (updateError) throw updateError;
           console.log("Updated existing contractor with user_id");
         }
-      } else {
-        // Create new contractor record with basic fields
-        const newContractor = {
 
-          // Check if profile is complete (has first_name)
-          if (
-            !existingContractor.first_name ||
-            existingContractor.first_name.trim() === ""
-          ) {
-            return "incomplete";
-          }
-
-          return "complete";
-        } else {
-          // user_id already exists
-          if (existingContractor.user_id !== userId) {
-            console.warn("Email already linked to different user_id");
-          }
-
-          // Check if profile is complete
-          if (
-            !existingContractor.first_name ||
-            existingContractor.first_name.trim() === ""
-          ) {
-            return "incomplete";
-          }
-
-          return "exists";
+        // Check if profile is complete
+        if (
+          !existingContractor.first_name ||
+          existingContractor.first_name.trim() === ""
+        ) {
+          return "incomplete";
         }
+        return "complete";
       } else {
-        // Create new contractor record with ALL fields from your list
+        // Create new contractor record with ALL fields
         const newContractor = {
           // Core fields
           user_id: userId,
           email: email,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          application_status: "pending",
-          application_date: new Date().toISOString(),
-
-          // Application status
           application_status: "pending",
           application_date: new Date().toISOString(),
 
@@ -279,9 +285,6 @@ export default function ContractorLogin() {
           state: null,
           zip_code: null,
           country: null,
-          job_applied: null,
-          experience_years: null,
-          expected_salary: null,
 
           // Job details
           job_applied: null,
@@ -296,9 +299,6 @@ export default function ContractorLogin() {
           interview_notes: null,
           interview_scheduled_by: null,
           interview_location: null,
-          services_offered: null,
-          service_areas: null,
-          availability: null,
 
           // Services
           services_offered: null,
@@ -311,9 +311,6 @@ export default function ContractorLogin() {
           has_equipment: null,
           insurance_coverage: null,
           insurance_url: null,
-          background_check_status: null,
-          resume_url: null,
-          profile_image_url: null,
 
           // Background
           background_check_status: null,
@@ -336,14 +333,12 @@ export default function ContractorLogin() {
           throw insertError;
         }
 
-        console.log("New contractor record created");
-        console.log(
-          "New contractor record created with all fields (incomplete)",
-        );
+        console.log("New contractor record created (incomplete)");
         return "incomplete";
       }
     } catch (error) {
       console.error("Error in createContractorRecord:", error);
+      return "error";
     }
   }
 
@@ -398,7 +393,7 @@ export default function ContractorLogin() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md">
         <div className="rounded-xl bg-white p-6 shadow-lg md:p-8">
-          {/* Email Confirmation Success Message - HIDDEN FOR TESTING */}
+          {/* Email Confirmation Success Message */}
           {showConfirmationMessage && (
             <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4">
               <div className="flex items-start">

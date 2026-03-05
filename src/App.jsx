@@ -21,12 +21,6 @@ const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const Client = React.lazy(() => import("./pages/client/Client"));
 const ClientLogin = React.lazy(() => import("./pages/client/ClientLogin"));
-<<<<<<< HEAD
-const ContractorLogin = React.lazy(
-  () => import("./pages/contractor/contractorLogin"),
-);
-=======
->>>>>>> origin/feature/ui
 const Contractor = React.lazy(() => import("./pages/contractor/Contractor"));
 const ContractorProfile = React.lazy(
   () => import("./pages/contractor/ContractorProfile"),
