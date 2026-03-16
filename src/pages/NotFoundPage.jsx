@@ -50,33 +50,33 @@ const NotFoundPage = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-purple-300 p-7 px-4">
-      <motion.div
+      <div
         className="w-full max-w-2xl text-center"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Animated 404 Number */}
-        <motion.div className="relative mb-8" variants={itemVariants}>
-          <motion.div
+        <div className="relative mb-8" variants={itemVariants}>
+          <div
             className="font-cinzel text-9xl font-black text-gray-100 md:text-[12rem]"
             animate={floatingAnimation}
           >
             404
-          </motion.div>
-          <motion.div
+          </div>
+          <div
             className="spiffy-bg absolute -top-4 -right-4 h-8 w-8 rounded-full"
             animate={pulseAnimation}
           />
-          <motion.div
+          <div
             className="spiffy-border absolute -bottom-2 -left-4 h-6 w-6 rounded-full border-2"
             animate={pulseAnimation}
             transition={{ delay: 1 }}
           />
-        </motion.div>
+        </div>
 
         {/* Main Message */}
-        <motion.div variants={itemVariants} className="mb-8">
+        <div variants={itemVariants} className="mb-8">
           <h1 className="font-cinzel mb-4 text-3xl font-bold tracking-widest text-gray-800 md:text-4xl">
             Page Not Found
           </h1>
@@ -84,11 +84,11 @@ const NotFoundPage = () => {
             Oops! The page you're looking for seems to have wandered off into
             the digital wilderness. Let's get you back on track.
           </p>
-        </motion.div>
+        </div>
 
         {/* Animated Illustration */}
-        <motion.div className="mb-8" variants={itemVariants}>
-          <motion.div
+        <div className="mb-8" variants={itemVariants}>
+          <div
             className="relative mx-auto h-32 w-32"
             animate={{
               rotate: [0, 5, -5, 0],
@@ -100,7 +100,7 @@ const NotFoundPage = () => {
             }}
           >
             <div className="spiffy-border flex h-full w-full items-center justify-center rounded-full border-4">
-              <motion.div
+              <div
                 className="spiffy-border h-16 w-16 rounded-full border-2"
                 animate={{
                   scale: [1, 1.2, 1],
@@ -112,7 +112,7 @@ const NotFoundPage = () => {
                 }}
               />
             </div>
-            <motion.div
+            <div
               className="spiffy-bg-dark absolute top-0 left-1/2 h-8 w-1 -translate-x-1/2 transform"
               animate={{
                 rotate: [0, 360],
@@ -123,15 +123,15 @@ const NotFoundPage = () => {
                 ease: "linear",
               }}
             />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Action Buttons */}
-        <motion.div
+        <div
           className="flex flex-col items-center justify-center gap-4 sm:flex-row"
           variants={itemVariants}
         >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/"
               className="font-quicksand spiffy-bg flex items-center gap-2 rounded-lg px-8 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl"
@@ -139,9 +139,9 @@ const NotFoundPage = () => {
               <HomeIcon fontSize="small" />
               Back to Home
             </Link>
-          </motion.div>
+          </div>
 
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <button
               onClick={() => window.history.back()}
               className="font-quicksand spiffy-border flex items-center gap-2 rounded-lg border-2 px-8 py-3 font-semibold text-gray-100 transition-all duration-200 hover:bg-purple-400"
@@ -149,11 +149,11 @@ const NotFoundPage = () => {
               <ArrowBackIcon fontSize="small" />
               Go Back
             </button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Additional Help */}
-        <motion.div variants={itemVariants} className="mt-8">
+        <div variants={itemVariants} className="mt-8">
           <p className="font-quicksand text-sm text-white">
             Need help?{" "}
             <Link
@@ -163,10 +163,10 @@ const NotFoundPage = () => {
               Contact our support team
             </Link>
           </p>
-        </motion.div>
+        </div>
 
         {/* Decorative Elements */}
-        <motion.div
+        <div
           className="spiffy-bg absolute bottom-10 left-10 h-4 w-4 rounded-full opacity-60"
           animate={{
             y: [0, -20, 0],
@@ -178,7 +178,7 @@ const NotFoundPage = () => {
             delay: 0.5,
           }}
         />
-        <motion.div
+        <div
           className="spiffy-border absolute top-10 right-10 h-6 w-6 rounded-full border-2 opacity-40"
           animate={{
             y: [0, 15, 0],
@@ -190,7 +190,7 @@ const NotFoundPage = () => {
             delay: 1,
           }}
         />
-      </motion.div>
+      </div>
     </div>
   );
 };

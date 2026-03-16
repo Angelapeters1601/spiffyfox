@@ -23,7 +23,7 @@ export default function Footer() {
     { text: "Services", path: "/services" },
     { text: "Location", path: "/location" },
     { text: "Policy", path: "/policy" },
-    { text: "Join", path: "/join" },
+    { text: "help", path: "/help" },
     { text: "Contact", path: "/contact" },
   ];
 

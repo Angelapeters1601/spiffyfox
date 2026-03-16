@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
   FaEnvelope,
   FaUser,
@@ -149,7 +149,7 @@ const Newsletter = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <motion.div
+          <div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="mx-auto mb-3 h-8 w-8 rounded-full border-2 border-purple-600 border-t-transparent"
@@ -164,7 +164,7 @@ const Newsletter = () => {
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
+        <div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
@@ -182,10 +182,10 @@ const Newsletter = () => {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stats */}
-        <motion.div
+        <div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -209,10 +209,10 @@ const Newsletter = () => {
               {stats.recent}
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Controls */}
-        <motion.div
+        <div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -242,7 +242,7 @@ const Newsletter = () => {
                 <option value="recent">Last 7 Days</option>
               </select>
 
-              <motion.button
+              <button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={exportSubscribers}
@@ -250,9 +250,9 @@ const Newsletter = () => {
               >
                 <FaDownload className="mr-2 h-3 w-3" />
                 Export
-              </motion.button>
+              </button>
 
-              <motion.button
+              <button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowCompose(true)}
@@ -260,13 +260,13 @@ const Newsletter = () => {
               >
                 <FaPaperPlane className="mr-2 h-3 w-3" />
                 Compose
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Subscribers Table */}
-        <motion.div
+        <div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
@@ -302,7 +302,7 @@ const Newsletter = () => {
                   </tr>
                 ) : (
                   filteredSubscribers.map((subscriber) => (
-                    <motion.tr
+                    <tr
                       key={subscriber.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -347,15 +347,15 @@ const Newsletter = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center space-x-2">
-                          <motion.button
+                          <button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleEmailClick(subscriber.email)}
                             className="rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50"
                           >
                             <FaPaperPlane className="h-3 w-3" />
-                          </motion.button>
-                          <motion.button
+                          </button>
+                          <button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() =>
@@ -365,7 +365,7 @@ const Newsletter = () => {
                             className="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                           >
                             {deleteLoading === subscriber.id ? (
-                              <motion.div
+                              <div
                                 animate={{ rotate: 360 }}
                                 transition={{
                                   duration: 1,
@@ -377,28 +377,28 @@ const Newsletter = () => {
                             ) : (
                               <FaTrash className="h-3 w-3" />
                             )}
-                          </motion.button>
+                          </button>
                         </div>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-        </motion.div>
+        </div>
 
         {/* Compose Modal */}
         <AnimatePresence>
           {showCompose && (
-            <motion.div
+            <div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
               onClick={() => setShowCompose(false)}
             >
-              <motion.div
+              <div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -430,20 +430,18 @@ const Newsletter = () => {
                     <p className="font-quicksand text-sm text-gray-600">
                       {stats.active} active subscribers will receive this
                     </p>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <button
                       onClick={handleCopyContent}
                       disabled={!newsletterContent.trim()}
                       className="flex items-center rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700 disabled:opacity-50"
                     >
                       <FaCopy className="mr-2 h-4 w-4" />
                       {copied ? "Copied!" : "Copy Content"}
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )}
         </AnimatePresence>
       </div>

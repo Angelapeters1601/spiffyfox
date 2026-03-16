@@ -128,11 +128,11 @@ const Home = () => {
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3, duration: 0.8 }}
-                      className="font-cinzel mb-4 text-3xl leading-tight font-bold text-white drop-shadow-2xl sm:mb-6 sm:text-4xl lg:text-5xl xl:text-6xl"
+                      className="font-cinzel mb-4 text-2xl font-bold text-white drop-shadow-2xl sm:mb-6 sm:text-4xl lg:text-5xl xl:text-6xl"
                     >
                       The best Cleaning service company in{" "}
-                      <span className="bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-transparent">
-                        NYC
+                      <span className="bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-5xl text-transparent">
+                        DELAWARE
                       </span>
                     </motion.h1>
 
@@ -141,7 +141,7 @@ const Home = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6, duration: 0.8 }}
-                      className="font-elsie mb-6 text-lg text-purple-100 drop-shadow-lg sm:mb-8 sm:text-xl"
+                      className="font-elsie mb-6 text-sm text-purple-100 drop-shadow-lg sm:mb-8 sm:text-sm"
                     >
                       Click the button below to call for a free quote 💜😍
                     </motion.p>
@@ -557,7 +557,7 @@ const Home = () => {
                     <div className={`${feature.color} mb-3 text-4xl`}>
                       <IconComponent />
                     </div>
-                    <h3 className="font-cormorant mb-4 border-b-2 border-purple-200 text-2xl font-bold font-semibold text-purple-600">
+                    <h3 className="font-cormorant mb-4 border-b-2 border-purple-200 text-2xl font-semibold text-purple-600">
                       {feature.title}
                     </h3>
                     <p className="font-lora text-sm text-stone-800">
