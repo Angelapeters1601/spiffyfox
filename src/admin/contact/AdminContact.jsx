@@ -139,7 +139,7 @@ const AdminContact = () => {
     return (
       <div className="flex min-h-96 items-center justify-center">
         <div className="text-center">
-          <motion.div
+          <div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="mx-auto mb-4 h-8 w-8 rounded-full border-2 border-gray-300 border-t-purple-600"
@@ -314,7 +314,7 @@ const AdminContact = () => {
                   </tr>
                 ) : (
                   currentContacts.map((contact) => (
-                    <motion.tr
+                    <tr
                       key={contact.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -366,7 +366,7 @@ const AdminContact = () => {
                       </td>
                       <td className="px-4 py-4 sm:px-6">
                         <div className="flex items-center gap-2">
-                          <motion.button
+                          <button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={(e) => {
@@ -377,8 +377,8 @@ const AdminContact = () => {
                             title="View Details"
                           >
                             <FaEye className="h-3 w-3" />
-                          </motion.button>
-                          <motion.button
+                          </button>
+                          <button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={(e) => {
@@ -390,7 +390,7 @@ const AdminContact = () => {
                             title="Delete Contact"
                           >
                             {deleteLoading === contact.id ? (
-                              <motion.div
+                              <div
                                 animate={{ rotate: 360 }}
                                 transition={{
                                   duration: 1,
@@ -402,10 +402,10 @@ const AdminContact = () => {
                             ) : (
                               <FaTrash className="h-3 w-3" />
                             )}
-                          </motion.button>
+                          </button>
                         </div>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))
                 )}
               </tbody>
@@ -464,14 +464,14 @@ const AdminContact = () => {
         {/* Modal */}
         <AnimatePresence>
           {showModal && selectedContact && (
-            <motion.div
+            <div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
               onClick={() => setShowModal(false)}
             >
-              <motion.div
+              <div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
@@ -573,7 +573,7 @@ const AdminContact = () => {
                   >
                     {deleteLoading === selectedContact.id ? (
                       <>
-                        <motion.div
+                        <div
                           animate={{ rotate: 360 }}
                           transition={{
                             duration: 1,
@@ -592,8 +592,8 @@ const AdminContact = () => {
                     )}
                   </button>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )}
         </AnimatePresence>
       </div>

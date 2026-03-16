@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 @layer utilities {
   .spiffy-text {
@@ -26,9 +27,9 @@
   .font-bodoni {
     font-family: "Bodoni Moda", serif;
   }
-  .font-cinzel {
+  /* .font-cinzel {
     font-family: "Cinzel Decorative", serif;
-  }
+  } */
   .font-bitcount {
     font-family: "Bitcount Grid Double Ink", system-ui;
   }

@@ -1,10 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  AnimatePresence,
-} from "framer-motion";
 import favicon from "../assets/favicon.jpg";
 import {
   FiShield,
@@ -26,27 +20,6 @@ const Policy = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activePolicy, setActivePolicy] = useState(null);
   const containerRef = useRef(null);
-  const heroRef = useRef(null);
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const heroScroll = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
-  const scale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1]);
-  const y = useTransform(heroScroll.scrollYProgress, [0, 1], [0, -200]);
-  const textY = useTransform(heroScroll.scrollYProgress, [0, 1], [0, 100]);
-  const heroOpacity = useTransform(
-    heroScroll.scrollYProgress,
-    [0, 0.8],
-    [1, 0],
-  );
 
   useEffect(() => {
     setIsVisible(true);
@@ -201,67 +174,39 @@ const Policy = () => {
   return (
     <div ref={containerRef} className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section ref={heroRef} className="relative h-screen overflow-hidden">
-        {/* Background Image with Parallax */}
-        <motion.div style={{ y }} className="absolute inset-0 z-0">
+      <section className="relative h-screen overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
           <img
             src={favicon}
             alt="SpiffyFox Professional Standards"
             className="h-full w-full object-cover"
             loading="eager"
           />
-          {/* Enhanced Gradient Overlay */}
+          {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 via-indigo-900/70 to-blue-900/80 mix-blend-multiply" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-        </motion.div>
+        </div>
 
         {/* Hero Content */}
-        <motion.div
-          style={{ opacity: heroOpacity, y: textY }}
-          className="relative z-10 flex h-full items-center justify-center px-4"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="max-w-6xl text-center text-white"
-          >
-            <motion.h1
-              className="font-cinzel mb-6 text-6xl font-bold tracking-tight md:text-8xl"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-            >
+        <div className="relative z-10 flex h-full items-center justify-center px-4">
+          <div className="max-w-6xl text-center text-white">
+            <h1 className="font-cinzel mb-6 text-6xl font-bold tracking-tight md:text-8xl">
               Our Commitment
-            </motion.h1>
-            <motion.p
-              className="font-cormorant mb-8 text-2xl leading-relaxed opacity-95 md:text-3xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
+            </h1>
+            <p className="font-cormorant mb-8 text-2xl leading-relaxed opacity-95 md:text-3xl">
               Excellence, Integrity, and Transparency in Every Detail
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ duration: 1, delay: 1.2 }}
-              className="mx-auto h-1 w-32 origin-center transform bg-gradient-to-r from-purple-400 to-pink-400"
-            />
+            </p>
+            <div className="mx-auto h-1 w-32 bg-gradient-to-r from-purple-400 to-pink-400" />
 
             {/* Stats Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.5 }}
-              className="mt-12 flex flex-wrap justify-center gap-8"
-            >
+            <div className="mt-12 flex flex-wrap justify-center gap-8">
               {[
                 { number: "100%", label: "Satisfaction Guarantee" },
                 { number: "24/7", label: "Support" },
                 { number: "50+", label: "Policies" },
                 { number: "ISO", label: "Certified" },
-              ].map((stat, index) => (
+              ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <div className="font-cinzel text-3xl font-bold text-purple-300">
                     {stat.number}
@@ -271,53 +216,19 @@ const Policy = () => {
                   </div>
                 </div>
               ))}
-            </motion.div>
-          </motion.div>
-        </motion.div>
-
-        {/* Enhanced Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-          className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 transform"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-center text-white"
-          >
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="flex h-12 w-8 items-start justify-center rounded-full border-2 border-white/50"
-            >
-              <div className="mt-2 h-3 w-1 rounded-full bg-white" />
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Policy Grid Section */}
       <section className="relative z-20 bg-gradient-to-b from-white to-gray-50 px-4 py-24">
         <div className="mx-auto max-w-7xl">
           {/* Section Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true, margin: "-100px" }}
-            className="mb-20 text-center"
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              whileInView={{ scale: 1 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500"
-            >
+          <div className="mb-20 text-center">
+            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500">
               <FiShield className="text-2xl text-white" />
-            </motion.div>
+            </div>
             <h2 className="font-cinzel mb-6 text-4xl font-bold text-gray-900 md:text-5xl">
               Our Policies & Standards
             </h2>
@@ -327,39 +238,22 @@ const Policy = () => {
               unwavering commitment to our values. Explore our comprehensive
               policies that guide every aspect of our operation.
             </p>
-          </motion.div>
+          </div>
 
-          {/* Enhanced Policy Grid */}
+          {/* Policy Grid */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:grid-rows-3">
             {policySections.map((policy, index) => (
-              <motion.div
+              <div
                 key={policy.title}
-                initial={{ opacity: 0, y: 60, scale: 0.9 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{
-                  duration: 0.6,
-                  delay: index * 0.1,
-                  type: "spring",
-                  stiffness: 100,
-                }}
-                viewport={{ once: true, margin: "-50px" }}
-                whileHover={{
-                  y: -12,
-                  scale: 1.02,
-                  transition: { duration: 0.3 },
-                }}
-                className={`group hover:shadow-3xl relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl transition-all duration-500 ${gridLayouts[index]}`}
+                className={`group relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl ${gridLayouts[index]}`}
                 onClick={() =>
                   setActivePolicy(activePolicy === index ? null : index)
                 }
               >
-                {/* Animated Background Gradient */}
+                {/* Background Gradient */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${policy.color} opacity-0 transition-all duration-700 group-hover:opacity-5`}
+                  className={`absolute inset-0 bg-gradient-to-br ${policy.color} opacity-0 group-hover:opacity-5`}
                 />
-
-                {/* Floating Elements */}
-                <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 blur-xl transition-all duration-700 group-hover:opacity-20" />
 
                 {/* Content */}
                 <div className="relative z-10 flex h-full flex-col p-8">
@@ -371,7 +265,7 @@ const Policy = () => {
                       >
                         {policy.icon}
                       </div>
-                      <h3 className="font-cinzel text-2xl font-bold text-gray-900 transition-colors duration-300 group-hover:text-gray-800">
+                      <h3 className="font-cinzel text-2xl font-bold text-gray-900">
                         {policy.title}
                       </h3>
                       <div className="mt-2 flex flex-wrap gap-2">
@@ -385,12 +279,9 @@ const Policy = () => {
                         ))}
                       </div>
                     </div>
-                    <motion.div
-                      animate={{ rotate: activePolicy === index ? 180 : 0 }}
-                      className="ml-4 text-gray-400"
-                    >
+                    <div className="ml-4 text-gray-400">
                       <FiChevronDown className="text-xl" />
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* Description */}
@@ -401,17 +292,13 @@ const Policy = () => {
                   {/* Points */}
                   <ul className="space-y-3">
                     {policy.points.slice(0, 3).map((point, pointIndex) => (
-                      <motion.li
+                      <li
                         key={pointIndex}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.4, delay: pointIndex * 0.1 }}
-                        viewport={{ once: true }}
                         className="font-quicksand flex items-center text-sm text-gray-500"
                       >
                         <FiCheckCircle className="mr-3 flex-shrink-0 text-green-400" />
                         {point}
-                      </motion.li>
+                      </li>
                     ))}
                   </ul>
 
@@ -420,71 +307,48 @@ const Policy = () => {
                     <span className="font-quicksand text-xs text-gray-400">
                       Updated {policy.lastUpdated}
                     </span>
-                    <motion.div
-                      whileHover={{ x: 5 }}
-                      className="flex items-center text-sm font-medium text-purple-600"
-                    >
+                    <div className="flex items-center text-sm font-medium text-purple-600">
                       Learn more <FiArrowRight className="ml-1" />
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* Hover Border Effect */}
                   <div
-                    className={`absolute bottom-0 left-0 h-1.5 w-full scale-x-0 transform bg-gradient-to-r ${policy.color} transition-transform duration-500 group-hover:scale-x-100`}
+                    className={`absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r ${policy.color} scale-x-0 group-hover:scale-x-100`}
                   />
                 </div>
 
                 {/* Expanded Details */}
-                <AnimatePresence>
-                  {activePolicy === index && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="border-t border-gray-100 bg-gray-50"
-                    >
-                      <div className="p-8">
-                        <h4 className="font-cinzel mb-4 text-lg font-bold text-gray-900">
-                          Detailed Overview
-                        </h4>
-                        <p className="font-quicksand mb-6 leading-relaxed text-gray-600">
-                          {policy.detailedDescription}
-                        </p>
-                        <div className="grid grid-cols-2 gap-4">
-                          {policy.points.map((point, idx) => (
-                            <div key={idx} className="flex items-center">
-                              <FiCheckCircle className="mr-2 flex-shrink-0 text-green-500" />
-                              <span className="font-quicksand text-sm text-gray-600">
-                                {point}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                {activePolicy === index && (
+                  <div className="border-t border-gray-100 bg-gray-50">
+                    <div className="p-8">
+                      <h4 className="font-cinzel mb-4 text-lg font-bold text-gray-900">
+                        Detailed Overview
+                      </h4>
+                      <p className="font-quicksand mb-6 leading-relaxed text-gray-600">
+                        {policy.detailedDescription}
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        {policy.points.map((point, idx) => (
+                          <div key={idx} className="flex items-center">
+                            <FiCheckCircle className="mr-2 flex-shrink-0 text-green-500" />
+                            <span className="font-quicksand text-sm text-gray-600">
+                              {point}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
           {/* CTA Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="mt-24"
-          >
+          <div className="mt-24">
             <div className="relative overflow-hidden rounded-4xl border border-purple-100 bg-gradient-to-br from-purple-50 via-white to-blue-50 p-16 shadow-2xl">
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-purple-400 blur-3xl" />
-                <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-pink-400 blur-3xl" />
-              </div>
-
-              <div className="relative z-10 text-center">
+              <div className="text-center">
                 <h3 className="font-cinzel mb-6 text-4xl font-bold text-gray-900">
                   Need More Information?
                 </h3>
@@ -494,33 +358,21 @@ const Policy = () => {
                   policy documents or schedule a consultation.
                 </p>
                 <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
-                  <motion.button
-                    whileHover={{
-                      scale: 1.05,
-                      boxShadow: "0 20px 40px rgba(147, 51, 234, 0.3)",
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="font-quicksand flex items-center rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 px-10 py-5 font-semibold text-white shadow-xl transition-all duration-300"
-                  >
+                  <button className="font-quicksand flex items-center rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 px-10 py-5 font-semibold text-white shadow-xl">
                     <FiMail className="mr-3" />
-
                     <Link to="/contact">Contact Our Team</Link>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="font-quicksand flex items-center rounded-2xl border-2 border-purple-600 bg-white px-10 py-5 font-semibold text-purple-600 transition-all duration-300 hover:bg-purple-50"
-                  >
+                  </button>
+                  <button className="font-quicksand flex items-center rounded-2xl border-2 border-purple-600 bg-white px-10 py-5 font-semibold text-purple-600 hover:bg-purple-50">
                     <FiDownload className="mr-3" />
                     Download Full Policy PDF
-                  </motion.button>
+                  </button>
                 </div>
                 <p className="font-quicksand mt-8 text-sm text-gray-500">
                   All documents available in multiple languages and formats
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

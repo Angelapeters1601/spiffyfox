@@ -14,10 +14,20 @@ import { useTrackVisitor } from "./hooks/useTrackVisitor";
 const Home = React.lazy(() => import("./pages/Home"));
 const Tips = React.lazy(() => import("./pages/Tips"));
 const Services = React.lazy(() => import("./pages/Services"));
+const Reviews = React.lazy(() => import("./pages/Reviews"));
 const Location = React.lazy(() => import("./pages/Location"));
 const Policy = React.lazy(() => import("./pages/Policy"));
+const Help = React.lazy(() => import("./pages/Help"));
 const Join = React.lazy(() => import("./pages/Join"));
 const Contact = React.lazy(() => import("./pages/Contact"));
+const Client = React.lazy(() => import("./pages/client/Client"));
+const ClientLogin = React.lazy(() => import("./pages/client/ClientLogin"));
+const Contractor = React.lazy(() => import("./pages/contractor/Contractor"));
+const ContractorProfile = React.lazy(
+  () => import("./pages/contractor/ContractorProfile"),
+);
+const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
+const ResetPassword = React.lazy(() => import("./components/ResetPassword"));
 
 // Lazy load admin components
 const AdminLayout = React.lazy(() => import("./admin/AdminLayout"));
@@ -33,6 +43,8 @@ const AdminNewsletter = React.lazy(
 const AdminContractor = React.lazy(
   () => import("./admin/contractor/AdminContractor"),
 );
+
+// const AdminJobPostings = React.lazy(() => import("./admin/job-postings"));
 const AdminTips = React.lazy(() => import("./admin/tips/AdminTips"));
 const AdminClientPortal = React.lazy(
   () => import("./admin/client/AdminClientPortal"),
@@ -95,11 +107,81 @@ function App() {
               }
             />
             <Route
-              path="join"
+              path="reviews"
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
-                  <Join />
+                  <Reviews />
                 </React.Suspense>
+              }
+            />
+            <Route
+              path="help"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <Help />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="/client/:userId"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <Client />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="client-login"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <ClientLogin />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="contractor-login"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <ContractorLogin />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="reset-password"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <ResetPassword />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="join"
+              element={
+                <ProtectedRoute allowedRoles={["client"]}>
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <Join />
+                  </React.Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="contractor"
+              element={
+                <ProtectedRoute allowedRoles={["contractor"]}>
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <Contractor />
+                  </React.Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="contractor/:id"
+              element={
+                <ProtectedRoute allowedRoles={["contractor"]}>
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <ContractorProfile />
+                  </React.Suspense>
+                </ProtectedRoute>
               }
             />
             <Route
@@ -109,7 +191,7 @@ function App() {
                   <Contact />
                 </React.Suspense>
               }
-            />
+            />{" "}
           </Route>
 
           {/* Admin Login (public route) */}
@@ -167,6 +249,22 @@ function App() {
                 element={
                   <React.Suspense fallback={<LoadingFallback />}>
                     <AdminContractor />
+                  </React.Suspense>
+                }
+              />
+              <Route
+                path="job-postings"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <JobPostings />
+                  </React.Suspense>
+                }
+              />{" "}
+              <Route
+                path="job-postings/new"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <JobPostingForm />
                   </React.Suspense>
                 }
               />
