@@ -1,344 +1,530 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { supabase } from "../../services/supabaseClient";
+import {
+  RefreshCw,
+  Users,
+  Globe,
+  Smartphone,
+  TrendingUp,
+  Activity,
+  AlertCircle,
+} from "lucide-react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Filler,
+} from "chart.js";
+import { Bar, Pie, Line } from "react-chartjs-2";
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Filler,
+);
+
 const VisitorAnalytics = () => {
-  // Mock data for demonstration
-  const analyticsData = {
-    overview: {
-      totalVisitors: { value: "12.4K", change: "+12.4%", trend: "up" },
-      uniqueVisitors: { value: "8.9K", change: "+8.2%", trend: "up" },
-      pageViews: { value: "38.9K", change: "+15.7%", trend: "up" },
-      avgDuration: { value: "4:23", change: "+2.1%", trend: "up" },
-      bounceRate: { value: "32.5%", change: "-5.2%", trend: "down" },
-      returningVisitors: { value: "3.5K", change: "+7.8%", trend: "up" },
-    },
-    realTimeVisitors: [
-      {
-        id: 1,
-        ip: "192.168.1.45",
-        country: "United States",
-        city: "New York",
-        device: "Desktop",
-        browser: "Chrome",
-        time: "Just now",
-        pages: 3,
-        flag: "🇺🇸",
-      },
-      {
-        id: 2,
-        ip: "203.0.113.89",
-        country: "Canada",
-        city: "Toronto",
-        device: "Mobile",
-        browser: "Safari",
-        time: "1 min ago",
-        pages: 1,
-        flag: "🇨🇦",
-      },
-      {
-        id: 3,
-        ip: "198.51.100.23",
-        country: "United Kingdom",
-        city: "London",
-        device: "Tablet",
-        browser: "Firefox",
-        time: "2 mins ago",
-        pages: 5,
-        flag: "🇬🇧",
-      },
-      {
-        id: 4,
-        ip: "203.0.113.42",
-        country: "Australia",
-        city: "Sydney",
-        device: "Desktop",
-        browser: "Edge",
-        time: "3 mins ago",
-        pages: 2,
-        flag: "🇦🇺",
-      },
-      {
-        id: 5,
-        ip: "192.168.1.203",
-        country: "Germany",
-        city: "Berlin",
-        device: "Mobile",
-        browser: "Chrome",
-        time: "4 mins ago",
-        pages: 4,
-        flag: "🇩🇪",
-      },
-    ],
-    trafficSources: [
-      {
-        source: "Direct",
-        visitors: 4523,
-        percentage: 36.5,
-        color: "from-purple-500 to-blue-500",
-      },
-      {
-        source: "Organic Search",
-        visitors: 3124,
-        percentage: 25.2,
-        color: "from-green-500 to-teal-500",
-      },
-      {
-        source: "Social Media",
-        visitors: 1987,
-        percentage: 16.0,
-        color: "from-pink-500 to-rose-500",
-      },
-      {
-        source: "Referral",
-        visitors: 1562,
-        percentage: 12.6,
-        color: "from-orange-500 to-red-500",
-      },
-      {
-        source: "Email",
-        visitors: 1204,
-        percentage: 9.7,
-        color: "from-yellow-500 to-amber-500",
-      },
-    ],
-    topPages: [
-      { page: "/home", visitors: 8452, duration: "3:45", bounce: "28%" },
-      { page: "/products", visitors: 6231, duration: "5:12", bounce: "35%" },
-      { page: "/blog", visitors: 5123, duration: "7:34", bounce: "22%" },
-      { page: "/about", visitors: 3856, duration: "2:15", bounce: "42%" },
-      { page: "/contact", visitors: 2945, duration: "4:30", bounce: "38%" },
-    ],
+  const [visitors, setVisitors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [timeRange, setTimeRange] = useState("all");
+
+  const fetchVisitors = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      let query = supabase
+        .from("visitors")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      const now = new Date();
+      if (timeRange === "today") {
+        const today = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+        query = query.gte("created_at", today);
+      } else if (timeRange === "week") {
+        const weekAgo = new Date(now.setDate(now.getDate() - 7)).toISOString();
+        query = query.gte("created_at", weekAgo);
+      } else if (timeRange === "month") {
+        const monthAgo = new Date(
+          now.setMonth(now.getMonth() - 1),
+        ).toISOString();
+        query = query.gte("created_at", monthAgo);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setVisitors(data || []);
+    } catch (err) {
+      console.error("Error fetching visitors:", err);
+      setError("Failed to load visitor data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchVisitors();
+  }, [fetchVisitors]);
+
+  // Data processing functions
+  const getCountryStats = () => {
+    if (!visitors.length) return { labels: [], data: [] };
+    const map = {};
+    visitors.forEach((v) => {
+      const country = v.country || "Unknown";
+      map[country] = (map[country] || 0) + 1;
+    });
+    const sorted = Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    return {
+      labels: sorted.map(([name]) => name),
+      data: sorted.map(([, value]) => value),
+    };
   };
 
+  const getDeviceStats = () => {
+    if (!visitors.length) return { labels: [], data: [] };
+    const map = {};
+    visitors.forEach((v) => {
+      const device = v.device || "Unknown";
+      map[device] = (map[device] || 0) + 1;
+    });
+    return {
+      labels: Object.keys(map),
+      data: Object.values(map),
+    };
+  };
+
+  const getDailyVisits = () => {
+    if (!visitors.length) return { labels: [], data: [] };
+    const map = {};
+    visitors.slice(0, 7).forEach((v) => {
+      const date = new Date(v.created_at).toLocaleDateString();
+      map[date] = (map[date] || 0) + 1;
+    });
+    return {
+      labels: Object.keys(map).reverse(),
+      data: Object.values(map).reverse(),
+    };
+  };
+
+  // Chart options
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          boxWidth: 12,
+          padding: 15,
+          font: { size: 11 },
+        },
+      },
+      tooltip: {
+        backgroundColor: "rgba(0,0,0,0.8)",
+        titleFont: { size: 12 },
+        bodyFont: { size: 11 },
+        padding: 8,
+      },
+    },
+  };
+
+  const pieOptions = {
+    ...chartOptions,
+    plugins: {
+      ...chartOptions.plugins,
+      legend: {
+        ...chartOptions.plugins.legend,
+        position: "right",
+      },
+    },
+  };
+
+  // Chart colors
+  const colors = [
+    "rgba(0, 136, 254, 0.8)",
+    "rgba(0, 196, 159, 0.8)",
+    "rgba(255, 187, 40, 0.8)",
+    "rgba(255, 128, 66, 0.8)",
+    "rgba(136, 132, 216, 0.8)",
+  ];
+
+  // Calculate totals
+  const totalVisitors = visitors.length;
+  const uniqueCountries = new Set(visitors.map((v) => v.country)).size;
+  const uniqueDevices = new Set(visitors.map((v) => v.device)).size;
+  const totalPageViews = visitors.reduce(
+    (sum, v) => sum + (v.page_views || 1),
+    0,
+  );
+
+  const formatDate = (val) => {
+    if (!val) return "—";
+    return new Date(val).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const StatCard = ({ title, value, icon: Icon, color, subValue }) => (
+    <div className="transform rounded-xl bg-white p-6 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+          {subValue && <p className="mt-1 text-sm text-gray-500">{subValue}</p>}
+        </div>
+        <div className={`rounded-full ${color} p-3`}>
+          <Icon className="h-6 w-6 text-white" />
+        </div>
+      </div>
+    </div>
+  );
+
+  const ChartCard = ({ title, children }) => (
+    <div className="rounded-xl bg-white p-6 shadow-lg">
+      <h3 className="mb-4 text-lg font-semibold text-gray-800">{title}</h3>
+      <div style={{ height: "300px" }} className="w-full">
+        {children}
+      </div>
+    </div>
+  );
+
+  const countryStats = getCountryStats();
+  const deviceStats = getDeviceStats();
+  const dailyVisits = getDailyVisits();
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-7xl p-6">
+        <div className="rounded-xl bg-red-50 p-8 text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
+          <h3 className="mt-4 text-lg font-medium text-red-800">
+            Error Loading Data
+          </h3>
+          <p className="mt-2 text-red-600">{error}</p>
+          <button
+            onClick={fetchVisitors}
+            className="mt-4 inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="font-cinzel mb-2 text-4xl font-bold text-white">
+            <h1 className="text-3xl font-bold text-gray-900">
               Visitor Analytics
             </h1>
-            <p className="font-quicksand text-gray-400">
-              Real-time insights and visitor tracking dashboard
+            <p className="mt-1 text-sm text-gray-600">
+              Real-time insights about your website visitors
             </p>
           </div>
-          <div className="mt-4 flex items-center space-x-4 lg:mt-0">
-            <div className="flex items-center rounded-lg bg-gray-800 px-4 py-2">
-              <div className="mr-2 h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
-              <span className="font-quicksand text-sm text-green-400">
-                Live Tracking Active
-              </span>
-            </div>
-            <button className="font-quicksand transform rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-blue-700">
-              Export Report
+
+          <div className="flex gap-2">
+            {["all", "today", "week", "month"].map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-all ${
+                  timeRange === range
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-white text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {range}
+              </button>
+            ))}
+            <button
+              onClick={fetchVisitors}
+              className="rounded-lg bg-white p-2 text-gray-600 hover:bg-gray-100"
+              title="Refresh"
+            >
+              <RefreshCw
+                className={`h-5 w-5 ${loading ? "animate-spin" : ""}`}
+              />
             </button>
           </div>
         </div>
 
-        {/* Overview Cards */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {Object.entries(analyticsData.overview).map(([key, data]) => (
-            <div
-              key={key}
-              className="transform rounded-2xl border border-gray-700 bg-gray-800 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-purple-500"
-            >
-              <div className="mb-3 flex items-start justify-between">
-                <h3 className="font-quicksand text-sm tracking-wide text-gray-400 uppercase">
-                  {key.replace(/([A-Z])/g, " $1").trim()}
-                </h3>
-                <div
-                  className={`rounded-lg p-2 ${data.trend === "up" ? "bg-green-900/30" : "bg-red-900/30"}`}
-                >
-                  <svg
-                    className={`h-4 w-4 ${data.trend === "up" ? "text-green-400" : "text-red-400"}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    {data.trend === "up" ? (
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 10l7-7m0 0l7 7m-7-7v18"
-                      />
-                    ) : (
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                      />
-                    )}
-                  </svg>
-                </div>
-              </div>
-              <p className="font-cormorant mb-1 text-2xl font-bold text-white">
-                {data.value}
-              </p>
-              <p
-                className={`font-quicksand text-xs ${data.trend === "up" ? "text-green-400" : "text-red-400"}`}
-              >
-                {data.change} from last week
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
-          {/* Real-time Visitors */}
-          <div className="xl:col-span-2">
-            <div className="rounded-2xl border border-gray-700 bg-gray-800 p-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="font-cinzel text-2xl font-bold text-white">
-                  Real-time Visitors
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <div className="h-2 w-2 animate-ping rounded-full bg-green-500"></div>
-                  <span className="font-quicksand text-sm text-green-400">
-                    Live
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4">
-                {analyticsData.realTimeVisitors.map((visitor) => (
-                  <div
-                    key={visitor.id}
-                    className="flex items-center justify-between rounded-xl border border-gray-600 bg-gray-700/50 p-4 transition-all duration-300 hover:border-purple-500"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="text-2xl">{visitor.flag}</div>
-                      <div>
-                        <p className="font-quicksand font-medium text-white">
-                          {visitor.ip}
-                        </p>
-                        <p className="font-quicksand text-sm text-gray-400">
-                          {visitor.city}, {visitor.country}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="text-center">
-                        <p className="font-quicksand text-sm text-gray-400">
-                          Device
-                        </p>
-                        <p className="font-quicksand text-white">
-                          {visitor.device}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-quicksand text-sm text-gray-400">
-                          Pages
-                        </p>
-                        <p className="font-quicksand text-white">
-                          {visitor.pages}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-quicksand text-sm text-gray-400">
-                          Time
-                        </p>
-                        <p className="font-quicksand text-green-400">
-                          {visitor.time}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        {loading && (
+          <div className="flex h-64 items-center justify-center">
+            <div className="text-center">
+              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-blue-600" />
+              <p className="mt-4 text-gray-600">Loading analytics data...</p>
             </div>
           </div>
+        )}
 
-          {/* Traffic Sources */}
-          <div className="space-y-8">
-            <div className="rounded-2xl border border-gray-700 bg-gray-800 p-6">
-              <h2 className="font-cinzel mb-6 text-2xl font-bold text-white">
-                Traffic Sources
-              </h2>
-              <div className="space-y-4">
-                {analyticsData.trafficSources.map((source, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-quicksand text-white">
-                        {source.source}
-                      </span>
-                      <span className="font-quicksand text-gray-400">
-                        {source.percentage}%
+        {!loading && (
+          <>
+            {/* Stats Grid */}
+            <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard
+                title="Total Visitors"
+                value={totalVisitors}
+                icon={Users}
+                color="bg-blue-600"
+                subValue={`${totalPageViews} page views`}
+              />
+              <StatCard
+                title="Countries"
+                value={uniqueCountries}
+                icon={Globe}
+                color="bg-green-600"
+                subValue="unique locations"
+              />
+              <StatCard
+                title="Devices"
+                value={uniqueDevices}
+                icon={Smartphone}
+                color="bg-purple-600"
+                subValue="types detected"
+              />
+              <StatCard
+                title="Avg. Visits"
+                value={
+                  totalVisitors
+                    ? (totalPageViews / totalVisitors).toFixed(1)
+                    : 0
+                }
+                icon={TrendingUp}
+                color="bg-orange-600"
+                subValue="per visitor"
+              />
+            </div>
+
+            {/* Charts Grid */}
+            <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Daily Visits Trend */}
+              <ChartCard title="Daily Visit Trend">
+                {dailyVisits.labels.length > 0 ? (
+                  <Line
+                    data={{
+                      labels: dailyVisits.labels,
+                      datasets: [
+                        {
+                          label: "Visits",
+                          data: dailyVisits.data,
+                          borderColor: "#0088FE",
+                          backgroundColor: "rgba(0, 136, 254, 0.1)",
+                          tension: 0.3,
+                          fill: true,
+                          pointBackgroundColor: "#0088FE",
+                          pointBorderColor: "#fff",
+                          pointBorderWidth: 2,
+                          pointRadius: 4,
+                        },
+                      ],
+                    }}
+                    options={chartOptions}
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-400">No data available</p>
+                  </div>
+                )}
+              </ChartCard>
+
+              {/* Top Countries */}
+              <ChartCard title="Top Countries">
+                {countryStats.labels.length > 0 ? (
+                  <Bar
+                    data={{
+                      labels: countryStats.labels,
+                      datasets: [
+                        {
+                          label: "Visitors",
+                          data: countryStats.data,
+                          backgroundColor: colors,
+                          borderRadius: 4,
+                        },
+                      ],
+                    }}
+                    options={chartOptions}
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-400">No data available</p>
+                  </div>
+                )}
+              </ChartCard>
+
+              {/* Device Distribution */}
+              <ChartCard title="Device Distribution">
+                {deviceStats.labels.length > 0 ? (
+                  <Pie
+                    data={{
+                      labels: deviceStats.labels,
+                      datasets: [
+                        {
+                          data: deviceStats.data,
+                          backgroundColor: colors,
+                          borderWidth: 2,
+                          borderColor: "#fff",
+                        },
+                      ],
+                    }}
+                    options={pieOptions}
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-gray-400">No data available</p>
+                  </div>
+                )}
+              </ChartCard>
+
+              {/* Recent Activity */}
+              <ChartCard title="Recent Activity">
+                <div className="h-full overflow-auto">
+                  {visitors.slice(0, 5).map((v, idx) => (
+                    <div
+                      key={v.uuid || idx}
+                      className="mb-3 flex items-center justify-between border-b pb-2 last:border-0"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {v.ip}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {v.country} • {v.device} • {v.browser}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {formatDate(v.created_at)}
                       </span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-gray-700">
-                      <div
-                        className={`h-2 rounded-full bg-gradient-to-r ${source.color}`}
-                        style={{ width: `${source.percentage}%` }}
-                      ></div>
-                    </div>
-                    <p className="font-quicksand text-sm text-gray-400">
-                      {source.visitors.toLocaleString()} visitors
+                  ))}
+                  {visitors.length === 0 && (
+                    <p className="text-center text-gray-400">
+                      No recent activity
+                    </p>
+                  )}
+                </div>
+              </ChartCard>
+            </div>
+
+            {/* Visitors Table */}
+            <div className="rounded-xl bg-white p-6 shadow-lg">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Recent Visitors
+                </h3>
+                <span className="text-sm text-gray-500">
+                  Total: {totalVisitors} visitors
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {[
+                        "Visitor",
+                        "Location",
+                        "Device",
+                        "Browser",
+                        "Visits",
+                        "Last Visit",
+                      ].map((header) => (
+                        <th
+                          key={header}
+                          className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {visitors.slice(0, 10).map((v) => (
+                      <tr
+                        key={v.uuid}
+                        className="transition-colors hover:bg-gray-50"
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {v.ip}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {v.flag && (
+                              <img
+                                src={v.flag}
+                                alt={v.country}
+                                className="mr-2 h-4 w-5 rounded-sm object-cover"
+                              />
+                            )}
+                            <span className="text-sm text-gray-900">
+                              {v.country || "Unknown"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-900">
+                          {v.device || "Unknown"}
+                        </td>
+                        <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-900">
+                          {v.browser || "Unknown"}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
+                            {v.visit_count || 1}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-500">
+                          {formatDate(v.last_visit)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {visitors.length === 0 && (
+                  <div className="py-12 text-center">
+                    <Activity className="mx-auto h-12 w-12 text-gray-400" />
+                    <p className="mt-4 text-gray-500">No visitors yet</p>
+                    <p className="text-sm text-gray-400">
+                      Visitors will appear here once they start coming to your
+                      site
                     </p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
-
-            {/* Top Pages */}
-            <div className="rounded-2xl border border-gray-700 bg-gray-800 p-6">
-              <h2 className="font-cinzel mb-6 text-2xl font-bold text-white">
-                Top Pages
-              </h2>
-              <div className="space-y-4">
-                {analyticsData.topPages.map((page, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg bg-gray-700/30 p-3 transition-colors duration-300 hover:bg-gray-700/50"
-                  >
-                    <div>
-                      <p className="font-quicksand text-white">{page.page}</p>
-                      <p className="font-quicksand text-sm text-gray-400">
-                        {page.visitors.toLocaleString()} visitors
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-quicksand text-white">
-                        {page.duration}
-                      </p>
-                      <p className="font-quicksand text-sm text-gray-400">
-                        Bounce: {page.bounce}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Map Visualization Placeholder */}
-        <div className="mt-8 rounded-2xl border border-gray-700 bg-gray-800 p-6">
-          <h2 className="font-cinzel mb-6 text-2xl font-bold text-white">
-            Visitor Geographic Distribution
-          </h2>
-          <div className="flex h-64 items-center justify-center rounded-xl border-2 border-dashed border-gray-600 bg-gradient-to-br from-gray-700 to-gray-800">
-            <div className="text-center">
-              <svg
-                className="mx-auto mb-4 h-16 w-16 text-gray-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                />
-              </svg>
-              <p className="font-quicksand text-gray-400">
-                World map visualization
-              </p>
-              <p className="font-quicksand text-sm text-gray-500">
-                Will display when IP data is available
-              </p>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
