@@ -7,6 +7,8 @@ import UnauthorizedPage from "./components/UnauthorizedPage";
 import { ScrollToTopHandler } from "./ui/ScrollToTop";
 import JobPostings from "./admin/contractor/JobPostings";
 import JobPostingForm from "./admin/contractor/JobPostingForm";
+import ContractorLogin from "./pages/contractor/contractorLogin";
+import { useTrackVisitor } from "./hooks/useTrackVisitor";
 
 // Lazy load main pages
 const Home = React.lazy(() => import("./pages/Home"));
@@ -46,6 +48,8 @@ const VisitorAnalytics = React.lazy(
 const FAQ = React.lazy(() => import("./admin/faq/FAQ"));
 
 function App() {
+  useTrackVisitor({ trackOnMount: true });
+
   return (
     <Router>
       <div className="App">
