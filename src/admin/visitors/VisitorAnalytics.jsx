@@ -460,7 +460,7 @@ const VisitorAnalytics = () => {
                       ].map((header) => (
                         <th
                           key={header}
-                          className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                         >
                           {header}
                         </th>
@@ -473,12 +473,12 @@ const VisitorAnalytics = () => {
                         key={v.uuid}
                         className="transition-colors hover:bg-gray-50"
                       >
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="whitespace-nowrap px-4 py-3">
                           <div className="text-sm font-medium text-gray-900">
                             {v.ip}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="whitespace-nowrap px-4 py-3">
                           <div className="flex items-center">
                             {v.flag && (
                               <img
@@ -492,18 +492,18 @@ const VisitorAnalytics = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-900">
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {v.device || "Unknown"}
                         </td>
-                        <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-900">
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                           {v.browser || "Unknown"}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="whitespace-nowrap px-4 py-3">
                           <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800">
                             {v.visit_count || 1}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-500">
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
                           {formatDate(v.last_visit)}
                         </td>
                       </tr>
