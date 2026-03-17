@@ -35,7 +35,7 @@ const Services = () => {
   const services = [
     {
       name: "Residential Cleaning",
-      image: img1,
+      image: img5,
       description:
         "Transform your living space into a pristine sanctuary with our comprehensive residential cleaning services.",
       features: [
@@ -46,7 +46,7 @@ const Services = () => {
         "Customizable cleaning schedules",
       ],
       price: "Starting at $150",
-      images: [img1, img6, img4],
+      images: [img5, img6, img4],
     },
     {
       name: "Commercial Cleaning",
@@ -65,7 +65,7 @@ const Services = () => {
     },
     {
       name: "Deep Cleaning",
-      image: img3,
+      image: img19,
       description:
         "Thorough cleaning that reaches every corner, perfect for seasonal cleaning or move-in/move-out.",
       features: [
@@ -76,11 +76,11 @@ const Services = () => {
         "Cabinet organization",
       ],
       price: "Starting at $250",
-      images: [img3, img9, img8],
+      images: [img19, img9, img8],
     },
     {
       name: "Organization",
-      image: img12,
+      image: img7,
       description:
         "Create harmonious and functional spaces with our professional organization services.",
       features: [
@@ -91,11 +91,11 @@ const Services = () => {
         "Decluttering services",
       ],
       price: "Starting at $200",
-      images: [img12, img10, img11],
+      images: [img7, img10, img11],
     },
     {
       name: "Powerwashing",
-      image: img5,
+      image: img9,
       description:
         "Restore your property's exterior to its original beauty with our professional powerwashing services.",
       features: [
@@ -110,7 +110,7 @@ const Services = () => {
     },
     {
       name: "Junk Removal",
-      image: img6,
+      image: img11,
       description:
         "Efficient and responsible removal of unwanted items, from household clutter to construction debris.",
       features: [
@@ -121,11 +121,11 @@ const Services = () => {
         "Donation coordination",
       ],
       price: "Starting at $100",
-      images: [img6, img13, img8],
+      images: [img11, img13, img8],
     },
     {
       name: "Packing & Unpacking",
-      image: img7,
+      image: img20,
       description:
         "Stress-free moving experience with our professional packing and unpacking services.",
       features: [
@@ -136,11 +136,11 @@ const Services = () => {
         "Setup and organization",
       ],
       price: "Custom quotes available",
-      images: [img7, img17, img20],
+      images: [img20, img17, img20],
     },
     {
       name: "Personal Assistant",
-      image: img14,
+      image: img17,
       description:
         "Simplify your life with our personalized assistance services for busy professionals and families.",
       features: [
@@ -151,7 +151,7 @@ const Services = () => {
         "Personal organization",
       ],
       price: "$45/hour",
-      images: [img14, img10, img15],
+      images: [img17, img10, img15],
     },
   ];
 
