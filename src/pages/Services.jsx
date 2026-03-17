@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -26,6 +25,7 @@ import img17 from "../assets/img17.jpg";
 import img19 from "../assets/img19.jpg";
 import img20 from "../assets/img20.jpg";
 import logo from "../assets/logo.jpg";
+import logo2 from "../assets/logo2.jpg";
 import icon from "../assets/favicon.jpg";
 
 const Services = () => {
@@ -60,22 +60,47 @@ const Services = () => {
         "Floor and carpet care",
         "After-hours service available",
       ],
-      price: "Custom quotes available",
       images: [img2, img13, img19],
     },
     {
       name: "Deep Cleaning",
       image: img19,
       description:
-        "Thorough cleaning that reaches every corner, perfect for seasonal cleaning or move-in/move-out.",
+        "Deep cleaning is a comprehensive and thorough process that goes beyond typical surface-level cleaning to remove built-up dirt, grime, and allergens from hard-to-reach areas. It is a more extensive and detailed service than regular cleaning and is typically done less frequently, such as a few times a year.",
       features: [
-        "Inside appliance cleaning",
-        "Baseboard and molding detail",
-        "Window track cleaning",
-        "Light fixture dusting",
-        "Cabinet organization",
+        "Frequency - Less frequent, often performed quarterly or binually.",
+        "Thoroughness - Intense, detailed scrubbing and sanitizing that targets neglected and hard-to-reach areas.",
+        "Areas Covered - Includes everything in a regular cleaning, plus neglected areas like appliances, behind furniture, and blinds.",
+        "Specialized Tasks - Often involves specialized equipment for tasks like carpet shampooing, scrubbing grout, and removing soap scum.",
+        "Purpose - Aims to remove deep-seated dirt, bacteria, and allergens, improving overall air quality and hygiene.",
       ],
-      price: "Starting at $250",
+      examples: {
+        Kitchen: [
+          "Appliances: Inside and outside of the oven, microwave, and refrigerator are cleaned",
+          "Cabinets: The inside are emptied and wiped clean",
+          "Behind and under appliances: Areas often missed during regular cleaning, like the stovetop and refrigerator, are pulled out and cleaned",
+          "Grime removal: Sinks, faucets, and backsplashes are degreased and sanitized.",
+        ],
+        Bathroom: [
+          "Grout and tile: Scrubbed to remove grime and mold",
+          "Fixtures: Taps, showerheads, and shower doors are descaled and polished.",
+          "Hard-to-reach areas: Includes disinfecting behind the toilets and wiping down baseboard and door frames",
+          "Ventilation: Exhaust fan and duct cleaning",
+        ],
+        General: [
+          "Floors and carpets: Vacuums and mops reach under and behind all furniture. Carpets may be shampooed",
+          "Windows and blinds: Windows and their tracks are cleaned, and blinds are washed.",
+          "Light fixtures: Ceiling fans and light fixtures are dusted and wiped down.",
+          "Upholstery: Vacuums or specialised cleaners are used to deep clean upholstered furniture, removing hidden dirt and allergens.",
+        ],
+      },
+      necessity: [
+        "Before or after moving into a new home.",
+        "During seasonal cleaning, such as spring/fall cleaning.",
+        "After home renovations, to clear dust and debris.",
+        "For a fresher, healthier environment if you have pets, small children, or resident or residents with allergies or asthma.",
+        "Before hosting a large event.",
+      ],
       images: [img19, img9, img8],
     },
     {
@@ -105,8 +130,7 @@ const Services = () => {
         "Fence and gate maintenance",
         "Eco-friendly cleaning solutions",
       ],
-      price: "Starting at $175",
-      images: [img5, img16, img19],
+      images: [img9, img16, img19],
     },
     {
       name: "Junk Removal",
@@ -155,49 +179,6 @@ const Services = () => {
     },
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-      },
-    },
-  };
-
-  const modalVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-      },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.8,
-      transition: {
-        duration: 0.2,
-      },
-    },
-  };
-
   const openModal = (service) => {
     setSelectedService(service);
     setCurrentImageIndex(0);
@@ -231,54 +212,30 @@ const Services = () => {
       {/* Services Grid */}
       <div className="min-h-screen bg-gray-50 px-4 py-16">
         <div className="mx-auto max-w-6xl">
-          <motion.div
-            className="grid grid-cols-1 gap-8 md:grid-cols-3"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* Service Items */}
-            {services.map((service, index) => (
-              <motion.div
+            {services.map((service) => (
+              <div
                 key={service.name}
-                variants={itemVariants}
-                className="group relative cursor-pointer overflow-hidden rounded-xl bg-white shadow-lg transition-all duration-300 hover:shadow-2xl"
+                className="group relative cursor-pointer overflow-hidden rounded-xl bg-white shadow-lg transition-shadow hover:shadow-2xl"
                 onClick={() => openModal(service)}
               >
                 {/* Image Container */}
                 <div className="relative h-64 overflow-hidden">
-                  <motion.img
+                  <img
                     src={service.image}
                     alt={service.name}
                     className="h-full w-full object-cover"
-                    whileHover={{
-                      scale: 1.15,
-                      rotate: [0, -0.5, 0.5, 0],
-                      transition: {
-                        duration: 0.6,
-                        ease: "easeInOut",
-                        scale: { duration: 0.4 },
-                      },
-                    }}
                   />
                   {/* Overlay with View Details */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-all duration-300 group-hover:bg-black/20">
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      className="text-center text-white"
-                    >
-                      <div className="font-cinzel mb-1 text-lg font-semibold">
-                        View Details
-                      </div>
-                      <div className="mx-auto h-0.5 w-8 bg-white"></div>
-                    </motion.div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="text-center text-white"></div>
                   </div>
                 </div>
 
                 {/* Service Name */}
                 <div className="p-6 text-center">
-                  <h3 className="font-lora group-hover:spiffy-text text-xl font-semibold text-gray-800 transition-colors duration-300">
+                  <h3 className="font-lora text-xl font-semibold text-gray-800">
                     {service.name}
                   </h3>
                   <p className="font-quicksand mt-2 text-sm text-gray-500">
@@ -287,14 +244,13 @@ const Services = () => {
                 </div>
 
                 {/* Hover Border Effect */}
-                <div className="absolute inset-0 rounded-xl border-2 border-transparent transition-all duration-300 group-hover:border-purple-400 group-hover:shadow-lg" />
-              </motion.div>
+                <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-purple-400" />
+              </div>
             ))}
 
             {/* Center Logo Card */}
-            <motion.div
-              variants={itemVariants}
-              className="group relative cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-white shadow-lg transition-all duration-300 hover:shadow-2xl md:col-start-2 md:row-start-2"
+            <div
+              className="group spiffy-bg relative cursor-pointer overflow-hidden rounded-xl shadow-lg hover:shadow-2xl md:col-start-2 md:row-start-2"
               onClick={() =>
                 openModal({
                   name: "SpiffyFox",
@@ -313,46 +269,11 @@ const Services = () => {
               }
             >
               <div className="relative h-64 overflow-hidden">
-                <motion.img
-                  src={logo}
+                <img
+                  src={logo2}
                   alt="SpiffyFox Logo"
                   className="h-full w-full object-contain p-8"
-                  whileHover={{
-                    scale: 1.1,
-                    rotate: [0, -3, 3, 0],
-                    transition: {
-                      duration: 0.8,
-                      ease: "easeInOut",
-                      rotate: { duration: 1 },
-                    },
-                  }}
                 />
-                {/* Animated Background Pattern */}
-                <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      opacity: [0.3, 0.6, 0.3],
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                    }}
-                    className="spiffy-bg-light absolute top-0 left-0 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  />
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.3, 1],
-                      opacity: [0.4, 0.7, 0.4],
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      delay: 1,
-                    }}
-                    className="spiffy-bg-light absolute right-0 bottom-0 h-16 w-16 translate-x-1/2 translate-y-1/2 rounded-full"
-                  />
-                </div>
               </div>
 
               <div className="p-6 text-center">
@@ -362,24 +283,15 @@ const Services = () => {
                 <p className="font-cinzel mt-2 text-gray-600">
                   Premium Services & Expert Care
                 </p>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  whileHover={{ opacity: 1 }}
-                  className="font-quicksand mt-2 text-sm text-purple-600"
-                >
+                <div className="font-quicksand mt-2 text-sm text-purple-600">
                   Click to learn more
-                </motion.div>
+                </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Call to Action */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="mt-16 text-center"
-          >
+          <div className="mt-16 text-center">
             <h2 className="font-cormorant mb-4 text-3xl font-semibold text-gray-800">
               Ready to Transform Your Space?
             </h2>
@@ -387,129 +299,176 @@ const Services = () => {
               Experience the SpiffyFox difference with our comprehensive range
               of professional services tailored to your needs.
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="spiffy-bg font-quicksand rounded-lg px-8 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl"
-            >
+            <button className="spiffy-bg font-quicksand rounded-lg px-8 py-3 font-semibold text-white shadow-lg hover:shadow-xl">
               <Link to="/contact">Book Your Service Today</Link>
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Service Modal */}
-      <AnimatePresence>
-        {selectedService && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-            onClick={closeModal}
+      {selectedService && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={closeModal}
+        >
+          <div
+            className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 z-10 rounded-full bg-white/90 p-2 text-gray-600 hover:bg-white hover:text-gray-800"
             >
-              {/* Close Button */}
-              <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 z-10 rounded-full bg-white/90 p-2 text-gray-600 transition-all hover:bg-white hover:text-gray-800"
-              >
-                <CloseIcon />
-              </button>
+              <CloseIcon />
+            </button>
 
-              {/* Image Gallery */}
-              <div className="relative h-80 overflow-hidden bg-gray-100 sm:h-96">
-                <motion.img
-                  key={currentImageIndex}
-                  src={selectedService.images[currentImageIndex]}
-                  alt={selectedService.name}
-                  className="h-full w-full object-cover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
+            {/* Image Gallery */}
+            <div className="relative h-80 overflow-hidden bg-gray-100 sm:h-96">
+              <img
+                src={selectedService.images[currentImageIndex]}
+                alt={selectedService.name}
+                className="h-full w-full object-cover"
+              />
 
-                {/* Navigation Arrows */}
-                {selectedService.images.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-700 transition-all hover:bg-white hover:text-gray-900"
-                    >
-                      <PrevIcon fontSize="small" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-700 transition-all hover:bg-white hover:text-gray-900"
-                    >
-                      <NextIcon fontSize="small" />
-                    </button>
-                  </>
-                )}
+              {/* Navigation Arrows */}
+              {selectedService.images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-700 hover:bg-white hover:text-gray-900"
+                  >
+                    <PrevIcon fontSize="small" />
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-700 hover:bg-white hover:text-gray-900"
+                  >
+                    <NextIcon fontSize="small" />
+                  </button>
+                </>
+              )}
 
-                {/* Image Indicators */}
-                <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 space-x-2">
-                  {selectedService.images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`h-2 w-2 rounded-full transition-all ${
-                        index === currentImageIndex ? "bg-white" : "bg-white/50"
-                      }`}
-                    />
+              {/* Image Indicators */}
+              <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 space-x-2">
+                {selectedService.images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`h-2 w-2 rounded-full ${
+                      index === currentImageIndex ? "bg-white" : "bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-8">
+              <h2 className="font-cinzel mb-4 text-3xl font-bold text-gray-800">
+                {selectedService.name}
+              </h2>
+
+              <p className="font-quicksand mb-6 text-lg leading-relaxed text-gray-600">
+                {selectedService.description}
+              </p>
+
+              <div className="mb-6">
+                <h3 className="font-cormorant mb-3 text-xl font-semibold text-gray-800">
+                  Service Features
+                </h3>
+                <ul className="font-quicksand space-y-2 text-gray-600">
+                  {selectedService.features.map((feature, index) => (
+                    <li key={index} className="flex items-center">
+                      <div className="spiffy-bg mr-3 h-1.5 w-1.5 rounded-full"></div>
+                      {feature}
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
 
-              {/* Content */}
-              <div className="p-8">
-                <h2 className="font-cinzel mb-4 text-3xl font-bold text-gray-800">
-                  {selectedService.name}
-                </h2>
-
-                <p className="font-quicksand mb-6 text-lg leading-relaxed text-gray-600">
-                  {selectedService.description}
-                </p>
-
+              {/* Examples Section */}
+              {selectedService.examples && (
                 <div className="mb-6">
                   <h3 className="font-cormorant mb-3 text-xl font-semibold text-gray-800">
-                    Service Features
+                    What's Included
                   </h3>
-                  <ul className="font-quicksand space-y-2 text-gray-600">
-                    {selectedService.features.map((feature, index) => (
-                      <li key={index} className="flex items-center">
-                        <div className="spiffy-bg mr-3 h-1.5 w-1.5 rounded-full"></div>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="flex items-center justify-between border-t pt-6">
-                  <div className="font-cormorant spiffy-text text-2xl font-semibold">
-                    {selectedService.price}
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {Object.entries(selectedService.examples).map(
+                      ([category, items]) => (
+                        <div
+                          key={category}
+                          className="rounded-lg bg-purple-50 p-4"
+                        >
+                          <h4 className="font-cormorant mb-2 font-semibold text-gray-800">
+                            {category}
+                          </h4>
+                          <ul className="font-quicksand space-y-1 text-sm text-gray-600">
+                            {items.map((item, index) => (
+                              <li key={index} className="flex items-start">
+                                <div className="spiffy-bg mt-1.5 mr-2 h-1.5 w-1.5 flex-shrink-0 rounded-full"></div>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ),
+                    )}
                   </div>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="spiffy-bg font-quicksand rounded-lg px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl"
-                    onClick={closeModal}
-                  >
-                    <Link to="/contact">Book This Service</Link>
-                  </motion.button>
                 </div>
+              )}
+
+              {/* Necessity Section */}
+              {selectedService.necessity && (
+                <div className="mb-6">
+                  <h3 className="font-cormorant mb-3 text-xl font-semibold text-gray-800">
+                    When You Need This Service
+                  </h3>
+                  <div className="rounded-lg bg-purple-50 p-4">
+                    <ul className="font-quicksand space-y-2 text-gray-600">
+                      {selectedService.necessity.map((item, index) => (
+                        <li key={index} className="flex items-center">
+                          <div className="mr-3 h-1.5 w-1.5 rounded-full bg-purple-400"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Sections */}
+              {selectedService.benefits && (
+                <div className="mb-6">
+                  <h3 className="font-cormorant mb-3 text-xl font-semibold text-gray-800">
+                    Key Benefits
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {selectedService.benefits.map((benefit, index) => (
+                      <div key={index} className="rounded-lg bg-green-50 p-3">
+                        <p className="font-quicksand text-sm text-gray-600">
+                          {benefit}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Price and CTA */}
+              <div className="flex items-center justify-between border-t pt-6">
+                <div className="font-cormorant spiffy-text text-2xl font-semibold">
+                  {selectedService.price}
+                </div>
+                <button className="spiffy-bg font-quicksand rounded-lg px-6 py-3 font-semibold text-white shadow-lg hover:shadow-xl">
+                  <Link to="/contact">Book This Service</Link>
+                </button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

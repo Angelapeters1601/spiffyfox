@@ -1,7 +1,535 @@
+import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "../services/supabaseClient";
+import {
+  FaHome,
+  FaBuilding,
+  FaBroom,
+  FaBoxes,
+  FaSprayCan,
+  FaTrash,
+  FaBoxOpen,
+  FaHandsHelping,
+  FaStar,
+  FaShieldAlt,
+  FaRecycle,
+  FaClock,
+  FaPlay,
+  FaEye,
+  FaRegClock,
+} from "react-icons/fa";
+
+// Import fallback images
+import tip1 from "../assets/img1.jpg";
+import tip2 from "../assets/img2.jpg";
+import tip3 from "../assets/img3.jpg";
+import tip4 from "../assets/img4.jpg";
+import tip5 from "../assets/img5.jpg";
+import tip6 from "../assets/img6.jpg";
+import tip7 from "../assets/img7.jpg";
+import tip8 from "../assets/img8.jpg";
+
 const Tip = () => {
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const services = [
+    {
+      id: 1,
+      title: "Residential Cleaning",
+      icon: <FaHome className="text-2xl sm:text-3xl" />,
+      description:
+        "Transform your living space into a sanctuary of cleanliness and comfort with our expert residential cleaning services.",
+      fallbackImage: tip1,
+      color: "from-purple-500 to-purple-600",
+      badgeColor: "bg-purple-100 text-purple-700 border-purple-200",
+    },
+    {
+      id: 2,
+      title: "Commercial Cleaning",
+      icon: <FaBuilding className="text-2xl sm:text-3xl" />,
+      description:
+        "Maintain a professional, hygienic workspace that boosts productivity and impresses clients.",
+      fallbackImage: tip2,
+      color: "from-blue-500 to-blue-600",
+      badgeColor: "bg-blue-100 text-blue-700 border-blue-200",
+    },
+    {
+      id: 3,
+      title: "Deep Cleaning",
+      icon: <FaBroom className="text-2xl sm:text-3xl" />,
+      description:
+        "Go beyond surface cleaning with our intensive deep cleaning solutions for a truly pristine environment.",
+      fallbackImage: tip3,
+      color: "from-green-500 to-green-600",
+      badgeColor: "bg-green-100 text-green-700 border-green-200",
+    },
+    {
+      id: 4,
+      title: "Organization",
+      icon: <FaBoxes className="text-2xl sm:text-3xl" />,
+      description:
+        "Create harmonious, efficient spaces through strategic organization and systematic decluttering.",
+      fallbackImage: tip4,
+      color: "from-orange-500 to-orange-600",
+      badgeColor: "bg-orange-100 text-orange-700 border-orange-200",
+    },
+    {
+      id: 5,
+      title: "Power Washing",
+      icon: <FaSprayCan className="text-2xl sm:text-3xl" />,
+      description:
+        "Restore your property's exterior to its original glory with professional-grade power washing.",
+      fallbackImage: tip5,
+      color: "from-red-500 to-red-600",
+      badgeColor: "bg-red-100 text-red-700 border-red-200",
+    },
+    {
+      id: 6,
+      title: "Junk Removal",
+      icon: <FaTrash className="text-2xl sm:text-3xl" />,
+      description:
+        "Efficient, eco-friendly junk removal that clears your space while respecting the environment.",
+      fallbackImage: tip6,
+      color: "from-indigo-500 to-indigo-600",
+      badgeColor: "bg-indigo-100 text-indigo-700 border-indigo-200",
+    },
+    {
+      id: 7,
+      title: "Packing & Unpacking",
+      icon: <FaBoxOpen className="text-2xl sm:text-3xl" />,
+      description:
+        "Stress-free relocation services with meticulous packing, secure transport, and organized unpacking.",
+      fallbackImage: tip7,
+      color: "from-pink-500 to-pink-600",
+      badgeColor: "bg-pink-100 text-pink-700 border-pink-200",
+    },
+    {
+      id: 8,
+      title: "Personal Assistance",
+      icon: <FaHandsHelping className="text-2xl sm:text-3xl" />,
+      description:
+        "Comprehensive personal assistance services designed to simplify your life and save you time.",
+      fallbackImage: tip8,
+      color: "from-teal-500 to-teal-600",
+      badgeColor: "bg-teal-100 text-teal-700 border-teal-200",
+    },
+  ];
+
+  // Fetch videos from Supabase
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("admin_tips")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        console.log("Fetched videos for frontend:", data);
+        setVideos(data || []);
+      } catch (err) {
+        console.error("Error fetching videos:", err);
+        setError("Failed to load training videos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
+  // Utility functions
+  const extractYouTubeId = (url) => {
+    if (!url) return null;
+    if (url.includes("youtu.be/")) {
+      return url.split("youtu.be/")[1].split(/[?&#]/)[0];
+    }
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  const formatDuration = (seconds) => {
+    if (!seconds || isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  const formatViews = (count) => {
+    if (!count || isNaN(count)) return "0 views";
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M views`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K views`;
+    return `${count} views`;
+  };
+
+  // Get videos for a specific service
+  const getServiceVideos = (serviceName) => {
+    return videos.filter((video) => video.service === serviceName);
+  };
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="text-center">
+          <h2 className="font-cinzel mb-4 text-xl font-bold text-gray-800 sm:text-2xl">
+            Error Loading Content
+          </h2>
+          <p className="font-quicksand text-sm text-gray-600 sm:text-base">
+            {error}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="font-cinzel spiffy-bg-light flex justify-center p-12 text-4xl font-bold text-white">
-      Tips
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="font-cinzel spiffy-bg-light relative flex items-center justify-center p-8 text-3xl font-bold text-white sm:p-12 sm:text-4xl md:p-16 md:text-5xl">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="relative z-10 text-center">
+            Expert Tips & Training
+          </div>
+        </div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 mx-auto max-w-4xl px-4 py-8 text-center sm:py-12">
+          <h2 className="font-cinzel mb-4 text-2xl font-bold text-gray-800 sm:mb-6 sm:text-3xl">
+            Professional Training & Mastery
+          </h2>
+          <p className="font-quicksand text-base leading-relaxed text-gray-600 sm:text-lg md:text-xl">
+            Access our comprehensive library of professional training videos.
+            Learn expert techniques, proven methods, and industry secrets from
+            SpiffyFox professionals.
+          </p>
+        </div>
+      </div>
+
+      {/* Features Grid */}
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
+        <div className="mb-12 grid grid-cols-1 gap-4 sm:mb-16 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              icon: <FaStar />,
+              text: "Expert Verified",
+              color: "text-yellow-500",
+            },
+            {
+              icon: <FaShieldAlt />,
+              text: "Proven Methods",
+              color: "text-green-500",
+            },
+            {
+              icon: <FaRecycle />,
+              text: "Eco-Friendly",
+              color: "text-blue-500",
+            },
+            {
+              icon: <FaClock />,
+              text: "Time-Saving",
+              color: "text-purple-500",
+            },
+          ].map((feature, index) => (
+            <div
+              key={index}
+              className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-lg sm:p-6"
+            >
+              <div
+                className={`${feature.color} mb-3 flex justify-center text-2xl sm:mb-4 sm:text-3xl`}
+              >
+                {feature.icon}
+              </div>
+              <h3 className="font-cinzel text-base font-semibold text-gray-800 sm:text-lg">
+                {feature.text}
+              </h3>
+            </div>
+          ))}
+        </div>
+
+        {/* Services Sections */}
+        <div className="space-y-12 sm:space-y-20">
+          {services.map((service, index) => {
+            const serviceVideos = getServiceVideos(service.title);
+            const isLastService = index === services.length - 1;
+
+            return (
+              <div key={service.id}>
+                <section
+                  className={`flex flex-col ${index % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-6 sm:gap-8 lg:gap-12`}
+                >
+                  {/* Image/Video Section */}
+                  <div className="w-full flex-1">
+                    <div className="group relative">
+                      <div className="relative overflow-hidden rounded-2xl shadow-2xl sm:rounded-3xl">
+                        <img
+                          src={service.fallbackImage}
+                          alt={service.title}
+                          className="h-64 w-full object-cover sm:h-72 md:h-80 lg:h-96"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
+                        <div className="absolute right-3 bottom-3 left-3 text-white sm:right-4 sm:bottom-4 sm:left-4">
+                          <p className="font-quicksand text-xs font-medium sm:text-sm">
+                            {serviceVideos.length} Training Videos Available
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content Section */}
+                  <div className="w-full flex-1 space-y-4 sm:space-y-6">
+                    {/* Service Header */}
+                    <div className="mb-4 flex items-center space-x-3 sm:mb-6 sm:space-x-4">
+                      <div
+                        className={`rounded-2xl bg-gradient-to-r p-3 sm:p-4 ${service.color} text-white shadow-lg`}
+                      >
+                        {service.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-cinzel text-2xl font-bold text-gray-800 sm:text-3xl">
+                          {service.title}
+                        </h3>
+                        <div
+                          className={`h-1 w-16 bg-gradient-to-r sm:w-20 ${service.color} mt-2 rounded-full`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="font-quicksand text-base leading-relaxed text-gray-600 sm:text-lg">
+                      {service.description}
+                    </p>
+
+                    {/* Video Stats */}
+                    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-lg sm:p-6">
+                      <h4 className="font-cinzel mb-3 text-lg font-semibold text-gray-800 sm:mb-4 sm:text-xl">
+                        Training Library
+                      </h4>
+
+                      {loading ? (
+                        <div className="flex items-center justify-center py-6 sm:py-8">
+                          <div className="h-6 w-6 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 sm:h-8 sm:w-8"></div>
+                        </div>
+                      ) : serviceVideos.length > 0 ? (
+                        <div className="space-y-3 sm:space-y-4">
+                          <p className="font-quicksand text-sm text-gray-600 sm:text-base">
+                            <strong>{serviceVideos.length}</strong> professional
+                            training video
+                            {serviceVideos.length !== 1 ? "s" : ""} available
+                          </p>
+
+                          {/* Featured Video Preview */}
+                          <div className="group relative overflow-hidden rounded-xl border border-gray-200">
+                            <div className="relative">
+                              <img
+                                src={
+                                  serviceVideos[0].thumbnail_url ||
+                                  `https://img.youtube.com/vi/${extractYouTubeId(serviceVideos[0].url)}/hqdefault.jpg`
+                                }
+                                alt={serviceVideos[0].title}
+                                className="aspect-video w-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/30" />
+                              <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
+                                <span
+                                  className={`inline-block rounded-full border px-2 py-1 text-xs font-medium sm:px-3 ${service.badgeColor}`}
+                                >
+                                  Latest
+                                </span>
+                              </div>
+                              <div className="absolute right-2 bottom-2 left-2 text-white sm:right-4 sm:bottom-4 sm:left-4">
+                                <h5 className="font-quicksand line-clamp-1 text-sm font-semibold sm:text-base">
+                                  {serviceVideos[0].title}
+                                </h5>
+                                <div className="mt-1 flex items-center space-x-2 text-xs opacity-90 sm:mt-2 sm:space-x-4 sm:text-sm">
+                                  <span className="flex items-center space-x-1">
+                                    <FaRegClock className="text-xs" />
+                                    <span>
+                                      {formatDuration(
+                                        serviceVideos[0].duration_seconds,
+                                      )}
+                                    </span>
+                                  </span>
+                                  <span className="flex items-center space-x-1">
+                                    <FaEye className="text-xs" />
+                                    <span>
+                                      {formatViews(serviceVideos[0].views)}
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-4 text-center sm:py-6">
+                          <FaPlay className="mx-auto mb-2 text-2xl text-gray-300 sm:mb-3 sm:text-3xl" />
+                          <p className="font-quicksand text-sm text-gray-500 sm:text-base">
+                            Training videos coming soon
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Call to Action */}
+                    <div className="inline-block">
+                      <a
+                        href="#videos-section"
+                        className={`font-quicksand bg-gradient-to-r px-4 py-2 sm:px-6 sm:py-3 ${service.color} flex items-center space-x-2 rounded-xl text-sm font-semibold text-white shadow-lg sm:text-base`}
+                      >
+                        <FaPlay className="text-xs sm:text-sm" />
+                        <span>Watch Training Videos</span>
+                      </a>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Horizontal Separator - Don't show after last service */}
+                {!isLastService && (
+                  <div className="mt-12 flex justify-center sm:mt-20">
+                    <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-gray-500 to-transparent" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* All Videos Section */}
+        <section id="videos-section" className="mt-12 sm:mt-20">
+          <div className="mb-8 text-center sm:mb-12">
+            <h2 className="font-cinzel mb-3 text-2xl font-bold text-gray-800 sm:mb-4 sm:text-3xl md:text-4xl">
+              Complete Training Library
+            </h2>
+            <p className="font-quicksand mx-auto max-w-2xl text-base text-gray-600 sm:text-lg md:text-xl">
+              Browse our entire collection of professional training videos
+              across all service categories
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="animate-pulse rounded-2xl bg-white p-4 shadow-lg sm:p-6"
+                >
+                  <div className="mb-3 aspect-video rounded-xl bg-gray-200 sm:mb-4"></div>
+                  <div className="mb-2 h-4 w-3/4 rounded bg-gray-200 sm:mb-3 sm:h-5"></div>
+                  <div className="h-3 w-1/2 rounded bg-gray-200 sm:h-4"></div>
+                </div>
+              ))}
+            </div>
+          ) : videos.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {videos.map((video, index) => {
+                const service = services.find((s) => s.title === video.service);
+                const youtubeId = extractYouTubeId(video.url);
+
+                return (
+                  <div
+                    key={video.id}
+                    className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"
+                  >
+                    <div className="relative">
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={
+                            video.thumbnail_url ||
+                            `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
+                          }
+                          alt={video.title}
+                          className="aspect-video w-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/30" />
+                        <div className="absolute right-2 bottom-2 rounded-lg bg-black/80 px-2 py-1 text-xs text-white backdrop-blur-sm sm:right-3 sm:bottom-3">
+                          {formatDuration(video.duration_seconds)}
+                        </div>
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
+                          <span
+                            className={`inline-block rounded-full border px-2 py-1 text-xs font-medium ${service?.badgeColor || "border-gray-200 bg-gray-100 text-gray-700"}`}
+                          >
+                            {video.service}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 sm:p-6">
+                      <h3 className="font-quicksand mb-2 line-clamp-2 text-base leading-tight font-bold text-gray-800 sm:mb-3 sm:text-lg">
+                        {video.title}
+                      </h3>
+                      <p className="font-quicksand mb-3 line-clamp-2 text-xs leading-relaxed text-gray-600 sm:mb-4 sm:text-sm">
+                        {video.description || "Professional training video"}
+                      </p>
+
+                      <div className="flex items-center justify-between text-xs text-gray-500 sm:text-sm">
+                        <div className="flex items-center space-x-1">
+                          <FaEye className="text-xs" />
+                          <span>{formatViews(video.views)}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <FaRegClock className="text-xs" />
+                          <span>{formatDuration(video.duration_seconds)}</span>
+                        </div>
+                      </div>
+
+                      <a
+                        href={`https://youtu.be/${youtubeId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-quicksand mt-3 flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-lg sm:mt-4 sm:px-4 sm:py-3 sm:text-base"
+                      >
+                        <FaPlay className="text-xs sm:text-sm" />
+                        <span>Watch Video</span>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-white/95 p-6 text-center shadow-lg backdrop-blur-sm sm:p-8 md:p-12">
+              <FaPlay className="mx-auto mb-3 text-4xl text-gray-300 sm:mb-4 sm:text-5xl" />
+              <h3 className="font-cinzel mb-2 text-lg font-medium text-gray-700 sm:text-xl">
+                No training videos available yet
+              </h3>
+              <p className="font-quicksand text-sm text-gray-500 sm:text-base">
+                Our training library is being prepared. Check back soon for
+                professional content.
+              </p>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* CTA Section */}
+      <section className="spiffy-bg py-12 text-white sm:py-16">
+        <div className="mx-auto max-w-4xl px-4 text-center">
+          <h2 className="font-cinzel mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl md:text-4xl">
+            Ready to Master Your Skills?
+          </h2>
+          <p className="font-quicksand mb-6 text-lg opacity-90 sm:mb-8 sm:text-xl">
+            Access our complete training library and learn professional
+            techniques from SpiffyFox experts.
+          </p>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+            <button className="font-quicksand rounded-xl bg-white px-6 py-3 text-sm font-semibold text-purple-600 shadow-lg sm:px-8 sm:py-4 sm:text-base">
+              <Link to="/contact">Get Professional Training</Link>
+            </button>
+            <button className="font-quicksand rounded-xl border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white hover:bg-white hover:text-purple-600 sm:px-8 sm:py-4 sm:text-base">
+              <Link to="/services">Explore All Services</Link>
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

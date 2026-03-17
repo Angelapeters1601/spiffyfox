@@ -1,7 +1,556 @@
+import img1 from "../assets/contactImg1.jpg";
+import img2 from "../assets/contactImg2.jpg";
+import Map from "../ui/Map";
+import { supabase } from "../services/supabaseClient";
+import { useState } from "react";
+
 const Contact = () => {
+  const [contactForm, setContactForm] = useState({
+    fullName: "",
+    email: "",
+    contact: "",
+    country: "",
+    message: "",
+  });
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [contactLoading, setContactLoading] = useState(false);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+  const [contactError, setContactError] = useState("");
+  const [newsletterError, setNewsletterError] = useState("");
+
+  // Handle contact form submission
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setContactLoading(true);
+    setContactError("");
+    setContactSuccess(false);
+
+    try {
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert([
+          {
+            full_name: contactForm.fullName,
+            email: contactForm.email,
+            phone: contactForm.contact,
+            country: contactForm.country,
+            message: contactForm.message,
+          },
+        ])
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      setContactSuccess(true);
+      setContactForm({
+        fullName: "",
+        email: "",
+        contact: "",
+        country: "",
+        message: "",
+      });
+
+      // Hide success message after 5 seconds
+      setTimeout(() => setContactSuccess(false), 5000);
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      setContactError(
+        error.message || "Failed to send message. Please try again.",
+      );
+    } finally {
+      setContactLoading(false);
+    }
+  };
+
+  // Handle newsletter subscription
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    setNewsletterLoading(true);
+    setNewsletterError("");
+    setNewsletterSuccess(false);
+
+    try {
+      const { data, error } = await supabase
+        .from("newsletter")
+        .insert([
+          {
+            email: newsletterEmail,
+            is_active: true,
+          },
+        ])
+        .select();
+
+      if (error) {
+        // If it's a duplicate email error, show success message (user is already subscribed)
+        if (error.code === "23505") {
+          setNewsletterSuccess(true);
+          setNewsletterEmail("");
+          setTimeout(() => setNewsletterSuccess(false), 5000);
+          return;
+        }
+        throw error;
+      }
+
+      setNewsletterSuccess(true);
+      setNewsletterEmail("");
+
+      // Hide success message after 5 seconds
+      setTimeout(() => setNewsletterSuccess(false), 5000);
+    } catch (error) {
+      console.error("Error subscribing to newsletter:", error);
+      setNewsletterError(
+        error.message || "Failed to subscribe. Please try again.",
+      );
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
+
+  // Handle contact form input changes
+  const handleContactChange = (e) => {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Open email app
+  const handleEmailClick = () => {
+    window.open("mailto:help@spiffyfox.com", "_blank");
+  };
+
+  // Open call app
+  const handleCallClick = () => {
+    window.open("tel:+13027037595", "_blank");
+  };
+
   return (
-    <div className="font-cinzel spiffy-bg-light flex justify-center p-12 text-4xl font-bold text-white">
-      Contact
+    <div className="min-h-screen" initial="hidden" animate="visible">
+      {/* Hero Header */}
+      <div className="font-cinzel spiffy-bg-light relative flex justify-center overflow-hidden p-14 text-5xl font-bold tracking-wider text-white">
+        <div className="absolute inset-0"></div>
+        <div className="relative z-10 text-center">
+          Here to{" "}
+          <span className="spiffy-text-dark border-b-4 border-purple-300 tracking-wider">
+            help
+          </span>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl px-4 py-10">
+        <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-2">
+          {/* Contact Form Section */}
+          <div className="rounded-2xl bg-transparent p-8 shadow-lg">
+            <div className="mb-8 text-center">
+              <h2 className="font-cinzel spiffy-text-dark mb-3 text-3xl font-bold">
+                Get In Touch
+              </h2>
+              <p className="font-quicksand text-lg text-gray-600">
+                We're here to assist you. Send us a message and we'll respond as
+                soon as possible.
+              </p>
+            </div>
+
+            {/* Success Message */}
+            {contactSuccess && (
+              <div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4"
+              >
+                <p className="font-quicksand text-center text-green-700">
+                  ✅ Thank you! Your message has been sent successfully.
+                </p>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {contactError && (
+              <div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
+              >
+                <p className="font-quicksand text-center text-red-700">
+                  ❌ {contactError}
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleContactSubmit} className="space-y-6">
+              {/* Full Name */}
+              <div>
+                <label
+                  htmlFor="fullName"
+                  className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
+                >
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={contactForm.fullName}
+                  onChange={handleContactChange}
+                  required
+                  className="font-quicksand w-full rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter your full name"
+                  disabled={contactLoading}
+                />
+              </div>
+
+              {/* Email & Contact */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
+                  >
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={contactForm.email}
+                    onChange={handleContactChange}
+                    required
+                    className="font-quicksand w-full rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                    placeholder="your@email.com"
+                    disabled={contactLoading}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="contact"
+                    className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
+                  >
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="contact"
+                    name="contact"
+                    value={contactForm.contact}
+                    onChange={handleContactChange}
+                    className="font-quicksand w-full rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                    placeholder="+1 (555) 000-0000"
+                    disabled={contactLoading}
+                  />
+                </div>
+              </div>
+
+              {/* Country */}
+              <div>
+                <label
+                  htmlFor="country"
+                  className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
+                >
+                  Country *
+                </label>
+                <select
+                  id="country"
+                  name="country"
+                  value={contactForm.country}
+                  onChange={handleContactChange}
+                  required
+                  className="font-quicksand w-full appearance-none rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                  disabled={contactLoading}
+                >
+                  <option value="">Select your country</option>
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="UK">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label
+                  htmlFor="message"
+                  className="font-quicksand mb-2 block text-sm font-semibold text-gray-700"
+                >
+                  Message *
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={contactForm.message}
+                  onChange={handleContactChange}
+                  required
+                  rows="5"
+                  className="font-quicksand w-full resize-none rounded-2xl border border-gray-300 bg-gray-200 px-4 py-3 transition-all duration-200 outline-none focus:border-transparent focus:ring-2 focus:ring-purple-500"
+                  placeholder="Tell us how we can help you..."
+                  disabled={contactLoading}
+                ></textarea>
+              </div>
+
+              {/* Submit Button */}
+              <div>
+                <button
+                  type="submit"
+                  disabled={contactLoading}
+                  className="spiffy-bg-dark font-quicksand w-full transform cursor-pointer rounded-lg px-6 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {contactLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="mr-2 h-5 w-5 rounded-full border-2 border-white border-t-transparent"
+                      />
+                      Sending...
+                    </div>
+                  ) : (
+                    "Send Message"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Image & Newsletter Section  */}
+          <div className="space-y-8">
+            {/* Contact Image */}
+            <div className="group relative">
+              <img
+                src={img1}
+                alt="Professional team collaboration"
+                className="h-100 w-full transform rounded-2xl object-cover shadow-2xl shadow-[#0c005a] transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 flex items-end rounded-2xl bg-gradient-to-t from-black/50 to-transparent p-6">
+                <div className="text-white">
+                  <h3 className="font-cinzel mb-2 text-2xl font-bold">
+                    Our Commitment
+                  </h3>
+                  <p className="font-quicksand text-sm opacity-90">
+                    Dedicated to providing exceptional service and support
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Newsletter Section */}
+            <div className="spiffy-bg-medium rounded-2xl p-8 text-white shadow-2xl">
+              <div className="mb-6 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="font-cinzel spiffy-text-dark mb-3 text-2xl font-bold">
+                  join our newsletter
+                </h2>
+                <p className="font-quicksand leading-relaxed text-purple-100">
+                  Subscribe to our newsletter and be the first to receive
+                  exclusive updates, industry insights, and special offers
+                  directly to your inbox.
+                </p>
+              </div>
+
+              {/* Newsletter Success Message */}
+              {newsletterSuccess && (
+                <div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3"
+                >
+                  <p className="font-quicksand text-center text-sm text-green-700">
+                    ✅ Successfully subscribed to our newsletter!
+                  </p>
+                </div>
+              )}
+
+              {/* Newsletter Error Message */}
+              {newsletterError && (
+                <div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
+                >
+                  <p className="font-quicksand text-center text-sm text-red-700">
+                    ❌ {newsletterError}
+                  </p>
+                </div>
+              )}
+
+              <form onSubmit={handleNewsletterSubmit} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="newsletterEmail"
+                    className="font-quicksand mb-2 block text-sm font-semibold text-purple-100"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="newsletterEmail"
+                    name="newsletterEmail"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    required
+                    className="font-quicksand w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-purple-200 transition-all duration-200 outline-none focus:border-white/30 focus:bg-white/20"
+                    placeholder="Enter your email address"
+                    disabled={newsletterLoading}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={newsletterLoading}
+                  className="font-quicksand w-full transform cursor-pointer rounded-lg bg-gray-200 px-6 py-3 font-semibold text-purple-600 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {newsletterLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="mr-2 h-4 w-4 rounded-full border-2 border-purple-600 border-t-transparent"
+                      />
+                      Subscribing...
+                    </div>
+                  ) : (
+                    "Subscribe Now"
+                  )}
+                </button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="font-quicksand text-xs text-purple-200">
+                  By subscribing, you agree to our Privacy Policy and consent to
+                  receive updates from SpiffyFox. You can unsubscribe at any
+                  time.
+                </p>
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div className="spiffy-bg-medium rounded-2xl p-6 shadow-lg">
+              <h3 className="font-cinzel spiffy-text-dark mb-6 text-center text-xl font-bold text-gray-800">
+                Quick Contact
+              </h3>
+
+              {/* Call and Email Grid */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Call Section */}
+                <div
+                  className="group cursor-pointer text-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleCallClick}
+                >
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 transition-all duration-200 group-hover:border-purple-300">
+                    <img
+                      src={img2}
+                      alt="Call us"
+                      className="mx-auto mb-3 h-20 w-20 rounded-full object-cover shadow-lg transition-all duration-200 group-hover:shadow-purple-200"
+                    />
+                    <div className="text-white">
+                      <h4 className="font-cinzel mb-2 text-lg font-bold">
+                        Call Us
+                      </h4>
+                      <p className="font-quicksand text-sm text-purple-100">
+                        +1 (302) 703-7595
+                      </p>
+                      <p className="font-quicksand mt-1 text-xs text-purple-200">
+                        Tap to call now
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email Section */}
+                <div
+                  className="group cursor-pointer text-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleEmailClick}
+                >
+                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 transition-all duration-200 group-hover:border-purple-300">
+                    <img
+                      src={img1}
+                      alt="Email us"
+                      className="mx-auto mb-3 h-20 w-20 rounded-full object-cover shadow-lg transition-all duration-200 group-hover:shadow-purple-200"
+                    />
+                    <div className="text-white">
+                      <h4 className="font-cinzel mb-2 text-lg font-bold">
+                        Email Us
+                      </h4>
+                      <p className="font-quicksand text-sm text-purple-100">
+                        help@spiffyfox.com
+                      </p>
+                      <p className="font-quicksand mt-1 text-xs text-purple-200">
+                        Tap to email now
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Section */}
+              <div className="mt-6 text-center">
+                <div className="flex items-center justify-center space-x-3 text-gray-200">
+                  <svg
+                    className="h-5 w-5 flex-shrink-0 text-purple-800"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <span className="font-cormorant text-sm">
+                    1 SpiffyFox Way, Premium Plaza, DE 19809
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Map Section  */}
+        <div className="col-span-full mt-5">
+          <Map />
+        </div>
+      </div>
     </div>
   );
 };
