@@ -115,7 +115,6 @@ const Services = () => {
         "Storage solutions",
         "Decluttering services",
       ],
-      price: "Starting at $200",
       images: [img7, img10, img11],
     },
     {
@@ -144,7 +143,6 @@ const Services = () => {
         "Construction cleanouts",
         "Donation coordination",
       ],
-      price: "Starting at $100",
       images: [img11, img13, img8],
     },
     {
@@ -159,7 +157,6 @@ const Services = () => {
         "Room-by-room unpacking",
         "Setup and organization",
       ],
-      price: "Custom quotes available",
       images: [img20, img17, img20],
     },
     {
@@ -174,7 +171,6 @@ const Services = () => {
         "Vendor coordination",
         "Personal organization",
       ],
-      price: "$45/hour",
       images: [img17, img10, img15],
     },
   ];
@@ -238,9 +234,6 @@ const Services = () => {
                   <h3 className="font-lora text-xl font-semibold text-gray-800">
                     {service.name}
                   </h3>
-                  <p className="font-quicksand mt-2 text-sm text-gray-500">
-                    {service.price}
-                  </p>
                 </div>
 
                 {/* Hover Border Effect */}
@@ -300,7 +293,9 @@ const Services = () => {
               of professional services tailored to your needs.
             </p>
             <button className="spiffy-bg font-quicksand rounded-lg px-8 py-3 font-semibold text-white shadow-lg hover:shadow-xl">
-              <Link to="/contact">Book Your Service Today</Link>
+              <Link to="/booking" state={{ service: null }}>
+                Book Your Service Today
+              </Link>
             </button>
           </div>
         </div>
@@ -458,11 +453,10 @@ const Services = () => {
 
               {/* Price and CTA */}
               <div className="flex items-center justify-between border-t pt-6">
-                <div className="font-cormorant spiffy-text text-2xl font-semibold">
-                  {selectedService.price}
-                </div>
                 <button className="spiffy-bg font-quicksand rounded-lg px-6 py-3 font-semibold text-white shadow-lg hover:shadow-xl">
-                  <Link to="/contact">Book This Service</Link>
+                  <Link to="/booking" state={{ service: selectedService.name }}>
+                    Book This Service
+                  </Link>
                 </button>
               </div>
             </div>
