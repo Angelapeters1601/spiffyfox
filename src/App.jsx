@@ -14,6 +14,7 @@ import { useTrackVisitor } from "./hooks/useTrackVisitor";
 const Home = React.lazy(() => import("./pages/Home"));
 const Tips = React.lazy(() => import("./pages/Tips"));
 const Services = React.lazy(() => import("./pages/Services"));
+const Booking = React.lazy(() => import("./pages/Booking"));
 const Reviews = React.lazy(() => import("./pages/Reviews"));
 const Location = React.lazy(() => import("./pages/Location"));
 const Policy = React.lazy(() => import("./pages/Policy"));
@@ -87,6 +88,14 @@ function App() {
               element={
                 <React.Suspense fallback={<LoadingFallback />}>
                   <Services />
+                </React.Suspense>
+              }
+            />{" "}
+            <Route
+              path="booking"
+              element={
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <Booking />
                 </React.Suspense>
               }
             />
