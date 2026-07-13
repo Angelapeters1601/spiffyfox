@@ -36,6 +36,7 @@ import {
   RefreshCw,
   X,
   Menu,
+  Book,
 } from "lucide-react";
 import { supabase } from "../../services/supabaseClient";
 
@@ -82,6 +83,14 @@ const AdminDashboard = () => {
       key: "contractors",
       description: "Oversee contractor applications",
     },
+    // {
+    //   name: "Bookings",
+    //   icon: Book,
+    //   route: "/admin/booking",
+    //   color: "from-cyan-500 to-emerald-500",
+    //   key: "booking",
+    //   description: "Manage service bookings",
+    // },
     {
       name: "FAQ",
       icon: HelpCircle,

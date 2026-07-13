@@ -44,6 +44,7 @@ const AdminNewsletter = React.lazy(
 const AdminContractor = React.lazy(
   () => import("./admin/contractor/AdminContractor"),
 );
+const AdminBooking = React.lazy(() => import("./admin/booking/AdminBooking"));
 
 // const AdminJobPostings = React.lazy(() => import("./admin/job-postings"));
 const AdminTips = React.lazy(() => import("./admin/tips/AdminTips"));
@@ -258,6 +259,14 @@ function App() {
                 element={
                   <React.Suspense fallback={<LoadingFallback />}>
                     <AdminContractor />
+                  </React.Suspense>
+                }
+              />{" "}
+              <Route
+                path="booking"
+                element={
+                  <React.Suspense fallback={<LoadingFallback />}>
+                    <AdminBooking />
                   </React.Suspense>
                 }
               />

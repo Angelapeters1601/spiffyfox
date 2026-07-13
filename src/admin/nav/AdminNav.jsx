@@ -15,6 +15,7 @@ import {
   FaSignOutAlt,
   FaChevronDown,
   FaNewspaper,
+  FaBook,
 } from "react-icons/fa";
 import { supabase } from "../../services/supabaseClient";
 
@@ -62,6 +63,11 @@ const AdminNav = () => {
       name: "Admin Contractor",
       path: "/admin/contractor",
       icon: <FaToolbox className="text-lg" />,
+    },
+    {
+      name: "Admin Booking",
+      path: "/admin/booking",
+      icon: <FaBook className="text-lg" />,
     },
     {
       name: "Admin Tips",
