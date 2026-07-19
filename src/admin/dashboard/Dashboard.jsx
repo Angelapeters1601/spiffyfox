@@ -50,6 +50,14 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     clients: { total: 0, new: 0, active: 0, trend: 0 },
     contractors: { total: 0, available: 0, busy: 0, trend: 0 },
+    bookings: {
+      total: 0,
+      pending: 0,
+      confirmed: 0,
+      completed: 0,
+      cancelled: 0,
+      trend: 0,
+    },
     faq: { total: 0, pending: 0, answered: 0, trend: 0 },
     tips: { total: 0, published: 0, drafts: 0, trend: 0 },
     visitors: { total: 0, today: 0, unique: 0, trend: 0 },
@@ -83,14 +91,14 @@ const AdminDashboard = () => {
       key: "contractors",
       description: "Oversee contractor applications",
     },
-    // {
-    //   name: "Bookings",
-    //   icon: Book,
-    //   route: "/admin/booking",
-    //   color: "from-cyan-500 to-emerald-500",
-    //   key: "booking",
-    //   description: "Manage service bookings",
-    // },
+    {
+      name: "Bookings",
+      icon: Book,
+      route: "/admin/booking",
+      color: "from-cyan-500 to-emerald-500",
+      key: "bookings",
+      description: "Manage service bookings",
+    },
     {
       name: "FAQ",
       icon: HelpCircle,
@@ -159,6 +167,7 @@ const AdminDashboard = () => {
       const [
         clientsData,
         contractorsData,
+        bookingsData,
         faqData,
         tipsData,
         visitorsData,
@@ -172,6 +181,7 @@ const AdminDashboard = () => {
         supabase
           .from("contractors")
           .select("*", { count: "exact", head: false }),
+        supabase.from("bookings").select("*", { count: "exact", head: false }),
         supabase.from("faq").select("*", { count: "exact", head: false }),
         supabase
           .from("admin_tips")
@@ -196,6 +206,18 @@ const AdminDashboard = () => {
         (c) => c.status === "available",
       );
       const busyContractors = contractors.filter((c) => c.status === "busy");
+
+      const bookings = bookingsData.data || [];
+      const pendingBookings = bookings.filter((b) => b.status === "pending");
+      const confirmedBookings = bookings.filter(
+        (b) => b.status === "confirmed",
+      );
+      const completedBookings = bookings.filter(
+        (b) => b.status === "completed",
+      );
+      const cancelledBookings = bookings.filter(
+        (b) => b.status === "cancelled",
+      );
 
       const faq = faqData.data || [];
       const pendingFaq = faq.filter((f) => !f.answer);
@@ -248,6 +270,17 @@ const AdminDashboard = () => {
           trend: calculateTrend(
             contractors.length,
             getPreviousCount(contractors, "contractors"),
+          ),
+        },
+        bookings: {
+          total: bookings.length,
+          pending: pendingBookings.length,
+          confirmed: confirmedBookings.length,
+          completed: completedBookings.length,
+          cancelled: cancelledBookings.length,
+          trend: calculateTrend(
+            bookings.length,
+            getPreviousCount(bookings, "bookings"),
           ),
         },
         faq: {
@@ -319,6 +352,14 @@ const AdminDashboard = () => {
       });
 
       const recentItems = [
+        ...bookings.slice(0, 2).map((b) => ({
+          id: b.id,
+          type: "booking",
+          action: "New booking received",
+          name: `${b.name} - ${b.service}`,
+          time: b.created_at,
+          status: b.status === "pending" ? "pending" : "success",
+        })),
         ...clients.slice(0, 2).map((c) => ({
           id: c.id,
           type: "client",
@@ -376,75 +417,107 @@ const AdminDashboard = () => {
     await fetchDashboardData();
   };
 
-  const StatCard = ({ title, data, icon: Icon, color, onClick }) => (
-    <div
-      onClick={onClick}
-      className="group relative cursor-pointer overflow-hidden rounded-xl bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md sm:p-5"
-    >
+  const StatCard = ({ title, data, icon: Icon, color, onClick }) => {
+    // For bookings, we want to show more details
+    const isBookings = title.toLowerCase() === "bookings";
+    const statusKeys = isBookings
+      ? ["pending", "confirmed", "completed", "cancelled"]
+      : [];
+
+    return (
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 transition-opacity duration-300 group-hover:opacity-5`}
-      />
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-medium tracking-wide text-gray-500 uppercase">
-            {title}
-          </p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 sm:mt-2 sm:text-3xl">
-            {data.total.toLocaleString()}
-          </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-2">
-            <div
-              className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium ${
-                data.trend >= 0
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-              }`}
-            >
-              {data.trend >= 0 ? (
-                <ArrowUpRight className="h-3 w-3" />
-              ) : (
-                <ArrowDownRight className="h-3 w-3" />
-              )}
-              <span>{Math.abs(data.trend).toFixed(1)}%</span>
-            </div>
-            <span className="text-xs whitespace-nowrap text-gray-400">
-              vs last month
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
-            {Object.entries(data).map(([key, value]) => {
-              if (
-                key !== "total" &&
-                key !== "trend" &&
-                typeof value === "number" &&
-                key !== "unique"
-              ) {
-                return (
-                  <div key={key} className="flex items-center gap-1">
-                    <span className="text-xs whitespace-nowrap text-gray-500 capitalize">
-                      {key}:
-                    </span>
-                    <span className="text-xs font-semibold text-gray-900">
-                      {value}
-                    </span>
-                  </div>
-                );
-              }
-              return null;
-            })}
-          </div>
-        </div>
+        onClick={onClick}
+        className="group relative cursor-pointer overflow-hidden rounded-xl bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md sm:p-5"
+      >
         <div
-          className={`rounded-xl bg-gradient-to-br ${color} flex-shrink-0 p-2 shadow-sm transition-transform duration-300 group-hover:scale-105 sm:p-2.5`}
-        >
-          <Icon className="h-4 w-4 text-white sm:h-5 sm:w-5" />
+          className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 transition-opacity duration-300 group-hover:opacity-5`}
+        />
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-medium tracking-wide text-gray-500 uppercase">
+              {title}
+            </p>
+            <p className="mt-1 text-2xl font-bold text-gray-900 sm:mt-2 sm:text-3xl">
+              {data.total.toLocaleString()}
+            </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-2">
+              <div
+                className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium ${
+                  data.trend >= 0
+                    ? "bg-green-50 text-green-700"
+                    : "bg-red-50 text-red-700"
+                }`}
+              >
+                {data.trend >= 0 ? (
+                  <ArrowUpRight className="h-3 w-3" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3" />
+                )}
+                <span>{Math.abs(data.trend).toFixed(1)}%</span>
+              </div>
+              <span className="text-xs whitespace-nowrap text-gray-400">
+                vs last month
+              </span>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
+              {isBookings
+                ? // Special display for bookings
+                  statusKeys.map((key) => {
+                    const value = data[key];
+                    if (typeof value === "number") {
+                      const statusColors = {
+                        pending: "text-yellow-600 bg-yellow-50",
+                        confirmed: "text-green-600 bg-green-50",
+                        completed: "text-blue-600 bg-blue-50",
+                        cancelled: "text-red-600 bg-red-50",
+                      };
+                      return (
+                        <div
+                          key={key}
+                          className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${statusColors[key] || "bg-gray-50 text-gray-600"}`}
+                        >
+                          <span className="capitalize">{key}:</span>
+                          <span className="font-semibold">{value}</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })
+                : // Default display for other modules
+                  Object.entries(data).map(([key, value]) => {
+                    if (
+                      key !== "total" &&
+                      key !== "trend" &&
+                      typeof value === "number" &&
+                      key !== "unique"
+                    ) {
+                      return (
+                        <div key={key} className="flex items-center gap-1">
+                          <span className="text-xs whitespace-nowrap text-gray-500 capitalize">
+                            {key}:
+                          </span>
+                          <span className="text-xs font-semibold text-gray-900">
+                            {value}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+            </div>
+          </div>
+          <div
+            className={`rounded-xl bg-gradient-to-br ${color} flex-shrink-0 p-2 shadow-sm transition-transform duration-300 group-hover:scale-105 sm:p-2.5`}
+          >
+            <Icon className="h-4 w-4 text-white sm:h-5 sm:w-5" />
+          </div>
+        </div>
+        <div className="absolute right-2 bottom-2 opacity-0 transition-opacity group-hover:opacity-100 sm:right-3 sm:bottom-3">
+          <ChevronRight className="h-3 w-3 text-gray-300 sm:h-4 sm:w-4" />
         </div>
       </div>
-      <div className="absolute right-2 bottom-2 opacity-0 transition-opacity group-hover:opacity-100 sm:right-3 sm:bottom-3">
-        <ChevronRight className="h-3 w-3 text-gray-300 sm:h-4 sm:w-4" />
-      </div>
-    </div>
-  );
+    );
+  };
 
   const ActivityItem = ({ activity }) => {
     const getStatusColor = (status) => {
@@ -615,7 +688,7 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="p-3 sm:p-4 md:p-6">
         {/* Stats Grid - Responsive */}
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {filteredModules.map((module) => (
             <StatCard
               key={module.key}
@@ -780,7 +853,7 @@ const AdminDashboard = () => {
           <h2 className="mb-2 text-base font-semibold text-gray-900 sm:mb-3 sm:text-lg">
             Quick Access
           </h2>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-6 lg:grid-cols-8">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-6 lg:grid-cols-9">
             {filteredModules.map((module) => (
               <button
                 key={module.key}
@@ -868,7 +941,7 @@ const AdminDashboard = () => {
   );
 };
 
-// Helper components remain the same...
+// Helper components
 const Tablet = ({ className }) => (
   <svg
     className={className}
@@ -911,7 +984,7 @@ const Monitor = ({ className }) => (
   >
     <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
     <line x1="8" y1="21" x2="16" y2="21" />
-    <line x1="12" y1="17" x2="12" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="17" />
   </svg>
 );
 
