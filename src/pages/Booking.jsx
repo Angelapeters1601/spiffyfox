@@ -23,7 +23,7 @@ const Booking = () => {
     name: "",
     address: "",
     email: "",
-    payment_preference: "credit_card",
+    payment_preference: "cash",
     appointment_date: "",
     appointment_time: "",
     service: selectedService || "",
@@ -33,20 +33,171 @@ const Booking = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [availableTimes, setAvailableTimes] = useState([]);
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [fetchingBookings, setFetchingBookings] = useState(false);
 
-  // Generate available time slots (9 AM to 5 PM)
-  useEffect(() => {
+  // Business hours configuration
+  const businessHours = {
+    sunday: { start: 8, end: 24 }, // 8am - 12am (midnight) - last slot at 11:59pm
+    monday: { start: 8, end: 24 },
+    tuesday: { start: 8, end: 24 },
+    wednesday: { start: 8, end: 24 },
+    thursday: { start: 8, end: 24 },
+    friday: { start: 8, end: 17 }, // 8am - 4pm
+    saturday: { start: null, end: null }, // Closed
+  };
+
+  // Get day of week from date
+  const getDayOfWeek = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    const days = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+    return days[date.getDay()];
+  };
+
+  // Check if a date is Saturday (closed)
+  const isSaturday = (dateString) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    return date.getDay() === 6; // 6 = Saturday
+  };
+
+  // Generate time slots based on the selected date
+  const generateTimeSlots = (dateString) => {
+    if (!dateString) return [];
+
+    const day = getDayOfWeek(dateString);
+    if (!day) return [];
+
+    const hours = businessHours[day];
+    if (!hours.start || !hours.end) return [];
+
     const times = [];
-    for (let i = 9; i <= 17; i++) {
-      const hour = i > 12 ? i - 12 : i;
-      const ampm = i >= 12 ? "PM" : "AM";
-      times.push(`${hour}:00 ${ampm}`);
-      if (i !== 17) {
-        times.push(`${hour}:30 ${ampm}`);
-      }
+
+    // Generate slots every 30 minutes
+    // For Sunday-Thursday: 8:00 AM to 11:59 PM
+    // For Friday: 8:00 AM to 4:00 PM
+    let endHour, endMinute;
+
+    if (hours.end === 24) {
+      // Sunday-Thursday: End at 11:59 PM
+      endHour = 23;
+      endMinute = 59;
+    } else {
+      // Friday: End at 4:00 PM
+      endHour = 16;
+      endMinute = 0;
     }
-    setAvailableTimes(times);
-  }, []);
+
+    // Generate slots in 30-minute increments
+    for (let i = hours.start; i < endHour; i += 0.5) {
+      const hour = Math.floor(i);
+      const minutes = i % 1 === 0 ? "00" : "30";
+      const hour12 = hour > 12 ? hour - 12 : hour;
+      const ampm = hour >= 12 ? "PM" : "AM";
+      times.push(`${hour12}:${minutes} ${ampm}`);
+    }
+
+    // Add the final slot
+    const finalHour12 = endHour > 12 ? endHour - 12 : endHour;
+    const finalAmpm = endHour >= 12 ? "PM" : "AM";
+    const finalTime = `${finalHour12}:${endMinute.toString().padStart(2, "0")} ${finalAmpm}`;
+    times.push(finalTime);
+
+    return times;
+  };
+
+  // Get the minimum date (today)
+  const getMinDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
+  // Check if a date is in the past
+  const isPastDate = (dateString) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const date = new Date(dateString);
+    return date < today;
+  };
+
+  // Fetch existing bookings for the selected date
+  const fetchBookedSlots = async (date) => {
+    if (!date) return;
+
+    setFetchingBookings(true);
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from("bookings")
+        .select("appointment_time")
+        .eq("appointment_date", date)
+        .in("status", ["pending", "confirmed"]); // Only check pending and confirmed bookings
+
+      if (supabaseError) throw supabaseError;
+
+      const bookedTimes = data.map((booking) => booking.appointment_time);
+      setBookedSlots(bookedTimes);
+    } catch (err) {
+      console.error("Error fetching booked slots:", err);
+    } finally {
+      setFetchingBookings(false);
+    }
+  };
+
+  // Update available times when date changes
+  useEffect(() => {
+    if (formData.appointment_date) {
+      // Check if selected date is Saturday (closed)
+      if (isSaturday(formData.appointment_date)) {
+        setAvailableTimes([]);
+        setError("We are closed on Saturdays. Please select another day.");
+        return;
+      }
+
+      // Check if selected date is in the past
+      if (isPastDate(formData.appointment_date)) {
+        setAvailableTimes([]);
+        setError("Please select a future date.");
+        return;
+      }
+
+      // Generate time slots for the selected day
+      const slots = generateTimeSlots(formData.appointment_date);
+      setAvailableTimes(slots);
+
+      // Fetch existing bookings for this date
+      fetchBookedSlots(formData.appointment_date);
+
+      // Clear any previous error
+      setError("");
+    } else {
+      setAvailableTimes([]);
+      setBookedSlots([]);
+    }
+  }, [formData.appointment_date]);
+
+  // Filter out booked slots when time selection changes
+  const getAvailableTimeSlots = () => {
+    if (!formData.appointment_date || isSaturday(formData.appointment_date)) {
+      return [];
+    }
+
+    // If we're still fetching bookings, show loading state
+    if (fetchingBookings) {
+      return [];
+    }
+
+    // Filter out booked times
+    return availableTimes.filter((time) => !bookedSlots.includes(time));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,6 +205,14 @@ const Booking = () => {
       ...prev,
       [name]: value,
     }));
+
+    // Clear time selection when date changes
+    if (name === "appointment_date") {
+      setFormData((prev) => ({
+        ...prev,
+        appointment_time: "",
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -71,6 +230,26 @@ const Booking = () => {
         !formData.appointment_time
       ) {
         throw new Error("Please fill in all required fields");
+      }
+
+      // Check if selected date is Saturday
+      if (isSaturday(formData.appointment_date)) {
+        throw new Error(
+          "We are closed on Saturdays. Please select another day.",
+        );
+      }
+
+      // Check if selected date is in the past
+      if (isPastDate(formData.appointment_date)) {
+        throw new Error("Please select a future date.");
+      }
+
+      // Check if the selected time is still available
+      const availableSlots = getAvailableTimeSlots();
+      if (!availableSlots.includes(formData.appointment_time)) {
+        throw new Error(
+          "This time slot is no longer available. Please select another time.",
+        );
       }
 
       // Validate email format
@@ -140,6 +319,8 @@ const Booking = () => {
     );
   }
 
+  const availableSlots = getAvailableTimeSlots();
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12">
       <div className="mx-auto max-w-2xl">
@@ -169,6 +350,16 @@ const Booking = () => {
               "Fill in your details to schedule a service"
             )}
           </p>
+          {/* Business Hours Notice */}
+          <div className="mt-3 rounded-lg bg-purple-50 p-3 text-sm">
+            <p className="font-quicksand text-gray-700">
+              📅 <span className="font-semibold">Business Hours:</span>
+            </p>
+            <p className="font-quicksand text-xs text-gray-600">
+              Sun-Thu: 8:00 AM - 12:00 AM (Midnight) | Fri: 8:00 AM - 4:00 PM |
+              Sat: Closed
+            </p>
+          </div>
         </div>
 
         {/* Booking Form */}
@@ -288,11 +479,18 @@ const Booking = () => {
                     name="appointment_date"
                     value={formData.appointment_date}
                     onChange={handleChange}
-                    min={new Date().toISOString().split("T")[0]}
+                    min={getMinDate()}
                     className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition-all focus:border-transparent focus:ring-2 focus:ring-purple-400"
                     required
                   />
                 </div>
+                {/* Saturday warning */}
+                {formData.appointment_date &&
+                  isSaturday(formData.appointment_date) && (
+                    <p className="mt-1 text-xs text-red-600">
+                      ❌ We are closed on Saturdays
+                    </p>
+                  )}
               </div>
 
               <div>
@@ -307,15 +505,40 @@ const Booking = () => {
                     onChange={handleChange}
                     className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition-all focus:border-transparent focus:ring-2 focus:ring-purple-400"
                     required
+                    disabled={
+                      !formData.appointment_date ||
+                      isSaturday(formData.appointment_date)
+                    }
                   >
                     <option value="">Select time</option>
-                    {availableTimes.map((time) => (
-                      <option key={time} value={time}>
-                        {time}
+                    {fetchingBookings ? (
+                      <option value="" disabled>
+                        Loading available times...
                       </option>
-                    ))}
+                    ) : (
+                      availableSlots.map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
+                {formData.appointment_date &&
+                  !isSaturday(formData.appointment_date) &&
+                  availableSlots.length === 0 &&
+                  !fetchingBookings && (
+                    <p className="mt-1 text-xs text-yellow-600">
+                      ⚠️ No available times for this date. Please select another
+                      day.
+                    </p>
+                  )}
+                {formData.appointment_date &&
+                  isSaturday(formData.appointment_date) && (
+                    <p className="mt-1 text-xs text-red-600">
+                      ⚠️ Please select another day (Saturdays closed)
+                    </p>
+                  )}
               </div>
             </div>
 
@@ -352,9 +575,17 @@ const Booking = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                !formData.appointment_date ||
+                isSaturday(formData.appointment_date) ||
+                availableSlots.length === 0
+              }
               className={`font-quicksand w-full rounded-lg px-6 py-3 font-semibold text-white shadow-lg transition-all ${
-                loading
+                loading ||
+                !formData.appointment_date ||
+                isSaturday(formData.appointment_date) ||
+                availableSlots.length === 0
                   ? "cursor-not-allowed bg-gray-400"
                   : "spiffy-bg hover:scale-[1.02] hover:shadow-xl"
               }`}
