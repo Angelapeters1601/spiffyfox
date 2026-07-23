@@ -10,6 +10,10 @@ import {
   Payment as CreditCardIcon,
   CheckCircle as CheckCircleIcon,
   ArrowBack as ArrowLeftIcon,
+  Phone as PhoneIcon,
+  PinDrop as PinIcon,
+  CheckBox as CheckBoxIcon,
+  CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
 } from "@mui/icons-material";
 
 const Booking = () => {
@@ -21,12 +25,15 @@ const Booking = () => {
 
   const [formData, setFormData] = useState({
     name: "",
-    address: "",
+    street_address: "",
+    zipcode: "",
     email: "",
+    phone: "",
     payment_preference: "cash",
     appointment_date: "",
     appointment_time: "",
     service: selectedService || "",
+    consent_to_contact: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -38,13 +45,13 @@ const Booking = () => {
 
   // Business hours configuration
   const businessHours = {
-    sunday: { start: 8, end: 24 }, // 8am - 12am (midnight) - last slot at 11:59pm
+    sunday: { start: 8, end: 24 },
     monday: { start: 8, end: 24 },
     tuesday: { start: 8, end: 24 },
     wednesday: { start: 8, end: 24 },
     thursday: { start: 8, end: 24 },
-    friday: { start: 8, end: 17 }, // 8am - 4pm
-    saturday: { start: null, end: null }, // Closed
+    friday: { start: 8, end: 17 },
+    saturday: { start: null, end: null },
   };
 
   // Get day of week from date
@@ -67,7 +74,7 @@ const Booking = () => {
   const isSaturday = (dateString) => {
     if (!dateString) return false;
     const date = new Date(dateString);
-    return date.getDay() === 6; // 6 = Saturday
+    return date.getDay() === 6;
   };
 
   // Generate time slots based on the selected date
@@ -81,23 +88,16 @@ const Booking = () => {
     if (!hours.start || !hours.end) return [];
 
     const times = [];
-
-    // Generate slots every 30 minutes
-    // For Sunday-Thursday: 8:00 AM to 11:59 PM
-    // For Friday: 8:00 AM to 4:00 PM
     let endHour, endMinute;
 
     if (hours.end === 24) {
-      // Sunday-Thursday: End at 11:59 PM
       endHour = 23;
       endMinute = 59;
     } else {
-      // Friday: End at 4:00 PM
       endHour = 16;
       endMinute = 0;
     }
 
-    // Generate slots in 30-minute increments
     for (let i = hours.start; i < endHour; i += 0.5) {
       const hour = Math.floor(i);
       const minutes = i % 1 === 0 ? "00" : "30";
@@ -106,7 +106,6 @@ const Booking = () => {
       times.push(`${hour12}:${minutes} ${ampm}`);
     }
 
-    // Add the final slot
     const finalHour12 = endHour > 12 ? endHour - 12 : endHour;
     const finalAmpm = endHour >= 12 ? "PM" : "AM";
     const finalTime = `${finalHour12}:${endMinute.toString().padStart(2, "0")} ${finalAmpm}`;
@@ -129,6 +128,25 @@ const Booking = () => {
     return date < today;
   };
 
+  // Format phone number as user types
+  const formatPhoneNumber = (value) => {
+    const cleaned = value.replace(/\D/g, "");
+
+    if (cleaned.length <= 3) {
+      return cleaned;
+    } else if (cleaned.length <= 6) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+    } else {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+    }
+  };
+
+  // Validate phone number
+  const isValidPhone = (phone) => {
+    const digits = phone.replace(/\D/g, "");
+    return digits.length === 10;
+  };
+
   // Fetch existing bookings for the selected date
   const fetchBookedSlots = async (date) => {
     if (!date) return;
@@ -139,7 +157,7 @@ const Booking = () => {
         .from("bookings")
         .select("appointment_time")
         .eq("appointment_date", date)
-        .in("status", ["pending", "confirmed"]); // Only check pending and confirmed bookings
+        .in("status", ["pending", "confirmed"]);
 
       if (supabaseError) throw supabaseError;
 
@@ -155,28 +173,21 @@ const Booking = () => {
   // Update available times when date changes
   useEffect(() => {
     if (formData.appointment_date) {
-      // Check if selected date is Saturday (closed)
       if (isSaturday(formData.appointment_date)) {
         setAvailableTimes([]);
         setError("We are closed on Saturdays. Please select another day.");
         return;
       }
 
-      // Check if selected date is in the past
       if (isPastDate(formData.appointment_date)) {
         setAvailableTimes([]);
         setError("Please select a future date.");
         return;
       }
 
-      // Generate time slots for the selected day
       const slots = generateTimeSlots(formData.appointment_date);
       setAvailableTimes(slots);
-
-      // Fetch existing bookings for this date
       fetchBookedSlots(formData.appointment_date);
-
-      // Clear any previous error
       setError("");
     } else {
       setAvailableTimes([]);
@@ -184,29 +195,36 @@ const Booking = () => {
     }
   }, [formData.appointment_date]);
 
-  // Filter out booked slots when time selection changes
+  // Filter out booked slots
   const getAvailableTimeSlots = () => {
     if (!formData.appointment_date || isSaturday(formData.appointment_date)) {
       return [];
     }
 
-    // If we're still fetching bookings, show loading state
     if (fetchingBookings) {
       return [];
     }
 
-    // Filter out booked times
     return availableTimes.filter((time) => !bookedSlots.includes(time));
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+
+    if (name === "phone") {
+      const formatted = formatPhoneNumber(value);
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formatted,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Clear time selection when date changes
     if (name === "appointment_date") {
       setFormData((prev) => ({
         ...prev,
@@ -224,12 +242,24 @@ const Booking = () => {
       // Validate form
       if (
         !formData.name ||
-        !formData.address ||
+        !formData.street_address ||
+        !formData.zipcode ||
         !formData.email ||
+        !formData.phone ||
         !formData.appointment_date ||
         !formData.appointment_time
       ) {
         throw new Error("Please fill in all required fields");
+      }
+
+      // Validate phone number
+      if (!isValidPhone(formData.phone)) {
+        throw new Error("Please enter a valid 10-digit phone number");
+      }
+
+      // Validate ZIP code (5 digits) - optional validation
+      if (formData.zipcode && !/^\d{5}$/.test(formData.zipcode)) {
+        throw new Error("Please enter a valid 5-digit ZIP code");
       }
 
       // Check if selected date is Saturday
@@ -258,19 +288,28 @@ const Booking = () => {
         throw new Error("Please enter a valid email address");
       }
 
+      // Build address string
+      const fullAddress =
+        formData.street_address +
+        (formData.zipcode ? `, ${formData.zipcode}` : "");
+
       // Insert booking into Supabase
       const { data, error: supabaseError } = await supabase
         .from("bookings")
         .insert([
           {
             name: formData.name,
-            address: formData.address,
+            address: fullAddress,
+            street_address: formData.street_address,
+            zipcode: formData.zipcode || null,
             email: formData.email,
+            phone: formData.phone,
             payment_preference: formData.payment_preference,
             appointment_date: formData.appointment_date,
             appointment_time: formData.appointment_time,
             service: formData.service || null,
             status: "pending",
+            consent_to_contact: formData.consent_to_contact,
           },
         ])
         .select();
@@ -278,7 +317,6 @@ const Booking = () => {
       if (supabaseError) throw supabaseError;
 
       setSuccess(true);
-      // Redirect after 3 seconds
       setTimeout(() => {
         navigate("/services");
       }, 3000);
@@ -365,7 +403,7 @@ const Booking = () => {
         {/* Booking Form */}
         <div className="rounded-2xl bg-white p-6 shadow-xl md:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Service Selection (hidden if pre-selected) */}
+            {/* Service Selection */}
             {!selectedService && (
               <div>
                 <label className="font-quicksand mb-2 block text-sm font-medium text-gray-700">
@@ -397,7 +435,6 @@ const Booking = () => {
               </div>
             )}
 
-            {/* Show selected service as read-only if pre-selected */}
             {selectedService && (
               <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
                 <p className="font-quicksand text-sm text-gray-600">
@@ -447,20 +484,64 @@ const Booking = () => {
               </div>
             </div>
 
-            {/* Address */}
+            {/* Phone */}
             <div>
               <label className="font-quicksand mb-2 block text-sm font-medium text-gray-700">
-                Address *
+                Phone Number *
+              </label>
+              <div className="relative">
+                <PhoneIcon className="absolute top-3.5 left-3 h-5 w-5 text-gray-400" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition-all focus:border-transparent focus:ring-2 focus:ring-purple-400"
+                  placeholder="(555) 123-4567"
+                  maxLength="17"
+                  required
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Format: (XXX) XXX-XXXX
+              </p>
+            </div>
+
+            {/* Street Address */}
+            <div>
+              <label className="font-quicksand mb-2 block text-sm font-medium text-gray-700">
+                Street Address *
               </label>
               <div className="relative">
                 <HomeIcon className="absolute top-3.5 left-3 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  name="address"
-                  value={formData.address}
+                  name="street_address"
+                  value={formData.street_address}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition-all focus:border-transparent focus:ring-2 focus:ring-purple-400"
-                  placeholder="123 Main St, City, State, ZIP"
+                  placeholder="123 Main St"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* ZIP Code */}
+            <div>
+              <label className="font-quicksand mb-2 block text-sm font-medium text-gray-700">
+                ZIP Code *
+              </label>
+              <div className="relative">
+                <PinIcon className="absolute top-3.5 left-3 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="zipcode"
+                  value={formData.zipcode}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-10 transition-all focus:border-transparent focus:ring-2 focus:ring-purple-400"
+                  placeholder="12345"
+                  maxLength="5"
+                  pattern="\d{5}"
                   required
                 />
               </div>
@@ -484,7 +565,6 @@ const Booking = () => {
                     required
                   />
                 </div>
-                {/* Saturday warning */}
                 {formData.appointment_date &&
                   isSaturday(formData.appointment_date) && (
                     <p className="mt-1 text-xs text-red-600">
@@ -562,6 +642,40 @@ const Booking = () => {
                   <option value="cash">Cash</option>
                   <option value="bank_transfer">Bank Transfer</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Consent Checkbox - Optional for now */}
+            <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    consent_to_contact: !prev.consent_to_contact,
+                  }));
+                }}
+                className="mt-0.5 flex-shrink-0"
+              >
+                {formData.consent_to_contact ? (
+                  <CheckBoxIcon className="h-6 w-6 text-purple-600" />
+                ) : (
+                  <CheckBoxOutlineBlankIcon className="h-6 w-6 text-gray-400" />
+                )}
+              </button>
+              <div>
+                <label className="font-quicksand text-sm font-medium text-gray-700">
+                  Consent to Contact
+                </label>
+                <p className="font-quicksand text-xs text-gray-600">
+                  I consent to be contacted via text message, email, or SMS
+                  regarding my booking and future promotions. Message and data
+                  rates may apply.
+                </p>
+                <p className="font-quicksand mt-1 text-xs text-gray-500">
+                  ℹ️ This is optional - you can still book without checking this
+                  box
+                </p>
               </div>
             </div>
 
