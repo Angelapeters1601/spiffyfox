@@ -257,9 +257,16 @@ const Booking = () => {
         throw new Error("Please enter a valid 10-digit phone number");
       }
 
-      // Validate ZIP code (5 digits) - optional validation
-      if (formData.zipcode && !/^\d{5}$/.test(formData.zipcode)) {
+      // Validate ZIP code (5 digits)
+      if (!/^\d{5}$/.test(formData.zipcode)) {
         throw new Error("Please enter a valid 5-digit ZIP code");
+      }
+
+      // Validate consent - REQUIRED
+      if (!formData.consent_to_contact) {
+        throw new Error(
+          "You must consent to be contacted via text, email, or SMS to complete your booking",
+        );
       }
 
       // Check if selected date is Saturday
@@ -645,8 +652,14 @@ const Booking = () => {
               </div>
             </div>
 
-            {/* Consent Checkbox - Optional for now */}
-            <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            {/* Consent Checkbox */}
+            <div
+              className={`flex items-start gap-3 rounded-lg border p-4 ${
+                !formData.consent_to_contact && error?.includes("consent")
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 bg-gray-50"
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => {
@@ -654,6 +667,10 @@ const Booking = () => {
                     ...prev,
                     consent_to_contact: !prev.consent_to_contact,
                   }));
+                  // Clear error when user clicks consent
+                  if (error?.includes("consent")) {
+                    setError("");
+                  }
                 }}
                 className="mt-0.5 flex-shrink-0"
               >
@@ -665,16 +682,15 @@ const Booking = () => {
               </button>
               <div>
                 <label className="font-quicksand text-sm font-medium text-gray-700">
-                  Consent to Contact
+                  Consent to Contact *
                 </label>
                 <p className="font-quicksand text-xs text-gray-600">
                   I consent to be contacted via text message, email, or SMS
                   regarding my booking and future promotions. Message and data
                   rates may apply.
                 </p>
-                <p className="font-quicksand mt-1 text-xs text-gray-500">
-                  ℹ️ This is optional - you can still book without checking this
-                  box
+                <p className="font-quicksand mt-1 text-xs text-red-600">
+                  ⚠️ Required to complete booking
                 </p>
               </div>
             </div>
@@ -693,13 +709,15 @@ const Booking = () => {
                 loading ||
                 !formData.appointment_date ||
                 isSaturday(formData.appointment_date) ||
-                availableSlots.length === 0
+                availableSlots.length === 0 ||
+                !formData.consent_to_contact
               }
               className={`font-quicksand w-full rounded-lg px-6 py-3 font-semibold text-white shadow-lg transition-all ${
                 loading ||
                 !formData.appointment_date ||
                 isSaturday(formData.appointment_date) ||
-                availableSlots.length === 0
+                availableSlots.length === 0 ||
+                !formData.consent_to_contact
                   ? "cursor-not-allowed bg-gray-400"
                   : "spiffy-bg hover:scale-[1.02] hover:shadow-xl"
               }`}
