@@ -11,37 +11,13 @@ import {
   Pending as PendingIcon,
   AccessTime as TimeIcon,
   Close as CloseIcon,
+  Phone as PhoneIcon,
+  Email as EnvelopeIcon,
+  Home as HomeIcon,
+  PinDrop as PinIcon,
+  CheckBox as CheckBoxIcon,
+  CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
 } from "@mui/icons-material";
-
-const StatusBadge = ({ status }) => {
-  const statusConfig = {
-    pending: {
-      color: "bg-amber-50 text-amber-700 border-amber-200",
-      icon: <PendingIcon fontSize="small" />,
-    },
-    confirmed: {
-      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      icon: <CheckIcon fontSize="small" />,
-    },
-    cancelled: {
-      color: "bg-rose-50 text-rose-700 border-rose-200",
-      icon: <CancelIcon fontSize="small" />,
-    },
-    completed: {
-      color: "bg-sky-50 text-sky-700 border-sky-200",
-      icon: <TimeIcon fontSize="small" />,
-    },
-  };
-  const config = statusConfig[status] || statusConfig.pending;
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${config.color}`}
-    >
-      {config.icon}
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  );
-};
 
 const AdminBooking = () => {
   const [bookings, setBookings] = useState([]);
@@ -49,23 +25,24 @@ const AdminBooking = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [updating, setUpdating] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
+  // Fetch bookings from Supabase
   useEffect(() => {
     fetchBookings();
   }, []);
 
   const fetchBookings = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      setBookings(data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     } finally {
@@ -73,9 +50,10 @@ const AdminBooking = () => {
     }
   };
 
+  // Handle status update
   const handleStatusUpdate = async (id, newStatus) => {
+    setUpdatingStatus(true);
     try {
-      setUpdating(true);
       const { error } = await supabase
         .from("bookings")
         .update({ status: newStatus })
@@ -83,21 +61,23 @@ const AdminBooking = () => {
 
       if (error) throw error;
 
+      // Update local state
       setBookings(
         bookings.map((b) => (b.id === id ? { ...b, status: newStatus } : b)),
       );
 
-      if (selectedBooking?.id === id) {
+      // Update selected booking if modal is open
+      if (selectedBooking && selectedBooking.id === id) {
         setSelectedBooking({ ...selectedBooking, status: newStatus });
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Failed to update booking status");
     } finally {
-      setUpdating(false);
+      setUpdatingStatus(false);
     }
   };
 
+  // Handle delete
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this booking?"))
       return;
@@ -108,137 +88,335 @@ const AdminBooking = () => {
       if (error) throw error;
 
       setBookings(bookings.filter((b) => b.id !== id));
-      if (selectedBooking?.id === id) {
-        setIsModalOpen(false);
+      if (selectedBooking && selectedBooking.id === id) {
+        setShowDetailModal(false);
         setSelectedBooking(null);
       }
     } catch (error) {
       console.error("Error deleting booking:", error);
-      alert("Failed to delete booking");
     }
   };
 
-  const openBookingDetails = (booking) => {
-    setSelectedBooking(booking);
-    setIsModalOpen(true);
-  };
-
+  // Filter bookings
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
-      booking.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.service?.toLowerCase().includes(searchTerm.toLowerCase());
+      booking.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.phone?.includes(searchTerm) ||
+      booking.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.street_address
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      booking.zipcode?.includes(searchTerm);
+
     const matchesStatus =
       filterStatus === "all" || booking.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
+  // Format phone number for display
+  const formatPhone = (phone) => {
+    if (!phone) return "N/A";
+    return phone;
+  };
+
+  // Status badge component
+  const StatusBadge = ({ status }) => {
+    const statusConfig = {
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        icon: <PendingIcon fontSize="small" />,
+      },
+      confirmed: {
+        color: "bg-green-100 text-green-800",
+        icon: <CheckIcon fontSize="small" />,
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        icon: <CancelIcon fontSize="small" />,
+      },
+      completed: {
+        color: "bg-blue-100 text-blue-800",
+        icon: <TimeIcon fontSize="small" />,
+      },
+    };
+    const config = statusConfig[status] || statusConfig.pending;
+    return (
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium ${config.color}`}
+      >
+        {config.icon}
+        {status?.charAt(0).toUpperCase() + status?.slice(1) || "Pending"}
+      </span>
+    );
+  };
+
+  // Stats
   const stats = {
     total: bookings.length,
     pending: bookings.filter((b) => b.status === "pending").length,
     confirmed: bookings.filter((b) => b.status === "confirmed").length,
     completed: bookings.filter((b) => b.status === "completed").length,
+    cancelled: bookings.filter((b) => b.status === "cancelled").length,
+  };
+
+  // View booking details
+  const viewBookingDetails = (booking) => {
+    setSelectedBooking(booking);
+    setShowDetailModal(true);
+  };
+
+  // Detail Modal
+  const DetailModal = () => {
+    if (!selectedBooking) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+          {/* Close Button */}
+          <button
+            onClick={() => {
+              setShowDetailModal(false);
+              setSelectedBooking(null);
+            }}
+            className="absolute top-4 right-4 rounded-full bg-gray-100 p-1.5 text-gray-600 hover:bg-gray-200"
+          >
+            <CloseIcon />
+          </button>
+
+          <div className="p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <h2 className="font-cinzel spiffy-text-dark text-2xl font-bold">
+                Booking Details
+              </h2>
+              <StatusBadge status={selectedBooking.status} />
+            </div>
+
+            <div className="space-y-4">
+              {/* Customer Info */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="font-quicksand text-xs font-medium text-gray-500 uppercase">
+                    Name
+                  </label>
+                  <p className="font-quicksand text-gray-900">
+                    {selectedBooking.name}
+                  </p>
+                </div>
+                <div>
+                  <label className="font-quicksand text-xs font-medium text-gray-500 uppercase">
+                    Service
+                  </label>
+                  <p className="font-quicksand text-gray-900">
+                    {selectedBooking.service || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="font-quicksand flex items-center gap-1 text-xs font-medium text-gray-500 uppercase">
+                    <EnvelopeIcon className="h-3 w-3" /> Email
+                  </label>
+                  <p className="font-quicksand text-gray-900">
+                    {selectedBooking.email}
+                  </p>
+                </div>
+                <div>
+                  <label className="font-quicksand flex items-center gap-1 text-xs font-medium text-gray-500 uppercase">
+                    <PhoneIcon className="h-3 w-3" /> Phone
+                  </label>
+                  <p className="font-quicksand text-gray-900">
+                    {formatPhone(selectedBooking.phone)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="font-quicksand flex items-center gap-1 text-xs font-medium text-gray-500 uppercase">
+                  <HomeIcon className="h-3 w-3" /> Address
+                </label>
+                <p className="font-quicksand text-gray-900">
+                  {selectedBooking.street_address || "N/A"}
+                </p>
+                {selectedBooking.zipcode && (
+                  <p className="font-quicksand flex items-center gap-1 text-sm text-gray-600">
+                    <PinIcon className="h-3 w-3" /> ZIP:{" "}
+                    {selectedBooking.zipcode}
+                  </p>
+                )}
+              </div>
+
+              {/* Appointment */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="font-quicksand text-xs font-medium text-gray-500 uppercase">
+                    Date
+                  </label>
+                  <p className="font-quicksand text-gray-900">
+                    {selectedBooking.appointment_date}
+                  </p>
+                </div>
+                <div>
+                  <label className="font-quicksand text-xs font-medium text-gray-500 uppercase">
+                    Time
+                  </label>
+                  <p className="font-quicksand text-gray-900">
+                    {selectedBooking.appointment_time}
+                  </p>
+                </div>
+              </div>
+
+              {/* Payment */}
+              <div>
+                <label className="font-quicksand text-xs font-medium text-gray-500 uppercase">
+                  Payment Preference
+                </label>
+                <p className="font-quicksand text-gray-900 capitalize">
+                  {selectedBooking.payment_preference?.replace("_", " ") ||
+                    "N/A"}
+                </p>
+              </div>
+
+              {/* Consent */}
+              <div className="flex items-center gap-2">
+                <label className="font-quicksand text-xs font-medium text-gray-500 uppercase">
+                  Consent to Contact:
+                </label>
+                {selectedBooking.consent_to_contact ? (
+                  <span className="flex items-center gap-1 text-green-600">
+                    <CheckBoxIcon className="h-5 w-5" /> Yes
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-red-600">
+                    <CheckBoxOutlineBlankIcon className="h-5 w-5" /> No
+                  </span>
+                )}
+              </div>
+
+              {/* Created At */}
+              <div>
+                <label className="font-quicksand text-xs font-medium text-gray-500 uppercase">
+                  Created
+                </label>
+                <p className="font-quicksand text-sm text-gray-600">
+                  {new Date(selectedBooking.created_at).toLocaleString()}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-4 border-t pt-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="font-quicksand text-sm font-medium text-gray-700">
+                    Update Status:
+                  </label>
+                  <select
+                    value={selectedBooking.status}
+                    onChange={(e) =>
+                      handleStatusUpdate(selectedBooking.id, e.target.value)
+                    }
+                    disabled={updatingStatus}
+                    className="font-quicksand rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-400"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <button
+                    onClick={() => handleDelete(selectedBooking.id)}
+                    className="font-quicksand rounded-lg bg-red-500 px-3 py-1.5 text-sm text-white transition hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
-          <p className="font-quicksand text-gray-500">Loading bookings...</p>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent"></div>
+          <p className="font-quicksand mt-3 text-gray-500">
+            Loading bookings...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/80 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="font-cinzel spiffy-text-dark text-3xl font-bold md:text-4xl">
-              Bookings
-            </h1>
-            <p className="font-quicksand mt-1 text-sm text-gray-500">
-              Manage all service appointments
-            </p>
-          </div>
-          <button
-            onClick={fetchBookings}
-            className="spiffy-bg font-quicksand flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-medium text-white transition-all hover:scale-[1.02] hover:shadow-lg"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            Refresh
-          </button>
+        <div className="mb-8">
+          <h1 className="font-cinzel spiffy-text-dark mb-2 text-3xl font-bold md:text-4xl">
+            Booking Management
+          </h1>
+          <p className="font-quicksand text-gray-600">
+            View and manage all service bookings
+          </p>
         </div>
 
-        {/* Stats */}
-        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-              Total
-            </p>
-            <p className="font-cormorant spiffy-text-dark mt-1 text-3xl font-bold">
+        {/* Stats Cards */}
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
+          <div className="rounded-xl border-l-4 border-purple-500 bg-white p-4 shadow">
+            <p className="font-quicksand text-sm text-gray-500">Total</p>
+            <p className="font-cormorant spiffy-text-dark text-2xl font-bold">
               {stats.total}
             </p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-              Pending
-            </p>
-            <p className="font-cormorant mt-1 text-3xl font-bold text-amber-600">
+          <div className="rounded-xl border-l-4 border-yellow-500 bg-white p-4 shadow">
+            <p className="font-quicksand text-sm text-gray-500">Pending</p>
+            <p className="font-cormorant text-2xl font-bold text-yellow-600">
               {stats.pending}
             </p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-              Confirmed
-            </p>
-            <p className="font-cormorant mt-1 text-3xl font-bold text-emerald-600">
+          <div className="rounded-xl border-l-4 border-green-500 bg-white p-4 shadow">
+            <p className="font-quicksand text-sm text-gray-500">Confirmed</p>
+            <p className="font-cormorant text-2xl font-bold text-green-600">
               {stats.confirmed}
             </p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-              Completed
-            </p>
-            <p className="font-cormorant mt-1 text-3xl font-bold text-sky-600">
+          <div className="rounded-xl border-l-4 border-blue-500 bg-white p-4 shadow">
+            <p className="font-quicksand text-sm text-gray-500">Completed</p>
+            <p className="font-cormorant text-2xl font-bold text-blue-600">
               {stats.completed}
+            </p>
+          </div>
+          <div className="rounded-xl border-l-4 border-red-500 bg-white p-4 shadow">
+            <p className="font-quicksand text-sm text-gray-500">Cancelled</p>
+            <p className="font-cormorant text-2xl font-bold text-red-600">
+              {stats.cancelled}
             </p>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm md:flex-row md:items-center">
-          <div className="relative w-full flex-1">
-            <SearchIcon className="absolute top-1/2 left-3.5 -translate-y-1/2 text-sm text-gray-400" />
+        {/* Filters and Search */}
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-xl bg-white p-4 shadow md:flex-row md:items-center">
+          <div className="relative w-full flex-1 md:w-auto">
+            <SearchIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, email, or service..."
+              placeholder="Search by name, email, phone, address, or service..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="font-quicksand w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-4 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-400"
+              className="font-quicksand w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 focus:border-transparent focus:ring-2 focus:ring-purple-400"
             />
           </div>
-          <div className="flex w-full items-center gap-3 md:w-auto">
-            <FilterIcon className="text-sm text-gray-400" />
+          <div className="flex w-full items-center gap-2 md:w-auto">
+            <FilterIcon className="text-gray-500" />
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="font-quicksand w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-400 md:w-auto"
+              className="font-quicksand w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-purple-400 md:w-auto"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -246,72 +424,102 @@ const AdminBooking = () => {
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            <button
+              onClick={fetchBookings}
+              className="rounded-lg p-2 text-purple-600 transition hover:bg-purple-50"
+              title="Refresh"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            </button>
           </div>
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:block">
+        {/* Desktop Table View */}
+        <div className="hidden overflow-hidden rounded-xl bg-white shadow md:block">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/80">
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
+              <thead className="spiffy-bg text-white">
+                <tr>
+                  <th className="font-quicksand px-6 py-3 text-left text-sm font-semibold">
                     Customer
                   </th>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                  <th className="font-quicksand px-6 py-3 text-left text-sm font-semibold">
                     Service
                   </th>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Appointment
+                  <th className="font-quicksand px-6 py-3 text-left text-sm font-semibold">
+                    Address
                   </th>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                  <th className="font-quicksand px-6 py-3 text-left text-sm font-semibold">
+                    Date & Time
+                  </th>
+                  <th className="font-quicksand px-6 py-3 text-left text-sm font-semibold">
+                    Phone
+                  </th>
+                  <th className="font-quicksand px-6 py-3 text-left text-sm font-semibold">
                     Status
                   </th>
-                  <th className="font-quicksand px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Payment
-                  </th>
-                  <th className="font-quicksand px-6 py-4 text-center text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                  <th className="font-quicksand px-6 py-3 text-center text-sm font-semibold">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-200">
                 {filteredBookings.map((booking) => (
                   <tr
                     key={booking.id}
-                    className="transition-colors hover:bg-purple-50/30"
+                    className="transition hover:bg-purple-50"
                   >
                     <td className="px-6 py-4">
-                      <div className="font-quicksand text-sm font-medium text-gray-800">
+                      <div className="font-quicksand font-medium text-gray-900">
                         {booking.name}
                       </div>
-                      <div className="font-quicksand text-xs text-gray-400">
+                      <div className="font-quicksand text-sm text-gray-500">
                         {booking.email}
                       </div>
                     </td>
-                    <td className="font-quicksand px-6 py-4 text-sm text-gray-600">
-                      {booking.service || "—"}
+                    <td className="font-quicksand px-6 py-4 text-gray-700">
+                      {booking.service || "N/A"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-quicksand text-sm text-gray-700">
-                        {booking.appointment_date}
+                        {booking.street_address || "N/A"}
                       </div>
-                      <div className="font-quicksand text-xs text-gray-400">
+                      {booking.zipcode && (
+                        <div className="font-quicksand text-xs text-gray-500">
+                          ZIP: {booking.zipcode}
+                        </div>
+                      )}
+                    </td>
+                    <td className="font-quicksand px-6 py-4 text-gray-700">
+                      {booking.appointment_date} <br />
+                      <span className="text-sm text-gray-500">
                         {booking.appointment_time}
-                      </div>
+                      </span>
+                    </td>
+                    <td className="font-quicksand px-6 py-4 text-sm text-gray-600">
+                      {formatPhone(booking.phone)}
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={booking.status} />
                     </td>
-                    <td className="font-quicksand px-6 py-4 text-xs text-gray-500 capitalize">
-                      {booking.payment_preference?.replace("_", " ") || "—"}
-                    </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => openBookingDetails(booking)}
-                          className="rounded-lg p-1.5 text-indigo-500 transition hover:bg-indigo-50"
-                          title="View"
+                          onClick={() => viewBookingDetails(booking)}
+                          className="rounded-full p-1.5 text-blue-600 transition hover:bg-blue-50"
+                          title="View Details"
                         >
                           <ViewIcon fontSize="small" />
                         </button>
@@ -320,17 +528,16 @@ const AdminBooking = () => {
                           onChange={(e) =>
                             handleStatusUpdate(booking.id, e.target.value)
                           }
-                          disabled={updating}
-                          className="font-quicksand rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:border-transparent focus:ring-2 focus:ring-purple-400"
+                          className="font-quicksand rounded border border-gray-300 px-2 py-1 text-xs focus:ring-1 focus:ring-purple-400"
                         >
                           <option value="pending">Pending</option>
-                          <option value="confirmed">Confirm</option>
-                          <option value="completed">Complete</option>
-                          <option value="cancelled">Cancel</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
                         </select>
                         <button
                           onClick={() => handleDelete(booking.id)}
-                          className="rounded-lg p-1.5 text-rose-500 transition hover:bg-rose-50"
+                          className="rounded-full p-1.5 text-red-600 transition hover:bg-red-50"
                           title="Delete"
                         >
                           <DeleteIcon fontSize="small" />
@@ -341,13 +548,11 @@ const AdminBooking = () => {
                 ))}
                 {filteredBookings.length === 0 && (
                   <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="text-4xl">📋</div>
-                        <p className="font-quicksand text-gray-400">
-                          No bookings found
-                        </p>
-                      </div>
+                    <td
+                      colSpan="7"
+                      className="font-quicksand px-6 py-8 text-center text-gray-500"
+                    >
+                      No bookings found matching your criteria.
                     </td>
                   </tr>
                 )}
@@ -356,55 +561,62 @@ const AdminBooking = () => {
           </div>
         </div>
 
-        {/* Mobile/Tablet Card View */}
-        <div className="space-y-4 lg:hidden">
+        {/* Mobile Card View */}
+        <div className="space-y-4 md:hidden">
           {filteredBookings.map((booking) => (
             <div
               key={booking.id}
-              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md"
+              className="rounded-xl border-l-4 border-purple-400 bg-white p-4 shadow"
             >
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-cormorant spiffy-text-dark text-lg font-bold">
                     {booking.name}
                   </h3>
-                  <p className="font-quicksand text-sm text-gray-500">
+                  <p className="font-quicksand text-sm text-gray-600">
                     {booking.email}
+                  </p>
+                  <p className="font-quicksand flex items-center gap-1 text-sm text-gray-600">
+                    <PhoneIcon className="h-3 w-3" />{" "}
+                    {formatPhone(booking.phone)}
                   </p>
                 </div>
                 <StatusBadge status={booking.status} />
               </div>
-              <div className="font-quicksand mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div className="font-quicksand mt-3 space-y-1 text-sm text-gray-700">
                 <div>
-                  <span className="text-xs text-gray-400">Service</span>
-                  <p className="text-gray-700">{booking.service || "—"}</p>
+                  <span className="font-medium">Service:</span>{" "}
+                  {booking.service || "N/A"}
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400">Payment</span>
-                  <p className="text-gray-700 capitalize">
-                    {booking.payment_preference?.replace("_", " ") || "—"}
-                  </p>
+                  <span className="font-medium">Address:</span>{" "}
+                  {booking.street_address || "N/A"}
+                </div>
+                {booking.zipcode && (
+                  <div>
+                    <span className="font-medium">ZIP:</span> {booking.zipcode}
+                  </div>
+                )}
+                <div>
+                  <span className="font-medium">Date:</span>{" "}
+                  {booking.appointment_date} at {booking.appointment_time}
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400">Date</span>
-                  <p className="text-gray-700">{booking.appointment_date}</p>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-400">Time</span>
-                  <p className="text-gray-700">{booking.appointment_time}</p>
+                  <span className="font-medium">Consent:</span>{" "}
+                  {booking.consent_to_contact ? "✅ Yes" : "❌ No"}
                 </div>
               </div>
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-gray-50 pt-3">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex gap-1">
                   <button
-                    onClick={() => openBookingDetails(booking)}
-                    className="rounded-lg p-1.5 text-indigo-500 transition hover:bg-indigo-50"
+                    onClick={() => viewBookingDetails(booking)}
+                    className="rounded-full p-1.5 text-blue-600 transition hover:bg-blue-50"
                   >
                     <ViewIcon fontSize="small" />
                   </button>
                   <button
                     onClick={() => handleDelete(booking.id)}
-                    className="rounded-lg p-1.5 text-rose-500 transition hover:bg-rose-50"
+                    className="rounded-full p-1.5 text-red-600 transition hover:bg-red-50"
                   >
                     <DeleteIcon fontSize="small" />
                   </button>
@@ -414,148 +626,26 @@ const AdminBooking = () => {
                   onChange={(e) =>
                     handleStatusUpdate(booking.id, e.target.value)
                   }
-                  disabled={updating}
-                  className="font-quicksand rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:border-transparent focus:ring-2 focus:ring-purple-400"
+                  className="font-quicksand rounded border border-gray-300 px-2 py-1 text-xs focus:ring-1 focus:ring-purple-400"
                 >
                   <option value="pending">Pending</option>
-                  <option value="confirmed">Confirm</option>
-                  <option value="completed">Complete</option>
-                  <option value="cancelled">Cancel</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
             </div>
           ))}
           {filteredBookings.length === 0 && (
-            <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center shadow-sm">
-              <div className="mb-2 text-4xl">📋</div>
-              <p className="font-quicksand text-gray-400">No bookings found</p>
+            <div className="font-quicksand rounded-xl bg-white p-8 text-center text-gray-500 shadow">
+              No bookings found.
             </div>
           )}
         </div>
-
-        {/* Booking Detail Modal */}
-        {isModalOpen && selectedBooking && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
-          >
-            <div
-              className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="sticky top-0 flex items-center justify-between rounded-t-2xl border-b border-gray-100 bg-white px-6 py-4">
-                <h2 className="font-cinzel spiffy-text-dark text-xl font-bold">
-                  Booking Details
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="rounded-lg p-1.5 transition hover:bg-gray-100"
-                >
-                  <CloseIcon />
-                </button>
-              </div>
-              <div className="space-y-4 p-6">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Name
-                    </p>
-                    <p className="font-quicksand mt-1 font-medium text-gray-800">
-                      {selectedBooking.name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Email
-                    </p>
-                    <p className="font-quicksand mt-1 text-gray-800">
-                      {selectedBooking.email}
-                    </p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Address
-                    </p>
-                    <p className="font-quicksand mt-1 text-gray-800">
-                      {selectedBooking.address}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Service
-                    </p>
-                    <p className="font-quicksand mt-1 text-gray-800">
-                      {selectedBooking.service || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Payment
-                    </p>
-                    <p className="font-quicksand mt-1 text-gray-800 capitalize">
-                      {selectedBooking.payment_preference?.replace("_", " ") ||
-                        "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Date
-                    </p>
-                    <p className="font-quicksand mt-1 text-gray-800">
-                      {selectedBooking.appointment_date}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Time
-                    </p>
-                    <p className="font-quicksand mt-1 text-gray-800">
-                      {selectedBooking.appointment_time}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Status
-                    </p>
-                    <div className="mt-1">
-                      <StatusBadge status={selectedBooking.status} />
-                    </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="font-quicksand text-xs tracking-wider text-gray-400 uppercase">
-                      Created
-                    </p>
-                    <p className="font-quicksand mt-1 text-sm text-gray-600">
-                      {new Date(selectedBooking.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-4">
-                  <select
-                    value={selectedBooking.status}
-                    onChange={(e) =>
-                      handleStatusUpdate(selectedBooking.id, e.target.value)
-                    }
-                    disabled={updating}
-                    className="font-quicksand rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-400"
-                  >
-                    <option value="pending">Set Pending</option>
-                    <option value="confirmed">Set Confirmed</option>
-                    <option value="completed">Set Completed</option>
-                    <option value="cancelled">Set Cancelled</option>
-                  </select>
-                  <button
-                    onClick={() => handleDelete(selectedBooking.id)}
-                    className="font-quicksand rounded-xl bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-100"
-                  >
-                    Delete Booking
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Detail Modal */}
+      {showDetailModal && <DetailModal />}
     </div>
   );
 };
